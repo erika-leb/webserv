@@ -2,20 +2,116 @@
 
 Server::Server()
 {
+	struct sockaddr_in addr;
+	struct epoll_event event;
+
+	_fdListen = socket(AF_INET, SOCK_STREAM, 0);
+	if (_fdListen == -1)
+		throw std::runtime_error("socket() failed " + static_cast<std::string>(strerror(errno)));
+	int optval = 1; // a enlever apres
+	setsockopt(_fdListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)); //a enlever apres
+	ft_memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(8080);
+	if (bind(_fdListen, (struct sockaddr*)&addr, sizeof(addr))) // utile car on est le serveur, inutile pour le client, equivaut a lister son numero dans l'annuaire
+	{
+		close(_fdListen);
+		throw std::runtime_error("bind() failed " + static_cast<std::string>(strerror(errno)));
+	}
+	if(listen(_fdListen, SOMAXCONN) < 0)
+	{
+		close(_fdListen);
+		throw std::runtime_error("listen() failed " + static_cast<std::string>(strerror(errno)));
+	}
+	make_non_blocking(_fdListen);
+	_poll = epoll_create(1);
+	event.data.fd = _fdListen;
+	event.events = EPOLLIN | EPOLLET; //verifier pk
+	epoll_ctl(_poll, EPOLL_CTL_ADD, _fdListen, &event);
+	_listSock.push_back(std::make_pair(_fdListen, -2)); //mettre valeur de derniere connection plus tard
+}
+
+void Server::launch()
+{
+	struct epoll_event event;
+
+	struct sockaddr_in cli;
+	socklen_t cli_len;
+	int client_fd;
+	char buff[4096];
+	int n;
+	int d;
+
+	while(1) //on arrete avec ctrl+c voir pour recuperer le signal et libere tout proprement
+	{
+		// perror("right");
+		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
+		for (int i = 0; i < d; i++)
+		{
+			// perror("ici");
+			if (_events[i].data.fd == _fdListen) // nouvelle connexion entrante pk ?
+			{
+				cli_len = sizeof(cli);
+				client_fd = accept(_fdListen, (struct sockaddr *)&cli, &cli_len);
+				if (client_fd < 0)
+				{
+					std::cout << "accept() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+					continue ; // imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+				}
+				make_non_blocking(client_fd);
+				event.data.fd = client_fd;
+				event.events = EPOLLIN | EPOLLET;
+				epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
+				std::cout << "Client connecté, fd= " << client_fd << std::endl; // a enlever
+			}
+			else // la socket n'est pas listenFd
+			{
+				client_fd = _events[i].data.fd;
+				n = read(client_fd, buff, sizeof(buff) - 1);
+				if (n < 0 && errno != EAGAIN) //a voir ce cas,echec ou client deconnecte ?
+				{
+					close(client_fd);
+					std::cout << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+					continue ; // imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+				}
+				if (n == 0)
+				{
+					close(client_fd);
+					continue;
+				}
+				buff[n] = '\0';
+				std::cout << "Recu (" << n << " octets): " << std::endl;
+				std::cout << buff << std::endl;
+				// ici on parse la demande
+				const char* resp = "HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/plain\r\n"
+				"Content-Length: 12\r\n"
+				"\r\n"
+				"Hello world!\n";
+				if (send(client_fd, resp, ft_strlen(resp), MSG_NOSIGNAL) < 0) // MSG empeche le sigpipe pas ouf
+				{
+					std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+					// imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+				}
+			}
+		}
+	}
 }
 
 Server::Server(const Server &src)
 {
+	(void) src;
 }
 
 Server::~Server()
 {
+	for (std::vector< std::pair<int, int> >::const_iterator it = _listSock.begin(); it != _listSock.end(); ++it)
+		close(it->first);
 }
 
 Server &Server::operator=(const Server &rhs)
 {
-	if (this != &rhs)
-	{
-	}
+	(void)rhs;
 	return (*this);
 }

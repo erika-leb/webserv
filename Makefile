@@ -1,13 +1,14 @@
 NAME = webserv
 
 SRCS = ./sources/main.cpp \
+	./sources/Server.cpp \
 	./sources/utils.cpp
 
 OBJS = $(SRCS:./sources/%.cpp=./objects/%.o)
 DEPS = $(OBJS:.o=.d)
 
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -I./includes -MMD -MP
+CFLAGS = -Wall -Wextra -Werror -ggdb -std=c++98 -I./includes -MMD -MP
 
 all: $(NAME)
 
