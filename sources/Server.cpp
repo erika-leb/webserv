@@ -29,7 +29,6 @@ Server::Server()
 	event.data.fd = _fdListen;
 	event.events = EPOLLIN | EPOLLET; //verifier pk
 	epoll_ctl(_poll, EPOLL_CTL_ADD, _fdListen, &event);
-	_listSock.push_back(std::make_pair(_fdListen, -2)); //mettre valeur de derniere connection plus tard
 }
 
 void Server::launch()
@@ -63,41 +62,76 @@ void Server::launch()
 				event.data.fd = client_fd;
 				event.events = EPOLLIN | EPOLLET;
 				epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
+				add_client(client_fd, "", false);
 				std::cout << "Client connecté, fd= " << client_fd << std::endl; // a enlever
 			}
 			else // la socket n'est pas listenFd
 			{
 				client_fd = _events[i].data.fd;
-				n = read(client_fd, buff, sizeof(buff) - 1);
-				if (n < 0 && errno != EAGAIN) //a voir ce cas,echec ou client deconnecte ?
+				while (1)
 				{
-					close(client_fd);
-					std::cout << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
-					continue ; // imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+					n = read(client_fd, buff, sizeof(buff)); // faut il un -1 ici ? et donc un \0  apres ?
+					if (n < 0)
+					{
+						if (errno == EAGAIN || errno == EWOULDBLOCK)
+							break ; //plus rien a lire a voir ce qu on fait ici
+						else //vraie erreur
+						{
+							close(client_fd);
+							std::cout << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+							continue ; // imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+						}
+					}
+					else if (n == 0)
+					{
+						for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+						{
+							if (client_fd == it->fd)
+							{
+								_clients.erase(it);
+								break ;
+							}
+						}
+						epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
+						close(client_fd);
+						continue;
+					}
+					else
+					{
+						for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+						{
+							if (it->fd == client_fd)
+							{
+								it->buff.append(buff); //doute ici
+								if (it->buff.find("\r\n\r\n") != std::string::npos)
+								{
+									//elle est complete faut traiter la demande
+								}
+								break ; //doute ici
+							}
+						}
+						//ajouter a string verifier si finit et traiter la demande
+					}
 				}
-				if (n == 0)
-				{
-					close(client_fd);
-					continue;
-				}
-				buff[n] = '\0';
-				std::cout << "Recu (" << n << " octets): " << std::endl;
-				std::cout << buff << std::endl;
+				// buff[n] = '\0';
+				// std::cout << "Recu (" << n << " octets): " << std::endl;
+				// std::cout << buff << std::endl;
 				// ici on parse la demande
-				const char* resp = "HTTP/1.1 200 OK\r\n"
-				"Content-Type: text/plain\r\n"
-				"Content-Length: 12\r\n"
-				"\r\n"
-				"Hello world!\n";
-				if (send(client_fd, resp, ft_strlen(resp), MSG_NOSIGNAL) < 0) // MSG empeche le sigpipe pas ouf
-				{
-					std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
-					// imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
-				}
+				// const char* resp = "HTTP/1.1 200 OK\r\n"
+				// "Content-Type: text/plain\r\n"
+				// "Content-Length: 12\r\n"
+				// "\r\n"
+				// "Hello world!\n";
+				// if (send(client_fd, resp, ft_strlen(resp), MSG_NOSIGNAL) < 0) // MSG empeche le sigpipe pas ouf
+				// {
+				// 	std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+				// 	// imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+				// }
 			}
 		}
 	}
 }
+
 
 Server::Server(const Server &src)
 {
@@ -106,12 +140,23 @@ Server::Server(const Server &src)
 
 Server::~Server()
 {
-	for (std::vector< std::pair<int, int> >::const_iterator it = _listSock.begin(); it != _listSock.end(); ++it)
-		close(it->first);
+	close (_fdListen);
+	for (std::vector< Client >::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+		close(it->fd);
+	close(_poll);
 }
 
 Server &Server::operator=(const Server &rhs)
 {
 	(void)rhs;
 	return (*this);
+}
+
+void Server::add_client(int fd, std::string str, bool d)
+{
+	Client cli_data;
+	cli_data.fd = fd;
+	cli_data.buff = str;
+	cli_data.request_complete = d;
+	_clients.push_back(cli_data);
 }

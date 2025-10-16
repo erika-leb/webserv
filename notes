@@ -1,0 +1,116 @@
+🧩 ÉTAPE 1 — Vérifie que ton serveur “écoute” correctement
+
+Avant tout, assure-toi que ton serveur :
+
+crée la socket d’écoute avec socket(),
+
+la rend non bloquante (fcntl(fd, F_SETFL, O_NONBLOCK)),
+
+la lie (bind()),
+
+l’écoute (listen()),
+
+l’ajoute dans poll() comme “socket d’écoute”.
+
+✅ Test :
+
+curl localhost:8080
+
+→ tu dois voir une tentative de connexion (même si tu ne renvoies encore rien).
+Si tu vois ton message “connexion acceptée”, c’est bon.
+
+⚙️ ÉTAPE 2 — Gérer l’acceptation des nouveaux clients
+
+Quand poll() indique un événement POLLIN sur la socket d’écoute :
+
+tu fais accept(),
+
+tu rends le nouveau socket client non bloquant,
+
+tu l’ajoutes dans la liste des pollfd surveillés.
+
+💡 Attention : il faut toujours vérifier le retour de accept() et errno == EAGAIN si tu es en non-bloquant.
+
+📥 ÉTAPE 3 — Lire la requête HTTP
+
+Quand poll() te signale POLLIN sur un client :
+
+tu appelles recv() ou read() dans une boucle (jusqu’à EAGAIN ou n == 0).
+
+tu stockes les données reçues dans un buffer (souvent une std::string par client).
+
+⚠️ Quand n == 0, cela veut dire que le client a fermé la connexion → tu supprimes la socket du poll().
+
+📜 ÉTAPE 4 — Parser la requête HTTP
+
+Dès que tu as reçu une requête complète (tu détectes "\r\n\r\n" à la fin des headers), tu la analyses :
+
+Sépare la première ligne → méthode, chemin, version.
+Exemple : "GET /index.html HTTP/1.1"
+
+Lis les headers (jusqu’à la ligne vide).
+
+Si Content-Length existe → lis le body de la requête.
+
+⚙️ Tu peux écrire une petite classe HTTPRequest qui stocke :
+struct HTTPRequest {
+	std::string method;
+	std::string path;
+	std::string version;
+	std::map<std::string, std::string> headers;
+	std::string body;
+};
+
+📤 ÉTAPE 5 — Générer une réponse HTTP
+
+Une fois la requête complète et parsée, ton serveur doit répondre.
+Par exemple pour une requête GET basique :
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 13
+
+Hello, world!
+
+Ton code doit donc construire une HTTPResponse :
+struct HTTPResponse {
+	std::string status_line;
+	std::map<std::string, std::string> headers;
+	std::string body;
+};Et l’envoyer avec send() dans le socket client.
+
+🔁 ÉTAPE 6 — Ajouter la gestion POLLOUT
+
+Une fois ta réponse prête, tu modifies ton pollfd :
+
+tu désactives POLLIN,
+
+tu actives POLLOUT (tu veux maintenant écrire sur la socket).
+
+Quand poll() te signale POLLOUT, tu fais un send() non bloquant.
+Quand toute la réponse a été envoyée :
+
+si la connexion doit rester ouverte (Connection: keep-alive) → tu repasses en POLLIN;
+
+sinon tu fermes la socket.
+
+🔧 ÉTAPE 7 — Gérer plusieurs clients et le nettoyage
+
+Tu dois gérer proprement :
+
+suppression des sockets mortes (n == 0 ou POLLERR),
+
+libération de la mémoire,
+
+et éventuellement un timeout (si un client reste ouvert sans rien envoyer).
+
+🚀 ÉTAPE 8 — Lire le fichier de configuration (comme nginx.conf)
+
+Tu dois maintenant commencer à :
+
+parser un fichier config.conf que ton exécutable prend en paramètre ;
+
+créer plusieurs serveurs (listen 8080, listen 8081, etc.) ;
+
+gérer les “locations” (location /upload, location /images...).
+
+Mais cette étape vient après que ton serveur minimal fonctionne.
