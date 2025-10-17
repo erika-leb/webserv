@@ -1,4 +1,6 @@
+#include "all.hpp"
 #include "server.hpp"
+#include "Request.hpp"
 
 // int initServ()
 // {

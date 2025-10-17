@@ -8,22 +8,27 @@ Server::Server()
 	_fdListen = socket(AF_INET, SOCK_STREAM, 0);
 	if (_fdListen == -1)
 		throw std::runtime_error("socket() failed " + static_cast<std::string>(strerror(errno)));
+
 	int optval = 1; // a enlever apres
 	setsockopt(_fdListen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)); //a enlever apres
+
 	ft_memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(8080);
+
 	if (bind(_fdListen, (struct sockaddr*)&addr, sizeof(addr))) // utile car on est le serveur, inutile pour le client, equivaut a lister son numero dans l'annuaire
 	{
 		close(_fdListen);
 		throw std::runtime_error("bind() failed " + static_cast<std::string>(strerror(errno)));
 	}
+
 	if(listen(_fdListen, SOMAXCONN) < 0)
 	{
 		close(_fdListen);
 		throw std::runtime_error("listen() failed " + static_cast<std::string>(strerror(errno)));
 	}
+
 	make_non_blocking(_fdListen);
 	_poll = epoll_create(1);
 	event.data.fd = _fdListen;
@@ -34,11 +39,10 @@ Server::Server()
 void Server::launch()
 {
 	struct epoll_event event;
-
 	struct sockaddr_in cli;
 	socklen_t cli_len;
 	int client_fd;
-	char buff[4096];
+	char buff[MAXLINE];
 	int n;
 	int d;
 

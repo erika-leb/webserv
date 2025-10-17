@@ -4,6 +4,7 @@ SRCS = ./sources/main.cpp \
 	./sources/Server.cpp \
 	./sources/utils.cpp
 
+INC_DIR = includes
 OBJS = $(SRCS:./sources/%.cpp=./objects/%.o)
 DEPS = $(OBJS:.o=.d)
 
@@ -16,10 +17,10 @@ all: $(NAME)
 	mkdir -p ./objects
 
 ./objects/%.o: ./sources/%.cpp | ./objects
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -I $(INC_DIR) -c $< -o $@
 
 $(NAME): $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) -o $(NAME)
+	$(CC) $(OBJS) $(CFLAGS) -I $(INC_DIR) -o $(NAME)
 
 -include $(DEPS)
 
