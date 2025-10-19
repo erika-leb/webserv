@@ -1,3 +1,15 @@
+Erika a faire :
+-transformer Client en classe
+-etudier l'envoi de la reponse
+
+
+
+
+
+
+
+
+
 🧩 ÉTAPE 1 — Vérifie que ton serveur “écoute” correctement
 
 Avant tout, assure-toi que ton serveur :

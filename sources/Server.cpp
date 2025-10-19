@@ -1,10 +1,14 @@
 #include "server.hpp"
 
+volatile sig_atomic_t Server::flag = 0;
+// volatile sig_atomic_t Server::nbServ = 0; //utile ?
+
 Server::Server()
 {
 	struct sockaddr_in addr;
 	struct epoll_event event;
 
+	// nbServ++;\_
 	_fdListen = socket(AF_INET, SOCK_STREAM, 0);
 	if (_fdListen == -1)
 		throw std::runtime_error("socket() failed " + static_cast<std::string>(strerror(errno)));
@@ -46,7 +50,7 @@ void Server::launch()
 	int n;
 	int d;
 
-	while(1) //on arrete avec ctrl+c voir pour recuperer le signal et libere tout proprement
+	while(flag == 0) //on arrete avec ctrl+c voir pour recuperer le signal et libere tout proprement
 	{
 		// perror("right");
 		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
@@ -66,7 +70,8 @@ void Server::launch()
 				event.data.fd = client_fd;
 				event.events = EPOLLIN | EPOLLET;
 				epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
-				add_client(client_fd, "", false);
+				// add_client(client_fd, "", false);
+				_clients.push_back(new Client(client_fd));
 				std::cout << "Client connecté, fd= " << client_fd << std::endl; // a enlever
 			}
 			else // la socket n'est pas listenFd
@@ -88,9 +93,9 @@ void Server::launch()
 					}
 					else if (n == 0)
 					{
-						for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+						for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 						{
-							if (client_fd == it->fd)
+							if (client_fd == (*it)->getFd())
 							{
 								_clients.erase(it);
 								break ;
@@ -102,14 +107,17 @@ void Server::launch()
 					}
 					else
 					{
-						for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+						buff[n] = '\0';
+						for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 						{
-							if (it->fd == client_fd)
+							if (client_fd == (*it)->getFd())
 							{
-								it->buff.append(buff); //doute ici
-								if (it->buff.find("\r\n\r\n") != std::string::npos)
+								(*it)->addBuff(buff);
+								// it->buff.append(buff); //doute ici
+								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos)
 								{
 									//elle est complete faut traiter la demande
+									// et renvoyer quelque chose
 								}
 								break ; //doute ici
 							}
@@ -145,8 +153,10 @@ Server::Server(const Server &src)
 Server::~Server()
 {
 	close (_fdListen);
-	for (std::vector< Client >::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
-		close(it->fd);
+	// delete _clients;
+	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+		// close((*it)->getFd());
+		delete (*it);
 	close(_poll);
 }
 
@@ -156,11 +166,20 @@ Server &Server::operator=(const Server &rhs)
 	return (*this);
 }
 
-void Server::add_client(int fd, std::string str, bool d)
+// void Server::add_client(int fd, std::string str, bool d)
+// {
+// 	Client cli_data;
+// 	cli_data.fd = fd;
+// 	cli_data.buff = str;
+// 	cli_data.request_complete = d;
+// 	_clients.push_back(cli_data);
+// }
+
+void Server::handleSigint(int sig)
 {
-	Client cli_data;
-	cli_data.fd = fd;
-	cli_data.buff = str;
-	cli_data.request_complete = d;
-	_clients.push_back(cli_data);
+	if (sig == SIGINT)
+	{
+		std::cout << "serveur arrete proprement" << std::endl;
+		flag = 1;
+	}
 }

@@ -2,7 +2,8 @@ NAME = webserv
 
 SRCS = ./sources/main.cpp \
 	./sources/Server.cpp \
-	./sources/utils.cpp
+	./sources/utils.cpp \
+	./sources/Client.cpp
 
 INC_DIR = includes
 OBJS = $(SRCS:./sources/%.cpp=./objects/%.o)
