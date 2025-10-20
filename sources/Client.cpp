@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _buff("")
+Client::Client(int fd) : _fd(fd), _buff(""), _sendBuff("")
 {
 }
 
@@ -37,4 +37,24 @@ void Client::addBuff(char *str)
 std::string Client::getBuff(void) const
 {
 	return (_buff);
+}
+
+const char *Client::getSendBuffer()
+{
+	return (_sendBuff.c_str());
+}
+
+void Client::sendBuffErase(int n)
+{
+
+}
+
+size_t Client::setSendSize()
+{
+	return (_sendBuff.size());
+}
+
+std::string Client::getToSend()
+{
+	return (_sendBuff);
 }

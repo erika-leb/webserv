@@ -21,6 +21,7 @@ class Server {
 
 		// void add_client(int fd, std::string str, bool d);
 		static void handleSigint(int sig);
+		void modifyEvent(int fd, uint32_t events);
 
 	private:
 
