@@ -20,7 +20,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-
+# define CLOSED -2
 #define MAXLINE 4096
 
 #endif

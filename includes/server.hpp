@@ -22,11 +22,11 @@ class Server {
 		// void add_client(int fd, std::string str, bool d);
 		static void handleSigint(int sig);
 		void modifyEvent(int fd, uint32_t events);
+		void deleteSocket(int client_fd);
 
 	private:
 
 		static volatile sig_atomic_t flag;
-		// static volatile sig_atomic_t nbServ;
 		int _poll;
 		int _fdListen;
 		struct epoll_event _events[SOMAXCONN];

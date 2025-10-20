@@ -1,6 +1,6 @@
 Erika a faire :
--transformer Client en classe
--etudier l'envoi de la reponse
+-etudier l'envoi de la reponse : faire un test pour tout les cas et regarder les leaks
+- simplifier les fonctions
 
 
 

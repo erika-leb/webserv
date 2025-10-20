@@ -31,7 +31,7 @@ int Client::getFd() const
 
 void Client::addBuff(char *str)
 {
-	_buff.append(str); //doute ici
+	_buff.append(str);
 }
 
 std::string Client::getBuff(void) const
@@ -46,7 +46,10 @@ const char *Client::getSendBuffer()
 
 void Client::sendBuffErase(int n)
 {
-
+	if (n <= _sendBuff.size())
+		_sendBuff.clear();
+	else
+		_sendBuff.erase(0, n);
 }
 
 size_t Client::setSendSize()
