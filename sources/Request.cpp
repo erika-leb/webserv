@@ -1,7 +1,8 @@
 #include "Request.hpp"
 
-Request::Request( const char *req ) {
-	// parse req into map<key, value> of std::string
+Request::Request( Client& cli ) {
+	std::stringstream ss(cli.getBuff());
+	std::string res;
 }
 
 Request::Request( const Request& cpy ) {
@@ -14,6 +15,18 @@ Request& Request::operator=( const Request& other ) {
 	return *this;
 }
 
+Request::~Request() {}
+
+std::map<std::string, std::string> Request::getContainer() const {
+	return _spec;
+}
+
 std::ostream& operator<<( std::ostream& flux, const Request& r ) {
-	std::map<std::string, std::string>::const_iterator it;
+	std::map<std::string, std::string>::iterator it = r.getContainer().begin();
+
+	for (it; it != r.getContainer().end(); it++) {
+		flux << it->first << ": " << it->second << std::endl;
+	}
+	
+	return flux;
 }
