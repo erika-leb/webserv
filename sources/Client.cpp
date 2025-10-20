@@ -46,7 +46,7 @@ const char *Client::getSendBuffer()
 
 void Client::sendBuffErase(int n)
 {
-
+	n += 0;
 }
 
 size_t Client::setSendSize()

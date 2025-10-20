@@ -127,6 +127,10 @@ void Server::launch()
 									{
 										//elle est complete faut traiter la demande
 										// et renvoyer quelque chose
+										Request req(*(*it));
+										req.parseHttp();
+										req.parseSpec();
+										std::cout << req;
 										modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 									}
 									// break ; //doute ici
@@ -135,24 +139,24 @@ void Server::launch()
 						}
 					}
 				}
-				if (_events[i].events & EPOLLOUT)
-				{
-					client_fd = _events[i].data.fd;
-					for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-					{
-						if (client_fd == (*it)->getFd())
-						{
-							n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0); //fonction a faire
-							if (n > 0)
-							{
-								(*it)->sendBuffErase(n); // a faire
-								if (((*it)->getToSend()).empty()) // tout a ete envoye
-									modifyEvent(client_fd, EPOLLIN);
-							}
-							else if // voir cas si -1 EAGAIN, ou 0
-						}
-					}
-				}
+				// if (_events[i].events & EPOLLOUT)
+				// {
+				// 	client_fd = _events[i].data.fd;
+				// 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+				// 	{
+				// 		if (client_fd == (*it)->getFd())
+				// 		{
+				// 			n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0); //fonction a faire
+				// 			if (n > 0)
+				// 			{
+				// 				(*it)->sendBuffErase(n); // a faire
+				// 				if (((*it)->getToSend()).empty()) // tout a ete envoye
+				// 					modifyEvent(client_fd, EPOLLIN);
+				// 			}
+				// 			else if // voir cas si -1 EAGAIN, ou 0
+				// 		}
+				// 	}
+				// }
 
 				// buff[n] = '\0';
 				// std::cout << "Recu (" << n << " octets): " << std::endl;
