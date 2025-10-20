@@ -130,6 +130,10 @@ void Server::launch()
 									{
 										//elle est complete faut traiter la demande
 										// et renvoyer quelque chose
+										Request req(*(*it));
+										req.parseHttp();
+										req.parseSpec();
+										std::cout << req;
 										modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 										(*it)->clearRequestBuff(); // erase the processed request
 									}

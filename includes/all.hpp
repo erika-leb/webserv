@@ -9,6 +9,7 @@
 #include <csignal>
 #include <sstream>
 #include <cerrno>
+#include <algorithm>
 
 /* C headers */
 #include <sys/socket.h>
