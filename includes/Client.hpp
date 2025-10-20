@@ -16,6 +16,7 @@ class Client {
 		std::string getToSend();
 		void sendBuffErase(int n);
 		size_t setSendSize();
+		void clearRequestBuff(void);
 
 	private:
 		int _fd;

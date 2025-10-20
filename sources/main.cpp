@@ -1,5 +1,5 @@
 #include "all.hpp"
-#include "server.hpp"
+#include "Server.hpp"
 #include "Request.hpp"
 
 int main()

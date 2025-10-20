@@ -1,4 +1,4 @@
-#include "server.hpp"
+#include "Server.hpp"
 
 void	*ft_memset(void *b, int c, size_t len)
 {

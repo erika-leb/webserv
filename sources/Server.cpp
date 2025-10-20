@@ -1,7 +1,6 @@
-#include "server.hpp"
+#include "Server.hpp"
 
 volatile sig_atomic_t Server::flag = 0;
-// volatile sig_atomic_t Server::nbServ = 0; //utile ?
 
 Server::Server()
 {
@@ -60,7 +59,7 @@ void Server::deleteSocket(int client_fd)
 		}
 	}
 	epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
-	close(client_fd); //on ferme le fd
+	close(client_fd);
 }
 
 void Server::launch()
@@ -73,7 +72,7 @@ void Server::launch()
 	int n;
 	int d;
 
-	while(flag == 0)
+	while(flag == 0) // faut penser a arreter ailleurs aussi
 	{
 		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
 		for (int i = 0; i < d; i++)
@@ -101,7 +100,7 @@ void Server::launch()
 					client_fd = _events[i].data.fd;
 					while (1)
 					{
-						n = read(client_fd, buff, sizeof(buff) - 1); // faut il un -1 ici ? et donc un \0  apres ?
+						n = read(client_fd, buff, sizeof(buff) - 1);
 						if (n < 0)
 						{
 							if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -109,25 +108,13 @@ void Server::launch()
 							else //vraie erreur
 							{
 								deleteSocket(client_fd);
-								// close(client_fd); // a enlever de la liste ???
 								std::cout << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
-								break ; // imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+								break ;
 							}
 						}
 						else if (n == 0)
 						{
-							// for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-							// {
-							// 	if (client_fd == (*it)->getFd())
-							// 	{
-							// 		_clients.erase(it); //on enleve le pointeur de la liste
-							// 		delete (*it); //en free le pointeur
-							// 		break ;
-							// 	}
-							// }
 							deleteSocket(client_fd);
-							// epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
-							// close(client_fd); //on ferme le fd
 							break ;
 						}
 						else
@@ -144,7 +131,7 @@ void Server::launch()
 										//elle est complete faut traiter la demande
 										// et renvoyer quelque chose
 										modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
-										// enlever la requete de buff -> ERIKA!!!!
+										(*it)->clearRequestBuff(); // erase the processed request
 									}
 									break ;
 								}
@@ -171,36 +158,15 @@ void Server::launch()
 							}
 							else if (n == 0)
 							{
-								// for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-								// {
-								// 	if (client_fd == (*it)->getFd())
-								// 	{
-								// 		_clients.erase(it); //est-ce que je fais bien le taff ici ?
-								// 		delete (*it);
-								// 		break ;
-								// 	}
-								// }
-								// epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
-								// close(client_fd);
 								deleteSocket(client_fd);
 								break ;
 							}
 							else
 							{
-								if (errno == EAGAIN)
+								if (errno == EAGAIN || errno == EWOULDBLOCK)
 									break ;
 								else // fatal error
 								{
-									// for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-									// {
-									// 	if (client_fd == (*it)->getFd())
-									// 	{
-									// 		_clients.erase(it); //est-ce que je fais bien le taff ici ?
-									// 		delete (*it);
-									// 		break ;
-									// 	}
-									// }
-									// close(client_fd);
 									deleteSocket(client_fd);
 									std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 									break ;
@@ -208,6 +174,7 @@ void Server::launch()
 							}
 						}
 					}
+					break ;
 				}
 			}
 
@@ -243,6 +210,7 @@ Server::~Server()
 	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 		// close((*it)->getFd());
 		delete (*it);
+	_clients.clear();
 	close(_poll);
 }
 

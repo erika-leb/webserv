@@ -1,7 +1,7 @@
-objects/Server.o: sources/Server.cpp includes/server.hpp includes/all.hpp \
+objects/Server.o: sources/Server.cpp includes/Server.hpp includes/all.hpp \
   includes/Client.hpp
 
-includes/server.hpp:
+includes/Server.hpp:
 
 includes/all.hpp:
 
