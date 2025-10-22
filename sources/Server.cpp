@@ -32,7 +32,8 @@ Server::Server()
 		throw std::runtime_error("listen() failed " + static_cast<std::string>(strerror(errno)));
 	}
 
-	make_non_blocking(_fdListen);
+	if (make_non_blocking(_fdListen) == -1)
+		throw std::runtime_error("failed to set socket non-blocking " + static_cast<std::string>(strerror(errno)));
 	_poll = epoll_create(1);
 	event.data.fd = _fdListen;
 	event.events = EPOLLIN | EPOLLET; //verifier pk
@@ -88,7 +89,12 @@ void Server::launch()
 						std::cout << "accept() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 						continue ;
 					}
-					make_non_blocking(client_fd);
+					if (make_non_blocking(client_fd) == -1)
+					{
+						close(client_fd);
+						std::cerr << "failed to set client socket non-blocking" << std::endl;
+						continue ;
+					}
 					event.data.fd = client_fd;
 					event.events = EPOLLIN | EPOLLET; //est-ce qu'on reste en EPOLLET ??
 					epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
@@ -104,16 +110,20 @@ void Server::launch()
 						if (n < 0)
 						{
 							if (errno == EAGAIN || errno == EWOULDBLOCK)
+							{
+								std::cout << "EAGAIN" << std::endl; // a enlever
 								break ;
+							}
 							else //vraie erreur
 							{
 								deleteSocket(client_fd);
-								std::cout << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+								std::cerr << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 								break ;
 							}
 						}
 						else if (n == 0)
 						{
+							std::cout << "client " << client_fd << "closed" << std::endl; // a enlever
 							deleteSocket(client_fd);
 							break ;
 						}
@@ -125,11 +135,11 @@ void Server::launch()
 								if (client_fd == (*it)->getFd())
 								{
 									(*it)->addBuff(buff);
-									// it->buff.append(buff); //doute ici
+									// std::cout << "Recu: " << (*it)->getBuff() << std::endl;
 									if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos)
 									{
-										//elle est complete faut traiter la demande
-										// et renvoyer quelque chose
+										// std::cout << "ici" << std::endl;
+										(*it)->addToSend();//temporaire, juste pour les test
 										Request req(*(*it));
 										req.parseHttp();
 										req.parseSpec();
@@ -154,25 +164,33 @@ void Server::launch()
 						while (1)
 						{
 							n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0);
+							std::cout << "send : n = " << n << std::endl;
 							if (n > 0)
 							{
 								(*it)->sendBuffErase(n);
+
 								if (((*it)->getToSend()).empty())
+								{
 									modifyEvent(client_fd, EPOLLIN);
+								}
 							}
 							else if (n == 0)
 							{
+								std::cout << "client " << client_fd << "closed" << std::endl; // a enlever
 								deleteSocket(client_fd);
 								break ;
 							}
 							else
 							{
 								if (errno == EAGAIN || errno == EWOULDBLOCK)
+								{
+									std::cout << "EAGAIN" << std::endl; // a enlever
 									break ;
+								}
 								else // fatal error
 								{
 									deleteSocket(client_fd);
-									std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+									std::cerr << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 									break ;
 								}
 							}
@@ -181,6 +199,8 @@ void Server::launch()
 					break ;
 				}
 			}
+
+
 
 				// buff[n] = '\0';
 				// std::cout << "Recu (" << n << " octets): " << std::endl;
@@ -210,10 +230,11 @@ Server::Server(const Server &src)
 Server::~Server()
 {
 	close (_fdListen);
-	// delete _clients;
 	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
-		// close((*it)->getFd());
+	{
+		close((*it)->getFd());
 		delete (*it);
+	}
 	_clients.clear();
 	close(_poll);
 }

@@ -69,3 +69,14 @@ void Client::clearRequestBuff()
 	n = _buff.find("\r\n\r\n");
 	_buff.erase(0, n + 4);
 }
+
+void Client::addToSend()
+{
+	const char* resp = "HTTP/1.1 200 OK\r\n"
+	"Content-Type: text/plain\r\n"
+	"Content-Length: 12\r\n"
+	"\r\n"
+	"Hello world!\n";
+
+	_sendBuff.append(static_cast<std::string>(resp));
+}

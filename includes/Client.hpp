@@ -18,6 +18,8 @@ class Client {
 		size_t setSendSize();
 		void clearRequestBuff(void);
 
+		void addToSend();//temporaire
+
 	private:
 		int _fd;
 		std::string _buff;

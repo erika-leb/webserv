@@ -12,7 +12,8 @@ def client_task(id):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((SERVER_IP, SERVER_PORT))
-        message = f"Message du client {id}"
+        # message = f"Message du client {id}"
+        message = f"GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"
         sock.sendall(message.encode())
         data = sock.recv(1024)
         print(f"Client {id} reçu: {data.decode()}")
