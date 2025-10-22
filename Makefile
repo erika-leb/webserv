@@ -8,7 +8,7 @@ SRCS = ./sources/main.cpp \
 
 INC_DIR = includes
 OBJS = $(SRCS:./sources/%.cpp=./objects/%.o)
-DEPS = $(OBJS:.o=.d)
+DEPS = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.d)
 
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -ggdb -std=c++98 -I./includes -MMD -MP
@@ -34,4 +34,8 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+launch: re
+	@echo "\nLaunching serv:"
+	@./$(NAME)
+
+.PHONY: all clean fclean re launch

@@ -38,10 +38,6 @@ int make_non_blocking(int sockfd) //rendre une socket non bloquante
 	return (fcntl(sockfd, F_SETFL, flag | O_NONBLOCK));
 }
 
-bool isBlank( char c ) {
-	return std::isspace(static_cast<unsigned char>(c));
-}
-
 
 
 

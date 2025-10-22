@@ -57,6 +57,10 @@ size_t Client::setSendSize()
 	return (_sendBuff.size());
 }
 
+void Client::setSendBuff( std::string str ) {
+	_sendBuff = str;
+}
+
 std::string Client::getToSend()
 {
 	return (_sendBuff);

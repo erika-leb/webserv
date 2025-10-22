@@ -134,6 +134,7 @@ void Server::launch()
 										req.parseHttp();
 										req.parseSpec();
 										std::cout << req;
+										req.makeResponse();
 										modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 										(*it)->clearRequestBuff(); // erase the processed request
 									}

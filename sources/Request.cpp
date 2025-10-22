@@ -30,12 +30,36 @@ std::map<std::string, std::string> Request::getSpec() const {
 std::string Request::getHttp() const {
 	std::string http;
 	
-	http = _http.action + " " + _http.pathfile;
+	http = _http.action + " " + _http.pathfile + " " + _http.protocol;
 	return http;
 }
 
+static bool isBlank( char c ) {
+	return std::isspace(static_cast<unsigned char>(c));
+}
+
 static void remove_blank(std::string& str) {
-	str.erase(std::remove_if(str.begin(), str.end(), isblank), str.end());
+	str.erase(std::remove_if(str.begin(), str.end(), isBlank), str.end());
+}
+
+static std::string getFile(std::string pathfile, size_t* fileLength) {
+	std::fstream	fs;
+	std::string		tmp, res, finalPathfile;
+
+	finalPathfile = "." + pathfile;
+	fs.open(finalPathfile.c_str(), std::ios::in);
+	if (fs.is_open()) {
+		while (std::getline(fs, tmp)) {
+			res += tmp;
+			tmp.empty();
+		}
+		fs.close();
+		*fileLength = res.size();
+	}
+	else
+		std::cout << "file not found" << std::endl;
+	
+	return res;
 }
 
 void Request::parseHttp() {
@@ -49,8 +73,8 @@ void Request::parseHttp() {
 	std::getline(_rawHttp, _http.pathfile, ' ');
 	remove_blank(_http.pathfile);
 	if (!_http.pathfile.empty())
-		_http.pathfile += "index.html";
-	// Check pathfile
+		_valid = false;
+	/* Check pathfile */ 
 
 	std::getline(_rawHttp, _http.protocol);
 	remove_blank(_http.protocol);
@@ -59,7 +83,7 @@ void Request::parseHttp() {
 			_valid = false;
 	}
 	else {
-		_http.protocol += "HTTP/1.1";
+		_http.protocol += "HTTP/1.1 empty";
 	}
 }
 
@@ -71,8 +95,38 @@ void Request::parseSpec() {
 	}
 }
 
-void Request::makeResponse() {
+static std::string date() {
+	std::time_t date = std::time(0);
+	std::tm* gmt = std::gmtime(&date);
 
+	char buff[80];
+	std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", gmt);
+
+	return std::string(buff);
+}
+
+std::string Request::makeResponse() {
+	_http.statusCode = 200;
+	std::ostringstream mess(""), tmp;
+	_file = getFile(_http.pathfile.c_str(), &_fileLength);
+
+	tmp << _http.protocol << " " << _http.statusCode << " OK" << "\r\n";
+	mess.clear();
+	mess << tmp.str();
+	mess << "Date: " << date() << "\r\n";
+	mess << "Server: " << "localhost" << "\r\n";
+	mess << "Connection: " << "keep-alive" << "\r\n";
+	mess << "Content-Type: " << "type/html" << "\r\n";
+	mess << "Content-Length: " << _fileLength << "\r\n";
+	mess << "\r\n";
+	mess << _file;
+
+	std::cout << "[DEBUG] {\n";
+	std::cout << mess.str();
+	std::cout << "\n}\n";
+
+	_cli.setSendBuff(mess.str());
+	return mess.str();
 }
 
 std::ostream& operator<<( std::ostream& flux, const Request& r ) {

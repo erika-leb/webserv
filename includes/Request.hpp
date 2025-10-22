@@ -8,7 +8,8 @@ typedef struct s_http
 {
 	std::string	action;
 	std::string	pathfile;
-	std::string protocol;
+	std::string	protocol;
+	size_t		statusCode;
 } t_http;
 
 class Request
@@ -20,6 +21,9 @@ private:
 	t_http		_http;
 	Client&		_cli;
 	bool		_valid;
+	std::string	_file;
+	size_t		_fileLength;
+
 public:
 	Request( Client& cli );
 	Request( const Request& cpy );
@@ -32,7 +36,7 @@ public:
 	void parseHttp();
 	void parseSpec();
 
-	void makeResponse();
+	std::string makeResponse();
 };
 
 std::ostream& operator<<( std::ostream& flux, const Request& r );
