@@ -27,32 +27,20 @@ static std::string getFile(std::string pathfile, size_t* fileLength) {
 	return res;
 }
 
-static void ifError(std::string& path, int sCode ) {
-
-	switch (sCode)
-	{
-	case 400:
-		path = "/errorPages/badRequest.html"; break;
-	case 404:
-		path = "/errorPages/notFound.html"; break;
-	case 405:
-		path = "/errorPages/methodNotAllowed.html"; break;
-	default:
-		break;
-	}
-}
-
-static std::string statusMess( int sCode ) {
+static std::string ifError(std::string& path, int sCode ) {
 	std::string str;
 
 	switch (sCode)
 	{
 	case 400:
+		path = "/errorPages/badRequest.html";
 		str = " Bad request"; break;
 	case 404:
+		path = "/errorPages/notFound.html";
 		str = " Not found"; break;
 	case 405:
-		str = " Method not allowed"; break;
+		path = "/errorPages/methodNotAllowed.html"; break;
+		str = " Method not allowed";
 	default:
 		str = " Ok"; break;
 	}
@@ -131,12 +119,12 @@ std::string Request::makeResponse() {
 
 	if (_valid == false) {
 		_sCode = 400;
-		_pathfile = "/errorPages/badRequest.html";
 	}
-	ifError(_pathfile, _sCode);
+
+	std::string statusMess(ifError(_pathfile, _sCode));
 	_file = getFile(_pathfile.c_str(), &_fileLength);
 
-	mess << "HTTP/1.1" << " " << _sCode << statusMess(_sCode) << "\r\n";
+	mess << "HTTP/1.1" << " " << _sCode << statusMess << "\r\n";
 	mess << "Date: " << date() << "\r\n";
 	mess << "Server: " << "localhost" << "\r\n"; // Modify according configuration file
 	mess << "Connection: " << "keep-alive" << "\r\n"; // Modify either the connection need to be maintained or not
