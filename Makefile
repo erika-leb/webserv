@@ -34,7 +34,7 @@ fclean: clean
 
 re: fclean all
 
-launch: re
+launch: all
 	@echo "\nLaunching serv:"
 	@./$(NAME)
 

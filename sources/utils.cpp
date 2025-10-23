@@ -38,7 +38,23 @@ int make_non_blocking(int sockfd) //rendre une socket non bloquante
 	return (fcntl(sockfd, F_SETFL, flag | O_NONBLOCK));
 }
 
+bool isBlank( char c ) {
+	return std::isspace(static_cast<unsigned char>(c));
+}
 
+void remove_blank(std::string& str) {
+	str.erase(std::remove_if(str.begin(), str.end(), isBlank), str.end());
+}
+
+std::string date() {
+	std::time_t date = std::time(0);
+	std::tm* gmt = std::gmtime(&date);
+
+	char buff[80];
+	std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", gmt);
+
+	return std::string(buff);
+}
 
 
 

@@ -4,25 +4,16 @@
 #include "all.hpp"
 #include "Client.hpp"
 
-typedef struct s_http
-{
-	std::string	action;
-	std::string	pathfile;
-	std::string	protocol;
-	size_t		statusCode;
-} t_http;
-
 class Request
 {
 private:
-	std::map<std::string, std::string>	_spec;
-	std::stringstream _rawSpec;
-	std::stringstream _rawHttp;
-	t_http		_http;
 	Client&		_cli;
+
+	std::map<std::string, std::string>	_reqParam, _params;
+	std::stringstream	_rawHttp;
+	std::string	_action, _pathfile, _file, _fileType;
+	size_t		_sCode, _fileLength;
 	bool		_valid;
-	std::string	_file;
-	size_t		_fileLength;
 
 public:
 	Request( Client& cli );
@@ -33,12 +24,9 @@ public:
 	std::map<std::string, std::string> getSpec() const;
 	std::string getHttp() const;
 
-	void parseHttp();
-	void parseSpec();
 
+	void parseHttp();
 	std::string makeResponse();
 };
-
-std::ostream& operator<<( std::ostream& flux, const Request& r );
 
 #endif

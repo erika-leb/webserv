@@ -1,53 +1,16 @@
+#include "all.hpp"
 #include "Request.hpp"
-
-Request::Request( Client& cli ): _cli(cli) {
-	std::stringstream ss(cli.getBuff());
-	std::string key, value, tmp;
-
-	std::getline(ss, tmp);
-	_rawHttp << tmp;
-	while (std::getline(ss, tmp)) {
-		_rawSpec << tmp;
-	}
-}
-
-Request::Request( const Request& cpy ): _cli(cpy._cli) {
-	_spec = cpy._spec;
-}
-
-Request& Request::operator=( const Request& other ) {
-	if (this != &other)
-		_spec = other._spec;
-	return *this;
-}
-
-Request::~Request() {}
-
-std::map<std::string, std::string> Request::getSpec() const {
-	return _spec;
-}
-
-std::string Request::getHttp() const {
-	std::string http;
-	
-	http = _http.action + " " + _http.pathfile + " " + _http.protocol;
-	return http;
-}
-
-static bool isBlank( char c ) {
-	return std::isspace(static_cast<unsigned char>(c));
-}
-
-static void remove_blank(std::string& str) {
-	str.erase(std::remove_if(str.begin(), str.end(), isBlank), str.end());
-}
 
 static std::string getFile(std::string pathfile, size_t* fileLength) {
 	std::fstream	fs;
-	std::string		tmp, res, finalPathfile;
+	std::string		tmp, res, finalPathFile;
 
-	finalPathfile = "." + pathfile;
-	fs.open(finalPathfile.c_str(), std::ios::in);
+	std::cout << "[DEBUG] *pathfile.begin():" << *pathfile.begin() << std::endl;
+	if (*pathfile.begin() != '.')
+		finalPathFile += '.';
+	finalPathFile += pathfile;
+	std::cout << "[DEBUG] finalPathFile:" << finalPathFile << std::endl;
+	fs.open(finalPathFile.c_str(), std::ios::in);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp)) {
 			res += tmp;
@@ -56,85 +19,132 @@ static std::string getFile(std::string pathfile, size_t* fileLength) {
 		fs.close();
 		*fileLength = res.size();
 	}
-	else
-		std::cout << "file not found" << std::endl;
+	else {
+		std::cout << "ERROR: Couldn't open file" << std::endl;
+		res.empty();
+	}
 	
 	return res;
 }
 
-void Request::parseHttp() {
-	std::getline(_rawHttp, _http.action, ' ');
-	remove_blank(_http.action);
-	if (_http.action != "GET" ||
-			_http.action != "POST" ||
-			_http.action != "DELETE")
-		_valid = false;
-	
-	std::getline(_rawHttp, _http.pathfile, ' ');
-	remove_blank(_http.pathfile);
-	if (!_http.pathfile.empty())
-		_valid = false;
-	/* Check pathfile */ 
+static void ifError(std::string& path, int sCode ) {
 
-	std::getline(_rawHttp, _http.protocol);
-	remove_blank(_http.protocol);
-	if (!_http.protocol.empty()) {
-		if (_http.protocol != "HTTP/1.1")
-			_valid = false;
-	}
-	else {
-		_http.protocol += "HTTP/1.1 empty";
+	switch (sCode)
+	{
+	case 400:
+		path = "/errorPages/badRequest.html"; break;
+	case 404:
+		path = "/errorPages/notFound.html"; break;
+	case 405:
+		path = "/errorPages/methodNotAllowed.html"; break;
+	default:
+		break;
 	}
 }
 
-void Request::parseSpec() {
-	std::string key, value;
-	while (std::getline(_rawSpec, key, ':') && _rawSpec >> value) {
+static std::string statusMess( int sCode ) {
+	std::string str;
+
+	switch (sCode)
+	{
+	case 400:
+		str = " Bad request"; break;
+	case 404:
+		str = " Not found"; break;
+	case 405:
+		str = " Method not allowed"; break;
+	default:
+		str = " Ok"; break;
+	}
+
+	return str;
+}
+
+Request::Request( Client& cli ): _cli(cli) {
+	std::stringstream ss(cli.getBuff()), rawParam;
+	std::string key, value, tmp;
+
+	_valid = true;
+	_sCode = 200;
+	std::getline(ss, tmp);
+	_rawHttp << tmp;
+	while (std::getline(ss, tmp)) {
+		rawParam << tmp;
+	}
+	while (std::getline(rawParam, key, ':') && rawParam >> value) {
 		remove_blank(value);
-		_spec[key] = value;
+		_reqParam[key] = value;
 	}
 }
 
-static std::string date() {
-	std::time_t date = std::time(0);
-	std::tm* gmt = std::gmtime(&date);
+Request::Request( const Request& cpy ): _cli(cpy._cli) {
+	_reqParam = cpy._reqParam;
+}
 
-	char buff[80];
-	std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", gmt);
+Request& Request::operator=( const Request& other ) {
+	if (this != &other)
+		_reqParam = other._reqParam;
+	return *this;
+}
 
-	return std::string(buff);
+Request::~Request() {}
+
+std::map<std::string, std::string> Request::getSpec() const {
+	return _reqParam;
+}
+
+void Request::parseHttp() {
+	std::string	tmp;
+
+	std::getline(_rawHttp, _action, ' ');
+	remove_blank(_action);
+	if (_action != "GET" &&
+			_action != "POST" &&
+			_action != "DELETE") {
+		_sCode = 405;
+		_pathfile = "/errorPages/methodNotAllowed.html";
+	}
+	
+	std::getline(_rawHttp, _pathfile, ' ');
+	remove_blank(_pathfile);
+	if (_pathfile.empty())
+		_valid = false;
+	else {
+		_pathfile.insert(0, ".");
+		if (access(_pathfile.c_str(), F_OK) < 0) {
+			_sCode = 404;
+			_pathfile = "/errorPages/notFound.html";
+		}
+	}
+
+	std::getline(_rawHttp, tmp);
+	remove_blank(tmp);
+	if (!tmp.empty()) {
+		if (tmp != "HTTP/1.1") {
+			_valid = false;
+		}
+	}
 }
 
 std::string Request::makeResponse() {
-	_http.statusCode = 200;
-	std::ostringstream mess(""), tmp;
-	_file = getFile(_http.pathfile.c_str(), &_fileLength);
+	std::ostringstream mess;
 
-	tmp << _http.protocol << " " << _http.statusCode << " OK" << "\r\n";
-	mess.clear();
-	mess << tmp.str();
+	if (_valid == false) {
+		_sCode = 400;
+		_pathfile = "/errorPages/badRequest.html";
+	}
+	ifError(_pathfile, _sCode);
+	_file = getFile(_pathfile.c_str(), &_fileLength);
+
+	mess << "HTTP/1.1" << " " << _sCode << statusMess(_sCode) << "\r\n";
 	mess << "Date: " << date() << "\r\n";
-	mess << "Server: " << "localhost" << "\r\n";
-	mess << "Connection: " << "keep-alive" << "\r\n";
-	mess << "Content-Type: " << "type/html" << "\r\n";
+	mess << "Server: " << "localhost" << "\r\n"; // Modify according configuration file
+	mess << "Connection: " << "keep-alive" << "\r\n"; // Modify either the connection need to be maintained or not
+	mess << "Content-Type: " << "type/html" << "\r\n"; // Modify according to file
 	mess << "Content-Length: " << _fileLength << "\r\n";
 	mess << "\r\n";
 	mess << _file;
 
-	std::cout << "[DEBUG] {\n";
-	std::cout << mess.str();
-	std::cout << "\n}\n";
-
 	_cli.setSendBuff(mess.str());
 	return mess.str();
-}
-
-std::ostream& operator<<( std::ostream& flux, const Request& r ) {
-	std::map<std::string, std::string> tmp = r.getSpec();
-	flux << r.getHttp() << std::endl;
-	for (std::map<std::string, std::string>::iterator it = tmp.begin(); it != tmp.end(); it++) {
-		flux << it->first << ": " << it->second << std::endl;
-	}
-	
-	return flux;
 }

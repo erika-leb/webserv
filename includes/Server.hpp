@@ -37,11 +37,4 @@ class Server {
 		Server &operator=(const Server &rhs);
 } ;
 
-void	*ft_memset(void *b, int c, size_t len);
-size_t	ft_strlen(const char *str);
-int		make_non_blocking(int sockfd);
-
-
-int		is_fd_open(int fd); // a supprimer plus tard
-
 #endif
