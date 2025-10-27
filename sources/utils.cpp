@@ -46,12 +46,24 @@ void remove_blank(std::string& str) {
 	str.erase(std::remove_if(str.begin(), str.end(), isBlank), str.end());
 }
 
-std::string date() {
+std::string date(int format) {
 	std::time_t date = std::time(0);
 	std::tm* gmt = std::gmtime(&date);
 
 	char buff[80];
-	std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", gmt);
+	switch (format)
+	{
+	case HTTP:
+		std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", gmt);
+		break;
+	case LOG:
+		std::strftime(buff, sizeof(buff), "[%F][%H:%M:%S]", gmt);
+		break;
+	
+	default:
+		buff[0] = '\0';
+		break;
+	}
 
 	return std::string(buff);
 }

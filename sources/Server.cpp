@@ -49,17 +49,17 @@ void Server::modifyEvent(int fd, uint32_t events)
 
 void Server::deleteSocket(int client_fd)
 {
+	epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
+	close(client_fd);
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (client_fd == (*it)->getFd())
 		{
 			_clients.erase(it); //on enleve le pointeur de la liste
-			delete (*it); //en free le pointeur
+			// delete (*it); //en free le pointeur
 			break ;
 		}
 	}
-	epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
-	close(client_fd);
 }
 
 void Server::launch()
@@ -74,6 +74,11 @@ void Server::launch()
 
 	while(flag == 0) // faut penser a arreter ailleurs aussi
 	{
+		std::cout << "[DEBUG] _clients: " << std::endl;
+		for (std::vector<Client*>::iterator it=_clients.begin(); it < _clients.end(); ++it) {
+			std::cout << "client(" << (*it)->getFd() << ")" << std::endl;
+		}
+		std::cout << "[END]" << std::endl;
 		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
 		for (int i = 0; i < d; i++)
 		{
@@ -93,7 +98,7 @@ void Server::launch()
 					event.events = EPOLLIN | EPOLLET; //est-ce qu'on reste en EPOLLET ??
 					epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
 					_clients.push_back(new Client(client_fd));
-					std::cout << "Client connecté, fd= " << client_fd << std::endl; // a enlever
+					std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 				}
 				else // the socket is not listenFd
 				{
@@ -108,6 +113,7 @@ void Server::launch()
 							else //vraie erreur
 							{
 								deleteSocket(client_fd);
+								std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (fatal error)" << std::endl;
 								std::cout << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 								break ;
 							}
@@ -115,6 +121,7 @@ void Server::launch()
 						else if (n == 0)
 						{
 							deleteSocket(client_fd);
+							std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (read() == 0)" << std::endl;
 							break ;
 						}
 						else
@@ -158,10 +165,20 @@ void Server::launch()
 								(*it)->sendBuffErase(n);
 								if (((*it)->getToSend()).empty())
 									modifyEvent(client_fd, EPOLLIN);
+								std::cout << date(LOG) << ": Data send back to client(" << client_fd << ") successfully" << std::endl;
 							}
+							/*
+								The next statement disconnect the client once we send the data back,
+								or we need to maintain it or close it depending on the `Connection:'
+								parameter in the HTTP header.
+								The `Connection:' parameter can be either:
+									- `keep-alive'	to maintain the connexion
+									- `close'		to close the connexion
+							*/
 							else if (n == 0)
 							{
-								deleteSocket(client_fd);
+								// deleteSocket(client_fd);
+								std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (send() == 0)" << std::endl;
 								break ;
 							}
 							else
@@ -171,6 +188,7 @@ void Server::launch()
 								else // fatal error
 								{
 									deleteSocket(client_fd);
+									std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (fatal error)" << std::endl;
 									std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 									break ;
 								}
@@ -227,7 +245,7 @@ void Server::handleSigint(int sig)
 {
 	if (sig == SIGINT)
 	{
-		std::cout << "serveur arrete proprement" << std::endl;
+		std::cout << date(LOG) << ": Server shutdown" << std::endl;
 		flag = 1;
 	}
 }

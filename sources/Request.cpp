@@ -5,11 +5,11 @@ static std::string getFile(std::string pathfile, size_t* fileLength) {
 	std::fstream	fs;
 	std::string		tmp, res, finalPathFile;
 
-	std::cout << "[DEBUG] *pathfile.begin():" << *pathfile.begin() << std::endl;
+	// std::cout << "[DEBUG] *pathfile.begin():" << *pathfile.begin() << std::endl;
 	if (*pathfile.begin() != '.')
 		finalPathFile += '.';
 	finalPathFile += pathfile;
-	std::cout << "[DEBUG] finalPathFile:" << finalPathFile << std::endl;
+	// std::cout << "[DEBUG] finalPathFile:" << finalPathFile << std::endl;
 	fs.open(finalPathFile.c_str(), std::ios::in);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp)) {
@@ -125,10 +125,11 @@ std::string Request::makeResponse() {
 	_file = getFile(_pathfile.c_str(), &_fileLength);
 
 	mess << "HTTP/1.1" << " " << _sCode << statusMess << "\r\n";
-	mess << "Date: " << date() << "\r\n";
+	mess << "Date: " << date(HTTP) << "\r\n";
 	mess << "Server: " << "localhost" << "\r\n"; // Modify according configuration file
 	mess << "Connection: " << "keep-alive" << "\r\n"; // Modify either the connection need to be maintained or not
-	mess << "Content-Type: " << "type/html" << "\r\n"; // Modify according to file
+	// mess << "Connection: " << "close" << "\r\n"; // Modify either the connection need to be maintained or not
+	mess << "Content-Type: " << "text/html" << "\r\n"; // Modify according to file
 	mess << "Content-Length: " << _fileLength << "\r\n";
 	mess << "\r\n";
 	mess << _file;

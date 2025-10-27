@@ -31,6 +31,7 @@ class Server {
 		int _poll;
 		int _fdListen;
 		struct epoll_event _events[SOMAXCONN];
+		// std::vector< Client *> _clients; //liste des sockets ouverts et leur derniere connection
 		std::vector< Client *> _clients; //liste des sockets ouverts et leur derniere connection
 
 		Server(const Server &src);

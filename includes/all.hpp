@@ -28,12 +28,18 @@
 # define CLOSED -2
 #define MAXLINE 4096
 
+enum dcode {
+	HTTP,
+	LOG
+};
+
+
 void	*ft_memset(void *b, int c, size_t len);
 size_t	ft_strlen(const char *str);
 int		make_non_blocking(int sockfd);
 bool	isBlank( char c );
 void	remove_blank( std::string& str );
-std::string date();
+std::string date(int format);
 
 
 int		is_fd_open(int fd); // a supprimer plus tard

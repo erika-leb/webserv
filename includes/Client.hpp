@@ -7,6 +7,8 @@ class Client {
 
 	public:
 		Client(int fd);
+		Client(const Client &src);
+		Client &operator=(const Client &src);
 		~Client();
 
 		int getFd() const;
@@ -27,9 +29,6 @@ class Client {
 		std::string _buff;
 		std::string _sendBuff; //reponse a envoyer
 
-		Client();
-		Client(const Client &src);
-		Client &operator=(const Client &src);
 } ;
 
 #endif

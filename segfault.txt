@@ -1,0 +1,170 @@
+ valgrind ./webserv 
+==889621== Memcheck, a memory error detector
+==889621== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==889621== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==889621== Command: ./webserv
+==889621== 
+[2025-10-27][12:31:46]: Client(5) connected
+[DEBUG] *pathfile.begin():.
+[DEBUG] finalPathFile:./errorPages/badRequest.html
+[2025-10-27][12:31:46]: Data send back to client(5) successfully
+[2025-10-27][12:31:57]: Client(6) connected
+[DEBUG] *pathfile.begin():.
+[DEBUG] finalPathFile:./index.html
+[2025-10-27][12:32:02]: Client(7) connected
+[DEBUG] *pathfile.begin():.
+[DEBUG] finalPathFile:./index.html
+[2025-10-27][12:32:18]: Client(8) connected
+[DEBUG] *pathfile.begin():/
+[DEBUG] finalPathFile:./errorPages/notFound.html
+[2025-10-27][12:32:23]: Client(6) disconnected (read() == 0)
+[2025-10-27][12:32:23]: Client(6) connected
+==889621== Invalid read of size 4
+==889621==    at 0x4073EC: Client::getFd() const (Client.cpp:29)
+==889621==    by 0x4048ED: Server::launch() (Server.cpp:127)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Address 0x4df1fb0 is 0 bytes inside a block of size 72 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x404099: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40437A: Server::launch() (Server.cpp:95)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+[DEBUG] *pathfile.begin():.
+[DEBUG] finalPathFile:./index.html
+==889621== Invalid read of size 4
+==889621==    at 0x4073EC: Client::getFd() const (Client.cpp:29)
+==889621==    by 0x40403B: Server::deleteSocket(int) (Server.cpp:54)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Address 0x4df1fb0 is 0 bytes inside a block of size 72 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x404099: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40437A: Server::launch() (Server.cpp:95)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+[2025-10-27][12:32:34]: Client(6) disconnected (read() == 0)
+[2025-10-27][12:32:43]: Client(8) disconnected (read() == 0)
+[DEBUG] *pathfile.begin():.
+[DEBUG] finalPathFile:./errorPages/badRequest.html
+[2025-10-27][12:32:48]: Data send back to client(5) successfully
+^C[2025-10-27][12:32:50]: Server clean shutdown
+==889621== Invalid read of size 4
+==889621==    at 0x407324: Client::~Client() (Client.cpp:18)
+==889621==    by 0x405149: Server::~Server() (Server.cpp:228)
+==889621==    by 0x4038FE: main (main.cpp:13)
+==889621==  Address 0x4df1fb0 is 0 bytes inside a block of size 72 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x404099: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40437A: Server::launch() (Server.cpp:95)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+==889621== Invalid read of size 8
+==889621==    at 0x49C1474: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::~basic_string() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==889621==    by 0x40733C: Client::~Client() (Client.cpp:19)
+==889621==    by 0x405149: Server::~Server() (Server.cpp:228)
+==889621==    by 0x4038FE: main (main.cpp:13)
+==889621==  Address 0x4df1fd8 is 40 bytes inside a block of size 72 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x404099: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40437A: Server::launch() (Server.cpp:95)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+==889621== Invalid free() / delete / delete[] / realloc()
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40733C: Client::~Client() (Client.cpp:19)
+==889621==    by 0x405149: Server::~Server() (Server.cpp:228)
+==889621==    by 0x4038FE: main (main.cpp:13)
+==889621==  Address 0x4df63f0 is 0 bytes inside a block of size 186 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40733C: Client::~Client() (Client.cpp:19)
+==889621==    by 0x40408B: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x49C0FEE: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==889621==    by 0x49C14AC: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::operator=(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==889621==    by 0x407528: Client::setSendBuff(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (Client.cpp:61)
+==889621==    by 0x4086E5: Request::makeResponse[abi:cxx11]() (Request.cpp:137)
+==889621==    by 0x4049CB: Server::launch() (Server.cpp:137)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+==889621== Invalid read of size 8
+==889621==    at 0x49C1474: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::~basic_string() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==889621==    by 0x40734E: Client::~Client() (Client.cpp:19)
+==889621==    by 0x405149: Server::~Server() (Server.cpp:228)
+==889621==    by 0x4038FE: main (main.cpp:13)
+==889621==  Address 0x4df1fb8 is 8 bytes inside a block of size 72 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x404099: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40437A: Server::launch() (Server.cpp:95)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+==889621== Invalid free() / delete / delete[] / realloc()
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40734E: Client::~Client() (Client.cpp:19)
+==889621==    by 0x405149: Server::~Server() (Server.cpp:228)
+==889621==    by 0x4038FE: main (main.cpp:13)
+==889621==  Address 0x4df2100 is 0 bytes inside a block of size 443 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40734E: Client::~Client() (Client.cpp:19)
+==889621==    by 0x40408B: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x49C10BD: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==889621==    by 0x49C2B4F: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==889621==    by 0x407410: Client::addBuff(char*) (Client.cpp:34)
+==889621==    by 0x40491F: Server::launch() (Server.cpp:129)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+==889621== Invalid free() / delete / delete[] / realloc()
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x405157: Server::~Server() (Server.cpp:228)
+==889621==    by 0x4038FE: main (main.cpp:13)
+==889621==  Address 0x4df1fb0 is 0 bytes inside a block of size 72 free'd
+==889621==    at 0x484B8AF: operator delete(void*) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x404099: Server::deleteSocket(int) (Server.cpp:57)
+==889621==    by 0x404787: Server::launch() (Server.cpp:118)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621==  Block was alloc'd at
+==889621==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==889621==    by 0x40437A: Server::launch() (Server.cpp:95)
+==889621==    by 0x4038ED: main (main.cpp:11)
+==889621== 
+==889621== 
+==889621== HEAP SUMMARY:
+==889621==     in use at exit: 715 bytes in 3 blocks
+==889621==   total heap usage: 278 allocs, 278 frees, 165,450 bytes allocated
+==889621== 
+==889621== LEAK SUMMARY:
+==889621==    definitely lost: 72 bytes in 1 blocks
+==889621==    indirectly lost: 643 bytes in 2 blocks
+==889621==      possibly lost: 0 bytes in 0 blocks
+==889621==    still reachable: 0 bytes in 0 blocks
+==889621==         suppressed: 0 bytes in 0 blocks
+==889621== Rerun with --leak-check=full to see details of leaked memory
+==889621== 
+==889621== For lists of detected and suppressed errors, rerun with: -s
+==889621== ERROR SUMMARY: 9 errors from 8 contexts (suppressed: 0 from 0)

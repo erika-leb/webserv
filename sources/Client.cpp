@@ -4,13 +4,8 @@ Client::Client(int fd) : _fd(fd), _buff(""), _sendBuff("")
 {
 }
 
-Client::Client()
+Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff)
 {
-}
-
-Client::Client(const Client &src)
-{
-	(void) src;
 }
 
 Client::~Client()
@@ -20,7 +15,11 @@ Client::~Client()
 
 Client &Client::operator=(const Client &src)
 {
-	(void)src;
+	if (this != &src) {
+		_fd = src._fd;
+		_buff = src._buff;
+		_sendBuff = src._sendBuff;
+	}
 	return (*this);
 }
 
