@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cerrno>
 #include <algorithm>
+#include <fstream>
 
 /* C headers */
 #include <sys/socket.h>
@@ -21,7 +22,9 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#define MAXLINE 10
-// #define MAXLINE 4096
+// #include <errno
+
+// #define MAXLINE 10
+#define MAXLINE 4096
 
 #endif

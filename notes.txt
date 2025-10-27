@@ -1,7 +1,16 @@
-Erika a faire :
--etudier l'envoi de la reponse : faire un test pour tout les cas et regarder les leaks
-- simplifier les fonctions
+Erika :
+- verifier que les brackets ont du sens
+- enlever les espaces et les brackets dans un fichier temporaire
+- read chaque ligne
 
+Rappel fichier config :
+un serveur nginx = suite de directives
+3 niveaux
+- niveau global : contient des directives et herite des deux autres niveaux (map)
+- niveau serveur : herite des directives globales et possede lui-meme des directives et des locations
+- niveau location : herite du global et du serveru et possede egalement des directives (si la directive etait deja definie a un niveau plus haut, la valeur au niveau de la location a priorite et on ecrase la valeur)
+1 directive = 1 URL/IRL -> 1 def, 1 valeur
+Creer 3 classes = global config, server congif et location config
 
 
 
