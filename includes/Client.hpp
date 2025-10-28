@@ -24,6 +24,8 @@ class Client {
 
 		void clearRequestBuff(void);
 
+		void addToSend();//temporaire
+
 	private:
 		int _fd;
 		std::string _buff;

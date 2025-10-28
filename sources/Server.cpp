@@ -7,7 +7,6 @@ Server::Server()
 	struct sockaddr_in addr;
 	struct epoll_event event;
 
-	// nbServ++;\_
 	_fdListen = socket(AF_INET, SOCK_STREAM, 0);
 	if (_fdListen == -1)
 		throw std::runtime_error("socket() failed " + static_cast<std::string>(strerror(errno)));
@@ -32,10 +31,11 @@ Server::Server()
 		throw std::runtime_error("listen() failed " + static_cast<std::string>(strerror(errno)));
 	}
 
-	make_non_blocking(_fdListen);
+	if (make_non_blocking(_fdListen) == -1)
+		throw std::runtime_error("failed to set socket non-blocking " + static_cast<std::string>(strerror(errno)));
 	_poll = epoll_create(1);
 	event.data.fd = _fdListen;
-	event.events = EPOLLIN | EPOLLET; //verifier pk
+	event.events = EPOLLIN;
 	epoll_ctl(_poll, EPOLL_CTL_ADD, _fdListen, &event);
 }
 
@@ -43,7 +43,7 @@ void Server::modifyEvent(int fd, uint32_t events)
 {
 	epoll_event event;
 	event.data.fd = fd;
-	event.events = events | EPOLLET;
+	event.events = events;
 	epoll_ctl(_poll, EPOLL_CTL_MOD, fd, &event);
 }
 
@@ -55,11 +55,18 @@ void Server::deleteSocket(int client_fd)
 	{
 		if (client_fd == (*it)->getFd())
 		{
+			epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
+			// perror("lala");
+			// close(client_fd);  // MODIF ICI
+			// perror("ouh");
+			delete (*it); //en free le pointeur
+			// perror("le");
 			_clients.erase(it); //on enleve le pointeur de la liste
-			// delete (*it); //en free le pointeur
+			// perror("cjat");
 			break ;
 		}
 	}
+	// perror("CHIENT");
 }
 
 void Server::launch()
@@ -72,6 +79,8 @@ void Server::launch()
 	int n;
 	int d;
 
+	int i = 0;
+
 	while(flag == 0) // faut penser a arreter ailleurs aussi
 	{
 		std::cout << "[DEBUG] _clients: " << std::endl;
@@ -80,10 +89,16 @@ void Server::launch()
 		}
 		std::cout << "[END]" << std::endl;
 		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
+		i++;
 		for (int i = 0; i < d; i++)
 		{
-			if (_events[i].events & EPOLLIN)
+			// printf("d = %d\n", d);
+			// printf("event = %d\n", _events[i].events);
+			// printf("EPOLLIN = %d\n", EPOLLIN);
+			// printf("EPOLLOUT = %d\n", EPOLLOUT);
+			if (_events[i].events & EPOLLIN) // EPOLLIN vaut 1
 			{
+				// perror("la");
 				if (_events[i].data.fd == _fdListen) // new incoming connection
 				{
 					cli_len = sizeof(cli);
@@ -93,7 +108,12 @@ void Server::launch()
 						std::cout << "accept() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 						continue ;
 					}
-					make_non_blocking(client_fd);
+					if (make_non_blocking(client_fd) == -1)
+					{
+						close(client_fd);
+						std::cerr << "failed to set client socket non-blocking" << std::endl;
+						continue ;
+					}
 					event.data.fd = client_fd;
 					event.events = EPOLLIN | EPOLLET; //est-ce qu'on reste en EPOLLET ??
 					epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
@@ -102,102 +122,92 @@ void Server::launch()
 				}
 				else // the socket is not listenFd
 				{
+					// perror("baje");
 					client_fd = _events[i].data.fd;
-					while (1)
+					n = read(client_fd, buff, sizeof(buff) - 1);
+					// printf("n = %d i = %d, fd = %d\n", n, i, client_fd);
+					if (n < 0)
 					{
-						n = read(client_fd, buff, sizeof(buff) - 1);
-						if (n < 0)
+						deleteSocket(client_fd);
+						std::cerr << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+						break ;
+					}
+					else if (n == 0)
+					{
+						std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (read() == 0)" << std::endl;
+						deleteSocket(client_fd);
+						// perror("verfi");
+						break ;
+					}
+					else
+					{
+						buff[n] = '\0';
+						for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 						{
-							if (errno == EAGAIN || errno == EWOULDBLOCK)
-								break ;
-							else //vraie erreur
+							if (client_fd == (*it)->getFd())
 							{
-								deleteSocket(client_fd);
-								std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (fatal error)" << std::endl;
-								std::cout << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+								(*it)->addBuff(buff);
+								// std::cout << "Recu: " << (*it)->getBuff() << std::endl;
+								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) //voir plus tard si on essaye de traiter la requete au fur et a mesure
+								{
+									// std::cout << "ici" << std::endl;
+									(*it)->addToSend();//temporaire, juste pour les test
+									Request req(*(*it));
+									req.parseHttp();
+									req.makeResponse();
+									// std::cout << req;
+									// std::cout <<
+									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
+									(*it)->clearRequestBuff(); // erase the processed request
+								}
 								break ;
+							}
+						}
+					}
+				}
+			}
+			if (_events[i].events & EPOLLOUT) // EPOLLOUT vaut 4
+			{
+				// perror("wth");
+				client_fd = _events[i].data.fd;
+				// printf("fd to send = %d\n", client_fd);
+				for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+				{
+					// perror("wth");
+					// printf("fd de liste = %d\n", (*it)->getFd());
+					if (client_fd == (*it)->getFd())
+					{
+						// printf("a enveoyer %s\n", (*it)->getSendBuffer());
+						n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0);
+						std::cout << "send : n = " << n << std::endl;
+						if (n > 0)
+						{
+							(*it)->sendBuffErase(n);
+							if (((*it)->getToSend()).empty())
+							{
+								modifyEvent(client_fd, EPOLLIN);
 							}
 						}
 						else if (n == 0)
 						{
-							deleteSocket(client_fd);
-							std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (read() == 0)" << std::endl;
+							// perror("pss");
+							// std::cout << "client " << client_fd << "closed" << std::endl; // a enlever
+							// deleteSocket(client_fd);
 							break ;
 						}
 						else
 						{
-							buff[n] = '\0';
-							for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-							{
-								if (client_fd == (*it)->getFd())
-								{
-									(*it)->addBuff(buff);
-									// it->buff.append(buff); //doute ici
-									if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos)
-									{
-										//elle est complete faut traiter la demande
-										// et renvoyer quelque chose
-										Request req(*(*it));
-										req.parseHttp();
-										req.makeResponse();
-										modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
-										(*it)->clearRequestBuff(); // erase the processed request
-									}
-									break ;
-								}
-							}
+							// perror("trop");
+							deleteSocket(client_fd);
+							std::cerr << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+							break ;
 						}
+						break ;
 					}
 				}
 			}
-			if (_events[i].events & EPOLLOUT)
-			{
-				client_fd = _events[i].data.fd;
-				for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-				{
-					if (client_fd == (*it)->getFd())
-					{
-						while (1)
-						{
-							n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0);
-							if (n > 0)
-							{
-								(*it)->sendBuffErase(n);
-								if (((*it)->getToSend()).empty())
-									modifyEvent(client_fd, EPOLLIN);
-								std::cout << date(LOG) << ": Data send back to client(" << client_fd << ") successfully" << std::endl;
-							}
-							/*
-								The next statement disconnect the client once we send the data back,
-								or we need to maintain it or close it depending on the `Connection:'
-								parameter in the HTTP header.
-								The `Connection:' parameter can be either:
-									- `keep-alive'	to maintain the connexion
-									- `close'		to close the connexion
-							*/
-							else if (n == 0)
-							{
-								// deleteSocket(client_fd);
-								std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (send() == 0)" << std::endl;
-								break ;
-							}
-							else
-							{
-								if (errno == EAGAIN || errno == EWOULDBLOCK)
-									break ;
-								else // fatal error
-								{
-									deleteSocket(client_fd);
-									std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (fatal error)" << std::endl;
-									std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
-									break ;
-								}
-							}
-						}
-					}
-					break ;
-				}
-			}
+
+
 
 				// buff[n] = '\0';
 				// std::cout << "Recu (" << n << " octets): " << std::endl;
@@ -227,10 +237,11 @@ Server::Server(const Server &src)
 Server::~Server()
 {
 	close (_fdListen);
-	// delete _clients;
 	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
-		// close((*it)->getFd());
+	{
+		close((*it)->getFd());
 		delete (*it);
+	}
 	_clients.clear();
 	close(_poll);
 }

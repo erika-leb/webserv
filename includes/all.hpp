@@ -11,6 +11,7 @@
 #include <fstream>
 #include <cerrno>
 #include <algorithm>
+#include <fstream>
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
@@ -25,7 +26,9 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-# define CLOSED -2
+// #include <errno
+
+// #define MAXLINE 10
 #define MAXLINE 4096
 
 enum dcode {
