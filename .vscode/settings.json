@@ -50,6 +50,8 @@
 		"streambuf": "cpp",
 		"typeinfo": "cpp",
 		"cerrno": "cpp",
-		"sstream": "cpp"
+		"sstream": "cpp",
+		"ctime": "cpp",
+		"fstream": "cpp"
 	}
 }

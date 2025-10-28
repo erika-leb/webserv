@@ -79,15 +79,16 @@ void Server::launch()
 	int n;
 	int d;
 
+	std::string tmp;
 	int i = 0;
 
 	while(flag == 0) // faut penser a arreter ailleurs aussi
 	{
-		std::cout << "[DEBUG] _clients: " << std::endl;
-		for (std::vector<Client*>::iterator it=_clients.begin(); it < _clients.end(); ++it) {
-			std::cout << "client(" << (*it)->getFd() << ")" << std::endl;
-		}
-		std::cout << "[END]" << std::endl;
+		// std::cout << "[DEBUG] _clients: " << std::endl;
+		// for (std::vector<Client*>::iterator it=_clients.begin(); it < _clients.end(); ++it) {
+		// 	std::cout << "client(" << (*it)->getFd() << ")" << std::endl;
+		// }
+		// std::cout << "[END]" << std::endl;
 		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
 		i++;
 		for (int i = 0; i < d; i++)
@@ -154,7 +155,7 @@ void Server::launch()
 									(*it)->addToSend();//temporaire, juste pour les test
 									Request req(*(*it));
 									req.parseHttp();
-									req.makeResponse();
+									tmp = req.makeResponse();
 									// std::cout << req;
 									// std::cout <<
 									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
@@ -179,7 +180,7 @@ void Server::launch()
 					{
 						// printf("a enveoyer %s\n", (*it)->getSendBuffer());
 						n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0);
-						std::cout << "send : n = " << n << std::endl;
+						std::cout << date(LOG) << ": Send " << n << " B to client(" << client_fd << ") [" << tmp << "]" << std::endl;
 						if (n > 0)
 						{
 							(*it)->sendBuffErase(n);

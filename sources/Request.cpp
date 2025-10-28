@@ -33,13 +33,16 @@ static std::string ifError(std::string& path, int sCode ) {
 	switch (sCode)
 	{
 	case 400:
-		path = "/errorPages/badRequest.html";
+		path = "/errors/400.html";
 		str = " Bad request"; break;
+	case 403:
+		path = "/errors/403.html";
+		str = " Forbidden"; break;
 	case 404:
-		path = "/errorPages/notFound.html";
+		path = "/errors/404.html";
 		str = " Not found"; break;
 	case 405:
-		path = "/errorPages/methodNotAllowed.html"; break;
+		path = "/errors/405.html"; break;
 		str = " Method not allowed";
 	default:
 		str = " Ok"; break;
@@ -90,7 +93,6 @@ void Request::parseHttp() {
 			_action != "POST" &&
 			_action != "DELETE") {
 		_sCode = 405;
-		_pathfile = "/errorPages/methodNotAllowed.html";
 	}
 	
 	std::getline(_rawHttp, _pathfile, ' ');
@@ -101,7 +103,10 @@ void Request::parseHttp() {
 		_pathfile.insert(0, ".");
 		if (access(_pathfile.c_str(), F_OK) < 0) {
 			_sCode = 404;
-			_pathfile = "/errorPages/notFound.html";
+		}
+		else if ((_pathfile.find("/errors/")) != std::string::npos) {
+			// std::cout << "[DEBUG] `/errors/' found in url :" << _pathfile.find("/errors/") << std::endl;
+			_sCode = 403;
 		}
 	}
 
@@ -135,5 +140,5 @@ std::string Request::makeResponse() {
 	mess << _file;
 
 	_cli.setSendBuff(mess.str());
-	return mess.str();
+	return _pathfile;
 }
