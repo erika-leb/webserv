@@ -11,7 +11,7 @@ private:
 
 	std::map<std::string, std::string>	_reqParam, _params;
 	std::stringstream	_rawHttp;
-	std::string	_action, _pathfile, _file, _fileType;
+	std::string	_action, _pathfile, _file, _fileType, _connection;
 	size_t		_sCode, _fileLength;
 	bool		_valid;
 
@@ -26,7 +26,7 @@ public:
 
 
 	void parseHttp();
-	std::string makeResponse();
+	std::string makeResponse(int& con);
 };
 
 #endif

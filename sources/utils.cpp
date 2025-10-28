@@ -57,7 +57,8 @@ std::string date(int format) {
 		std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", gmt);
 		break;
 	case LOG:
-		std::strftime(buff, sizeof(buff), "[%F][%H:%M:%S]", gmt);
+		// std::strftime(buff, sizeof(buff), "[%F][%H:%M:%S]", gmt);
+		std::strftime(buff, sizeof(buff), "[%H:%M:%S]", gmt);
 		break;
 	
 	default:

@@ -1,40 +1,46 @@
 #include "all.hpp"
 #include "Request.hpp"
 
+static bool startWith(std::string& str, std::string prefix) {
+	if (prefix.size() > str.size())
+		return false;
+	return str.compare(0, prefix.size(), prefix) == 0;
+}
+
 static std::string getFile(std::string pathfile, size_t* fileLength) {
 	std::fstream	fs;
 	std::string		tmp, res, finalPathFile;
 
 	// std::cout << "[DEBUG] *pathfile.begin():" << *pathfile.begin() << std::endl;
-	if (*pathfile.begin() != '.')
-		finalPathFile += '.';
+	if (!startWith(pathfile, "./html"))
+		finalPathFile += "./html";
 	finalPathFile += pathfile;
 	// std::cout << "[DEBUG] finalPathFile:" << finalPathFile << std::endl;
 	fs.open(finalPathFile.c_str(), std::ios::in);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp)) {
 			res += tmp;
-			tmp.empty();
+			tmp.clear();
 		}
 		fs.close();
 		*fileLength = res.size();
 	}
 	else {
-		std::cout << "ERROR: Couldn't open file" << std::endl;
-		res.empty();
+		std::cout << date(LOG) << ": ERROR: Couldn't open file [" << finalPathFile << "]" << std::endl;
+		res.clear();
 	}
 	
 	return res;
 }
 
-static std::string ifError(std::string& path, int sCode ) {
+static std::string ifError(std::string& path, std::string& con, int sCode ) {
 	std::string str;
 
 	switch (sCode)
 	{
 	case 400:
 		path = "/errors/400.html";
-		str = " Bad request"; break;
+		str = " Bad request"; con = "close"; break;
 	case 403:
 		path = "/errors/403.html";
 		str = " Forbidden"; break;
@@ -42,10 +48,13 @@ static std::string ifError(std::string& path, int sCode ) {
 		path = "/errors/404.html";
 		str = " Not found"; break;
 	case 405:
-		path = "/errors/405.html"; break;
-		str = " Method not allowed";
+		path = "/errors/405.html";
+		str = " Method not allowed"; break;
+	case 500:
+		path = "/errors/500.html";
+		str = " Internal server error"; con = "close"; break;
 	default:
-		str = " Ok"; break;
+		str = " Ok"; con = "keep-alive"; break;
 	}
 
 	return str;
@@ -100,7 +109,7 @@ void Request::parseHttp() {
 	if (_pathfile.empty())
 		_valid = false;
 	else {
-		_pathfile.insert(0, ".");
+		_pathfile.insert(0, "./html");
 		if (access(_pathfile.c_str(), F_OK) < 0) {
 			_sCode = 404;
 		}
@@ -108,6 +117,7 @@ void Request::parseHttp() {
 			// std::cout << "[DEBUG] `/errors/' found in url :" << _pathfile.find("/errors/") << std::endl;
 			_sCode = 403;
 		}
+		_pathfile.erase(0, 6);
 	}
 
 	std::getline(_rawHttp, tmp);
@@ -119,26 +129,34 @@ void Request::parseHttp() {
 	}
 }
 
-std::string Request::makeResponse() {
+std::string Request::makeResponse(int& con) {
 	std::ostringstream mess;
 
 	if (_valid == false) {
 		_sCode = 400;
 	}
 
-	std::string statusMess(ifError(_pathfile, _sCode));
+	std::string statusMess(ifError(_pathfile, _connection, _sCode));
 	_file = getFile(_pathfile.c_str(), &_fileLength);
+	if (_file.empty()) {
+		_sCode = 403;
+		statusMess = ifError(_pathfile, _connection, _sCode);
+		_file = getFile(_pathfile.c_str(), &_fileLength);
+	}
 
 	mess << "HTTP/1.1" << " " << _sCode << statusMess << "\r\n";
 	mess << "Date: " << date(HTTP) << "\r\n";
 	mess << "Server: " << "localhost" << "\r\n"; // Modify according configuration file
-	mess << "Connection: " << "keep-alive" << "\r\n"; // Modify either the connection need to be maintained or not
-	// mess << "Connection: " << "close" << "\r\n"; // Modify either the connection need to be maintained or not
+	mess << "Connection: " << _connection << "\r\n"; // Modify either the connection need to be maintained or not
 	mess << "Content-Type: " << "text/html" << "\r\n"; // Modify according to file
 	mess << "Content-Length: " << _fileLength << "\r\n";
 	mess << "\r\n";
 	mess << _file;
 
 	_cli.setSendBuff(mess.str());
+	if (_connection == "keep-alive")
+		con = 0;
+	else
+		con = 1;
 	return _pathfile;
 }

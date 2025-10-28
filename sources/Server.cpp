@@ -49,8 +49,8 @@ void Server::modifyEvent(int fd, uint32_t events)
 
 void Server::deleteSocket(int client_fd)
 {
-	epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
-	close(client_fd);
+	// epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
+	// close(client_fd);
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (client_fd == (*it)->getFd())
@@ -79,6 +79,7 @@ void Server::launch()
 	int n;
 	int d;
 
+	int connection;
 	std::string tmp;
 	int i = 0;
 
@@ -155,7 +156,7 @@ void Server::launch()
 									(*it)->addToSend();//temporaire, juste pour les test
 									Request req(*(*it));
 									req.parseHttp();
-									tmp = req.makeResponse();
+									tmp = req.makeResponse(connection); // close or keep-alive depending on the value of connection
 									// std::cout << req;
 									// std::cout <<
 									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
