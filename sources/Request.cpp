@@ -129,7 +129,7 @@ void Request::parseHttp() {
 	}
 }
 
-std::string Request::makeResponse(int& con) {
+std::string Request::makeResponse() {
 	std::ostringstream mess;
 
 	if (_valid == false) {
@@ -155,8 +155,8 @@ std::string Request::makeResponse(int& con) {
 
 	_cli.setSendBuff(mess.str());
 	if (_connection == "keep-alive")
-		con = 0;
+		_cli.setCon(true);
 	else
-		con = 1;
+		_cli.setCon(false);
 	return _pathfile;
 }

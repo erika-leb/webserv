@@ -83,3 +83,11 @@ void Client::addToSend()
 
 	_sendBuff.append(static_cast<std::string>(resp));
 }
+
+void Client::setCon( bool set ) {
+	_con = set;
+}
+
+bool Client::isCon() {
+	return _con;
+}

@@ -26,10 +26,13 @@ class Client {
 
 		void addToSend();//temporaire
 
+		void setCon( bool set );
+		bool isCon();
 	private:
 		int _fd;
 		std::string _buff;
 		std::string _sendBuff; //reponse a envoyer
+		bool _con;
 
 } ;
 

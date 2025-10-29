@@ -79,7 +79,6 @@ void Server::launch()
 	int n;
 	int d;
 
-	int connection;
 	std::string tmp;
 	int i = 0;
 
@@ -152,13 +151,9 @@ void Server::launch()
 								// std::cout << "Recu: " << (*it)->getBuff() << std::endl;
 								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) //voir plus tard si on essaye de traiter la requete au fur et a mesure
 								{
-									// std::cout << "ici" << std::endl;
-									(*it)->addToSend();//temporaire, juste pour les test
 									Request req(*(*it));
 									req.parseHttp();
-									tmp = req.makeResponse(connection); // close or keep-alive depending on the value of connection
-									// std::cout << req;
-									// std::cout <<
+									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
 									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 									(*it)->clearRequestBuff(); // erase the processed request
 								}
@@ -170,16 +165,13 @@ void Server::launch()
 			}
 			if (_events[i].events & EPOLLOUT) // EPOLLOUT vaut 4
 			{
-				// perror("wth");
 				client_fd = _events[i].data.fd;
 				// printf("fd to send = %d\n", client_fd);
 				for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 				{
-					// perror("wth");
 					// printf("fd de liste = %d\n", (*it)->getFd());
 					if (client_fd == (*it)->getFd())
 					{
-						// printf("a enveoyer %s\n", (*it)->getSendBuffer());
 						n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0);
 						std::cout << date(LOG) << ": Send " << n << " B to client(" << client_fd << ") [" << tmp << "]" << std::endl;
 						if (n > 0)
@@ -194,6 +186,7 @@ void Server::launch()
 						{
 							// perror("pss");
 							// std::cout << "client " << client_fd << "closed" << std::endl; // a enlever
+							std::cout << date(LOG) << ": Server closed connection to client(" << client_fd << ") [" << (*it)->isCon() << "]" << std::endl;
 							// deleteSocket(client_fd);
 							break ;
 						}

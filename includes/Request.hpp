@@ -26,7 +26,7 @@ public:
 
 
 	void parseHttp();
-	std::string makeResponse(int& con);
+	std::string makeResponse();
 };
 
 #endif
