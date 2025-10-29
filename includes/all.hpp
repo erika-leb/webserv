@@ -1,6 +1,14 @@
 #ifndef ALL_HPP
 # define ALL_HPP
 
+#ifdef DEBUG
+	# define DEBUG_REQ(request) \
+		std::cerr << "[REQUEST]\n" << request << "[END]" << std::endl
+#else
+	# define DEBUG_REQ(request) do {} while (0)
+#endif
+
+
 /* C++ headers */
 #include <iostream>
 #include <cstring>

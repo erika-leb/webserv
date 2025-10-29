@@ -43,13 +43,13 @@ static std::string ifError(std::string& path, std::string& con, int sCode ) {
 		str = " Bad request"; con = "close"; break;
 	case 403:
 		path = "/errors/403.html";
-		str = " Forbidden"; break;
+		str = " Forbidden"; con = "keep-alive"; break;
 	case 404:
 		path = "/errors/404.html";
-		str = " Not found"; break;
+		str = " Not found"; con = "keep-alive"; break;
 	case 405:
 		path = "/errors/405.html";
-		str = " Method not allowed"; break;
+		str = " Method not allowed"; con = "keep-alive"; break; // Connection normally keep-alive
 	case 500:
 		path = "/errors/500.html";
 		str = " Internal server error"; con = "close"; break;

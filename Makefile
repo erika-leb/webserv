@@ -11,7 +11,9 @@ OBJS = $(SRCS:./sources/%.cpp=./objects/%.o)
 DEPS = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.d)
 
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -ggdb -std=c++98 -I./includes -MMD -MP
+CFLAGS = -Wall -Wextra -Werror -ggdb -std=c++98 -I$(INC_DIR) -MMD -MP
+DEBUG_FLAG = -DDEBUG
+
 
 all: $(NAME)
 
@@ -19,10 +21,10 @@ all: $(NAME)
 	mkdir -p ./objects
 
 ./objects/%.o: ./sources/%.cpp | ./objects
-	$(CC) $(CFLAGS) -I $(INC_DIR) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(NAME): $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) -I $(INC_DIR) -o $(NAME)
+	$(CC) $(OBJS) $(CFLAGS) -o $(NAME)
 
 -include $(DEPS)
 
@@ -34,8 +36,7 @@ fclean: clean
 
 re: fclean all
 
-launch: all
-	@echo "\nLaunching serv:"
-	@./$(NAME)
+debug:
+	@$(MAKE) CFLAGS="$(CFLAGS) $(DEBUG_FLAG)" re
 
-.PHONY: all clean fclean re launch
+.PHONY: all clean fclean re debug

@@ -56,17 +56,12 @@ void Server::deleteSocket(int client_fd)
 		if (client_fd == (*it)->getFd())
 		{
 			epoll_ctl(_poll, EPOLL_CTL_DEL, client_fd, NULL);
-			// perror("lala");
 			// close(client_fd);  // MODIF ICI
-			// perror("ouh");
 			delete (*it); //en free le pointeur
-			// perror("le");
 			_clients.erase(it); //on enleve le pointeur de la liste
-			// perror("cjat");
 			break ;
 		}
 	}
-	// perror("CHIENT");
 }
 
 void Server::launch()
@@ -99,7 +94,6 @@ void Server::launch()
 			// printf("EPOLLOUT = %d\n", EPOLLOUT);
 			if (_events[i].events & EPOLLIN) // EPOLLIN vaut 1
 			{
-				// perror("la");
 				if (_events[i].data.fd == _fdListen) // new incoming connection
 				{
 					cli_len = sizeof(cli);
@@ -123,7 +117,6 @@ void Server::launch()
 				}
 				else // the socket is not listenFd
 				{
-					// perror("baje");
 					client_fd = _events[i].data.fd;
 					n = read(client_fd, buff, sizeof(buff) - 1);
 					// printf("n = %d i = %d, fd = %d\n", n, i, client_fd);
@@ -137,7 +130,6 @@ void Server::launch()
 					{
 						std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (read() == 0)" << std::endl;
 						deleteSocket(client_fd);
-						// perror("verfi");
 						break ;
 					}
 					else
@@ -147,10 +139,12 @@ void Server::launch()
 						{
 							if (client_fd == (*it)->getFd())
 							{
+								std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 								(*it)->addBuff(buff);
 								// std::cout << "Recu: " << (*it)->getBuff() << std::endl;
 								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) //voir plus tard si on essaye de traiter la requete au fur et a mesure
 								{
+									DEBUG_REQ((*it)->getBuff());
 									Request req(*(*it));
 									req.parseHttp();
 									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
@@ -184,40 +178,39 @@ void Server::launch()
 						}
 						else if (n == 0)
 						{
-							// perror("pss");
-							// std::cout << "client " << client_fd << "closed" << std::endl; // a enlever
 							std::cout << date(LOG) << ": Server closed connection to client(" << client_fd << ") [" << (*it)->isCon() << "]" << std::endl;
 							// deleteSocket(client_fd);
 							break ;
 						}
 						else
 						{
-							// perror("trop");
 							deleteSocket(client_fd);
 							std::cerr << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 							break ;
+						}
+						if ((*it)->isCon() == false)
+						{
+							std::cout << date(LOG) << ": Server closed connection to client(" << client_fd << ") [" << (*it)->isCon() << "]" << std::endl;
+							deleteSocket(client_fd);
 						}
 						break ;
 					}
 				}
 			}
-
-
-
-				// buff[n] = '\0';
-				// std::cout << "Recu (" << n << " octets): " << std::endl;
-				// std::cout << buff << std::endl;
-				// ici on parse la demande
-				// const char* resp = "HTTP/1.1 200 OK\r\n"
-				// "Content-Type: text/plain\r\n"
-				// "Content-Length: 12\r\n"
-				// "\r\n"
-				// "Hello world!\n";
-				// if (send(client_fd, resp, ft_strlen(resp), MSG_NOSIGNAL) < 0) // MSG empeche le sigpipe pas ouf
-				// {
-				// 	std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
-				// 	// imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
-				// }
+			// buff[n] = '\0';
+			// std::cout << "Recu (" << n << " octets): " << std::endl;
+			// std::cout << buff << std::endl;
+			// ici on parse la demande
+			// const char* resp = "HTTP/1.1 200 OK\r\n"
+			// "Content-Type: text/plain\r\n"
+			// "Content-Length: 12\r\n"
+			// "\r\n"
+			// "Hello world!\n";
+			// if (send(client_fd, resp, ft_strlen(resp), MSG_NOSIGNAL) < 0) // MSG empeche le sigpipe pas ouf
+			// {
+			// 	std::cout << "send() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+			// 	// imprimer une erreur a l'ecran snas partir car ce n'est pas grave ?
+			// }
 		}
 	}
 }
