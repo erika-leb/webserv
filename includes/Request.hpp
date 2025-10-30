@@ -11,7 +11,7 @@ private:
 
 	std::map<std::string, std::string>	_reqParam, _params;
 	std::stringstream	_rawHttp;
-	std::string	_action, _pathfile, _file, _fileType, _connection;
+	std::string	_action, _pathfile, _file, _fileType, _connection, _statusMess;
 	size_t		_sCode, _fileLength;
 	bool		_valid;
 
@@ -31,7 +31,6 @@ public:
 	void fDelete();
 
 	void handleAction( std::string action );
-	void generateHeader();
 	std::string makeResponse();
 };
 

@@ -11,11 +11,9 @@ static std::string getFile( std::string pathfile, size_t* fileLength ) {
 	std::fstream	fs;
 	std::string		tmp, res, finalPathFile;
 
-	// std::cout << "[DEBUG] *pathfile.begin():" << *pathfile.begin() << std::endl;
 	if (!startWith(pathfile, "./html"))
 		finalPathFile += "./html";
 	finalPathFile += pathfile;
-	// std::cout << "[DEBUG] finalPathFile:" << finalPathFile << std::endl;
 	fs.open(finalPathFile.c_str(), std::ios::in);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp)) {
@@ -38,6 +36,12 @@ static std::string ifError( std::string& path, std::string& con, int sCode ) {
 
 	switch (sCode)
 	{
+	case 201:
+		// path = newly created ressource
+		str = " Created"; break;
+	case 204:
+		// no path
+		str = " No content"; break;
 	case 400:
 		path = "/errors/400.html";
 		str = " Bad request"; con = "close"; break;
@@ -130,24 +134,50 @@ void Request::parseHttp( void ) {
 	}
 }
 
-void Request::fGet( void ) {}
+void Request::fGet( void ) {
+	ifError(_pathfile, _connection, _sCode);
+	_file = getFile(_pathfile.c_str(), &_fileLength);
+	if (_file.empty()) {
+		_sCode = 403;
+		ifError(_pathfile, _connection, _sCode);
+		_file = getFile(_pathfile.c_str(), &_fileLength);
+	}
+}
 
-void Request::fPost( void ) {}
+void Request::fPost( void ) {
+	DEBUG_MSG("POST request");
+	_sCode = 201;
+	fGet();
+}
 
-void Request::fDelete( void ) {}
+void Request::fDelete( void ) {
+	DEBUG_MSG("DELETE request");
+	_sCode = 204;
+	fGet();
+}
 
 void Request::handleAction( std::string action ) {
 	std::string check[3] = {"GET", "POST", "DELETE"};
 	void (Request::*f[3]) ( void ) = {&Request::fGet, &Request::fPost, &Request::fDelete};
 
-	for (int i=0; i < 3; i++) {
-		if (check[i] == action) {
-			(this->*f[i])();
+	int i;
+	if (_sCode == 200) {
+		for (i = 0; i < 3; i++) {
+			if (check[i] == action) {
+				(this->*f[i])();
+				break;
+			}
+		}
+		if (i == 3) {
+			DEBUG_MSG("Not known method");
+			fGet();
 		}
 	}
+	else {
+		DEBUG_MSG("Error code: " << _sCode);
+		fGet();
+	}
 }
-
-void Request::generateHeader( void ) {}
 
 std::string Request::makeResponse( void ) {
 	std::ostringstream mess;
@@ -158,15 +188,7 @@ std::string Request::makeResponse( void ) {
 
 	handleAction(_action);
 
-	std::string statusMess(ifError(_pathfile, _connection, _sCode));
-	_file = getFile(_pathfile.c_str(), &_fileLength);
-	if (_file.empty()) {
-		_sCode = 403;
-		statusMess = ifError(_pathfile, _connection, _sCode);
-		_file = getFile(_pathfile.c_str(), &_fileLength);
-	}
-
-	mess << "HTTP/1.1" << " " << _sCode << statusMess << "\r\n";
+	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << "\r\n";
 	mess << "Date: " << date(HTTP) << "\r\n";
 	mess << "Server: " << "localhost" << "\r\n"; // Modify according configuration file
 	mess << "Connection: " << _connection << "\r\n"; // Modify either the connection need to be maintained or not
@@ -176,6 +198,8 @@ std::string Request::makeResponse( void ) {
 		mess << "\r\n";
 		mess << _file;
 	}
+	else
+		mess << "\r\n";
 
 	_cli.setSendBuff(mess.str());
 	if (_connection == "keep-alive")
