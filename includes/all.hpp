@@ -41,6 +41,7 @@
 
 // #define MAXLINE 10
 #define MAXLINE 4096
+#define ENDLINE "\r\n"
 
 enum dcode {
 	HTTP,

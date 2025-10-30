@@ -188,18 +188,18 @@ std::string Request::makeResponse( void ) {
 
 	handleAction(_action);
 
-	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << "\r\n";
-	mess << "Date: " << date(HTTP) << "\r\n";
-	mess << "Server: " << "localhost" << "\r\n"; // Modify according configuration file
-	mess << "Connection: " << _connection << "\r\n"; // Modify either the connection need to be maintained or not
+	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
+	mess << "Date: " << date(HTTP) << ENDLINE;
+	mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file
+	mess << "Connection: " << _connection << ENDLINE; // Modify either the connection need to be maintained or not
 	if (_sCode != 204) {
-		mess << "Content-Type: " << "text/html" << "\r\n"; // Modify according to file
-		mess << "Content-Length: " << _fileLength << "\r\n";
-		mess << "\r\n";
+		mess << "Content-Type: " << "text/html" << ENDLINE; // Modify according to file
+		mess << "Content-Length: " << _fileLength << ENDLINE;
+		mess << ENDLINE;
 		mess << _file;
 	}
 	else
-		mess << "\r\n";
+		mess << ENDLINE;
 
 	_cli.setSendBuff(mess.str());
 	if (_connection == "keep-alive")
