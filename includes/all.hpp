@@ -2,10 +2,13 @@
 # define ALL_HPP
 
 #ifdef DEBUG
-	# define DEBUG_REQ(request) \
-		std::cerr << "[REQUEST]\n" << request << "[END]" << std::endl
+	#define DEBUG_MSG(msg) do { \
+		std::ostringstream _debug_oss; \
+		_debug_oss << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << "(): " << msg << std::endl; \
+		std::cerr << _debug_oss.str(); \
+	} while (0)
 #else
-	# define DEBUG_REQ(request) do {} while (0)
+	# define DEBUG_MSG(msg) do {} while (0)
 #endif
 
 

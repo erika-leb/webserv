@@ -22,10 +22,16 @@ public:
 	~Request();
 
 	std::map<std::string, std::string> getSpec() const;
-	std::string getHttp() const;
 
 
 	void parseHttp();
+
+	void fGet();
+	void fPost();
+	void fDelete();
+
+	void handleAction( std::string action );
+	void generateHeader();
 	std::string makeResponse();
 };
 

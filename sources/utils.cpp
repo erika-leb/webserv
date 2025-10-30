@@ -48,17 +48,21 @@ void remove_blank(std::string& str) {
 
 std::string date(int format) {
 	std::time_t date = std::time(0);
-	std::tm* gmt = std::gmtime(&date);
+	std::tm* timezone;
+	if (format == HTTP)
+		timezone = std::gmtime(&date);
+	else 
+		timezone = std::localtime(&date);
 
 	char buff[80];
 	switch (format)
 	{
 	case HTTP:
-		std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", gmt);
+		std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", timezone);
 		break;
 	case LOG:
 		// std::strftime(buff, sizeof(buff), "[%F][%H:%M:%S]", gmt);
-		std::strftime(buff, sizeof(buff), "[%H:%M:%S]", gmt);
+		std::strftime(buff, sizeof(buff), "[%H:%M:%S]", timezone);
 		break;
 	
 	default:

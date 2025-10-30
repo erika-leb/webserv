@@ -144,7 +144,7 @@ void Server::launch()
 								// std::cout << "Recu: " << (*it)->getBuff() << std::endl;
 								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) //voir plus tard si on essaye de traiter la requete au fur et a mesure
 								{
-									DEBUG_REQ((*it)->getBuff());
+									DEBUG_MSG("\nRequest: {\n" << (*it)->getBuff() << "}");
 									Request req(*(*it));
 									req.parseHttp();
 									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
@@ -178,7 +178,6 @@ void Server::launch()
 						}
 						else if (n == 0)
 						{
-							std::cout << date(LOG) << ": Server closed connection to client(" << client_fd << ") [" << (*it)->isCon() << "]" << std::endl;
 							// deleteSocket(client_fd);
 							break ;
 						}

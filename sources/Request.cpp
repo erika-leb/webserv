@@ -1,13 +1,13 @@
 #include "all.hpp"
 #include "Request.hpp"
 
-static bool startWith(std::string& str, std::string prefix) {
+static bool startWith( std::string& str, std::string prefix ) {
 	if (prefix.size() > str.size())
 		return false;
 	return str.compare(0, prefix.size(), prefix) == 0;
 }
 
-static std::string getFile(std::string pathfile, size_t* fileLength) {
+static std::string getFile( std::string pathfile, size_t* fileLength ) {
 	std::fstream	fs;
 	std::string		tmp, res, finalPathFile;
 
@@ -33,7 +33,7 @@ static std::string getFile(std::string pathfile, size_t* fileLength) {
 	return res;
 }
 
-static std::string ifError(std::string& path, std::string& con, int sCode ) {
+static std::string ifError( std::string& path, std::string& con, int sCode ) {
 	std::string str;
 
 	switch (sCode)
@@ -43,13 +43,13 @@ static std::string ifError(std::string& path, std::string& con, int sCode ) {
 		str = " Bad request"; con = "close"; break;
 	case 403:
 		path = "/errors/403.html";
-		str = " Forbidden"; con = "keep-alive"; break;
+		str = " Forbidden"; break;
 	case 404:
 		path = "/errors/404.html";
-		str = " Not found"; con = "keep-alive"; break;
+		str = " Not found"; break;
 	case 405:
 		path = "/errors/405.html";
-		str = " Method not allowed"; con = "keep-alive"; break; // Connection normally keep-alive
+		str = " Method not allowed"; break; // Connection normally keep-alive
 	case 500:
 		path = "/errors/500.html";
 		str = " Internal server error"; con = "close"; break;
@@ -66,6 +66,7 @@ Request::Request( Client& cli ): _cli(cli) {
 
 	_valid = true;
 	_sCode = 200;
+	_connection = "keep-alive";
 	std::getline(ss, tmp);
 	_rawHttp << tmp;
 	while (std::getline(ss, tmp)) {
@@ -89,11 +90,11 @@ Request& Request::operator=( const Request& other ) {
 
 Request::~Request() {}
 
-std::map<std::string, std::string> Request::getSpec() const {
+std::map<std::string, std::string> Request::getSpec( void ) const {
 	return _reqParam;
 }
 
-void Request::parseHttp() {
+void Request::parseHttp( void ) {
 	std::string	tmp;
 
 	std::getline(_rawHttp, _action, ' ');
@@ -129,12 +130,33 @@ void Request::parseHttp() {
 	}
 }
 
-std::string Request::makeResponse() {
+void Request::fGet( void ) {}
+
+void Request::fPost( void ) {}
+
+void Request::fDelete( void ) {}
+
+void Request::handleAction( std::string action ) {
+	std::string check[3] = {"GET", "POST", "DELETE"};
+	void (Request::*f[3]) ( void ) = {&Request::fGet, &Request::fPost, &Request::fDelete};
+
+	for (int i=0; i < 3; i++) {
+		if (check[i] == action) {
+			(this->*f[i])();
+		}
+	}
+}
+
+void Request::generateHeader( void ) {}
+
+std::string Request::makeResponse( void ) {
 	std::ostringstream mess;
 
 	if (_valid == false) {
 		_sCode = 400;
 	}
+
+	handleAction(_action);
 
 	std::string statusMess(ifError(_pathfile, _connection, _sCode));
 	_file = getFile(_pathfile.c_str(), &_fileLength);
@@ -148,10 +170,12 @@ std::string Request::makeResponse() {
 	mess << "Date: " << date(HTTP) << "\r\n";
 	mess << "Server: " << "localhost" << "\r\n"; // Modify according configuration file
 	mess << "Connection: " << _connection << "\r\n"; // Modify either the connection need to be maintained or not
-	mess << "Content-Type: " << "text/html" << "\r\n"; // Modify according to file
-	mess << "Content-Length: " << _fileLength << "\r\n";
-	mess << "\r\n";
-	mess << _file;
+	if (_sCode != 204) {
+		mess << "Content-Type: " << "text/html" << "\r\n"; // Modify according to file
+		mess << "Content-Length: " << _fileLength << "\r\n";
+		mess << "\r\n";
+		mess << _file;
+	}
 
 	_cli.setSendBuff(mess.str());
 	if (_connection == "keep-alive")
