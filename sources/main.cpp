@@ -2,12 +2,13 @@
 #include "Server.hpp"
 #include "Request.hpp"
 
+
 void parseConfig(std::string config_path)
 {
 	std::ifstream file(config_path.c_str());
 	if (!file)
 		throw std::runtime_error("could not open configuration file" + static_cast<std::string>(strerror(errno)));
-	
+
 
 }
 
