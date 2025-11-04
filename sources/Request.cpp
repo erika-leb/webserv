@@ -119,7 +119,7 @@ void Request::parseHttp( void ) {
 			_sCode = 404;
 		}
 		else if ((_pathfile.find("/errors/")) != std::string::npos) {
-			// std::cout << "[DEBUG] `/errors/' found in url :" << _pathfile.find("/errors/") << std::endl;
+			// DEBUG_MSG(`/errors/' found in url :" << _pathfile.find("/errors/"));
 			_sCode = 403;
 		}
 		_pathfile.erase(0, 6);
@@ -152,8 +152,18 @@ void Request::fPost( void ) {
 
 void Request::fDelete( void ) {
 	DEBUG_MSG("DELETE request");
+	if (_sCode == 404) {
+		fGet();
+		return;
+	}
+	if (_pathfile.find("/errors/") != std::string::npos) {
+		_sCode = 405;
+		fGet();
+		return;
+	}
+	std::remove(_pathfile.c_str());
 	_sCode = 204;
-	fGet();
+	
 }
 
 void Request::handleAction( std::string action ) {
@@ -168,6 +178,7 @@ void Request::handleAction( std::string action ) {
 				break;
 			}
 		}
+		// Next statement useless ?
 		if (i == 3) {
 			DEBUG_MSG("Not known method");
 			fGet();
