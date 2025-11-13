@@ -1,15 +1,122 @@
-#include "all.hpp"
-#include "Server.hpp"
-#include "Request.hpp"
+#include "../includes/all.hpp"
+#include "../includes/Server.hpp"
+#include "../includes/Request.hpp"
 
+void get_line(std::ifstream &file, std::string &line)
+{
+	std::getline(file, line);
+	trim_line(line);
+	if (!file.eof() && file.fail())
+		throw std::runtime_error("error while reading configuration file" + static_cast<std::string>(strerror(errno)));
+		
+}
+
+void trim_line(std::string &line)
+{
+	int start = 0;
+	int end = line.size();
+
+	while (start < line.size() && std::isspace(line[start]))
+		start++;
+	while (end > start && std::isspace(line[end - 1]))
+		end--;
+	line = line.substr(start, end - start);
+}
+void process_serv(std::ifstream &file, std::fstream &temp, std::string line)
+{
+	int loc = 0;
+
+	line = line.substr(6);
+	trim_line(line);
+	temp << "server" << std::endl;
+	if (line[line.size() - 1] != ';')
+	{
+		while (1)
+		{
+			get_line(file, line);
+			// std::getline(file, line);
+			// trim_line(line);
+			if (file.eof()) // attention ici
+				throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
+			if (line[0] == '#' || line == "")
+				continue;
+			else if (line != "{")
+				throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
+			else
+				//rajouter une ligne ici pour traiter la ligne si eventuellement non vide
+		}
+	}
+	while (1)
+	{
+		std::getline(file, line);
+		// if (!file.eof() && file.fail())
+			// throw std::runtime_error("error while reading configuration file" + static_cast<std::string>(strerror(errno)));
+		if (file.eof()) // attention ici
+			throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
+		// trim_line(line);
+		if (line[0] == '#' || line == "")
+			continue;
+		if (line == "}")
+			break;
+		if (loc == 0 && !(line.substr(0, 8) == "location")) // il s'agit d'une directive de serveur
+		{
+			if (line[line.size() - 1] != ';')
+				throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
+		}
+		else if (line.substr(0, 8) == "location") // il s'agit d'un serveur
+		{
+			loc++;
+			process_loc(file, temp, line);
+		}
+		else // directive apres le serveur
+			throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
+		temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+	}
+}
+
+std::fstream first_parse(std::ifstream &file)
+{
+	std::fstream temp("temp.txt");
+	std::string line;
+	int serv = 0;
+
+	if (!temp.is_open())
+		throw std::runtime_error("could not open temp file" + static_cast<std::string>(strerror(errno)));
+	while (1)
+	{
+		get_line(file, line);
+		std::getline(file, line);
+		// if (!file.eof() && file.fail())
+			// throw std::runtime_error("error while reading configuration file" + static_cast<std::string>(strerror(errno)));
+		if (file.eof()) // attention ici
+			break;
+		// trim_line(line);
+		if (line[0] == '#' || line == "")
+			continue;
+		if (serv == 0 && !(line.substr(0, 6) == "server")) // il s'agit d'une directive globale
+		{
+			if (line[line.size() - 1] != ';')
+				throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
+		}
+		else if (line.substr(0, 6) == "server") // il s'agit d'un serveur
+		{
+			serv++;
+			process_serv(file, temp, line);
+		}
+		else // directive apres le serveur
+			throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
+		temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+	}
+	return (temp);
+}
 
 void parseConfig(std::string config_path)
 {
 	std::ifstream file(config_path.c_str());
+	std::fstream temp;
 	if (!file)
 		throw std::runtime_error("could not open configuration file" + static_cast<std::string>(strerror(errno)));
-
-
+	temp = first_parse(file);
 }
 
 int main(int ac, char **av)

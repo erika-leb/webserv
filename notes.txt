@@ -2,6 +2,7 @@ Erika :
 - verifier que les brackets ont du sens
 - enlever les espaces et les brackets dans un fichier temporaire
 - read chaque ligne
+- enlever les commentaires
 
 Rappel fichier config :
 un serveur nginx = suite de directives
