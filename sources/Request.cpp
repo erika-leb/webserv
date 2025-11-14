@@ -1,20 +1,22 @@
 #include "all.hpp"
 #include "Request.hpp"
 
+/*
 static bool startWith( std::string& str, std::string prefix ) {
 	if (prefix.size() > str.size())
 		return false;
 	return str.compare(0, prefix.size(), prefix) == 0;
 }
+*/
 
-static std::string getFile( std::string pathfile, size_t* fileLength ) {
+static std::string getFile( std::string &pathfile, size_t* fileLength ) {
 	std::fstream	fs;
-	std::string		tmp, res, finalPathFile;
+	std::string		tmp, res;
 
-	if (!startWith(pathfile, "./html"))
-		finalPathFile += "./html";
-	finalPathFile += pathfile;
-	fs.open(finalPathFile.c_str(), std::ios::in);
+	// pathfile modify according to root directory in configuration file
+	if (pathfile.find(".html") != std::string::npos)
+		pathfile.insert(1, "/html");
+	fs.open(pathfile.c_str(), std::ios::in);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp)) {
 			res += tmp;
@@ -24,7 +26,7 @@ static std::string getFile( std::string pathfile, size_t* fileLength ) {
 		*fileLength = res.size();
 	}
 	else {
-		std::cout << date(LOG) << ": ERROR: Couldn't open file [" << finalPathFile << "]" << std::endl;
+		DEBUG_MSG("ERROR: Couldn't open file [" << pathfile << "]");
 		res.clear();
 	}
 	
@@ -43,19 +45,19 @@ static std::string ifError( std::string& path, std::string& con, int sCode ) {
 		// no path
 		str = " No content"; break;
 	case 400:
-		path = "/errors/400.html";
+		path = "./errors/400.html";
 		str = " Bad request"; con = "close"; break;
 	case 403:
-		path = "/errors/403.html";
+		path = "./errors/403.html";
 		str = " Forbidden"; break;
 	case 404:
-		path = "/errors/404.html";
+		path = "./errors/404.html";
 		str = " Not found"; break;
 	case 405:
-		path = "/errors/405.html";
+		path = "./errors/405.html";
 		str = " Method not allowed"; break; // Connection normally keep-alive
 	case 500:
-		path = "/errors/500.html";
+		path = "./errors/500.html";
 		str = " Internal server error"; con = "close"; break;
 	default:
 		str = " Ok"; con = "keep-alive"; break;
@@ -64,11 +66,28 @@ static std::string ifError( std::string& path, std::string& con, int sCode ) {
 	return str;
 }
 
+static void checkPath( std::string pathfile, size_t& eCode ) {
+	// Statement to adapt with configuration file
+	if (pathfile.find(".html") != std::string::npos)
+		pathfile.insert(0, "./html");
+	else
+		pathfile.insert(0, "."); // insert root directory cf. configuration file
+
+	if (access(pathfile.c_str(), F_OK) < 0) {
+		eCode = 404;
+	}
+	else if ((pathfile.find("/errors/")) != std::string::npos) {
+		// std::cout << "[DEBUG] `/errors/' found in url :" << _pathfile.find("/errors/") << std::endl;
+		eCode = 403;
+	}
+
+	return ;
+}
+
 Request::Request( Client& cli ): _cli(cli) {
 	std::stringstream ss(cli.getBuff()), rawParam;
 	std::string key, value, tmp;
 
-	_valid = true;
 	_sCode = 200;
 	_connection = "keep-alive";
 	std::getline(ss, tmp);
@@ -112,35 +131,28 @@ void Request::parseHttp( void ) {
 	std::getline(_rawHttp, _pathfile, ' ');
 	remove_blank(_pathfile);
 	if (_pathfile.empty())
-		_valid = false;
+		_sCode = 400;
 	else {
-		_pathfile.insert(0, "./html");
-		if (access(_pathfile.c_str(), F_OK) < 0) {
-			_sCode = 404;
-		}
-		else if ((_pathfile.find("/errors/")) != std::string::npos) {
-			// DEBUG_MSG(`/errors/' found in url :" << _pathfile.find("/errors/"));
-			_sCode = 403;
-		}
-		_pathfile.erase(0, 6);
+		checkPath(_pathfile, _sCode);
 	}
+	_pathfile.insert(0, ".");
 
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);
 	if (!tmp.empty()) {
 		if (tmp != "HTTP/1.1") {
-			_valid = false;
+			_sCode = 400;
 		}
 	}
 }
 
 void Request::fGet( void ) {
 	ifError(_pathfile, _connection, _sCode);
-	_file = getFile(_pathfile.c_str(), &_fileLength);
+	_file = getFile(_pathfile, &_fileLength);
 	if (_file.empty()) {
 		_sCode = 403;
 		ifError(_pathfile, _connection, _sCode);
-		_file = getFile(_pathfile.c_str(), &_fileLength);
+		_file = getFile(_pathfile, &_fileLength);
 	}
 }
 
@@ -152,18 +164,13 @@ void Request::fPost( void ) {
 
 void Request::fDelete( void ) {
 	DEBUG_MSG("DELETE request");
-	if (_sCode == 404) {
-		fGet();
+	if (access(_pathfile.c_str(), W_OK) == 0) {
+		std::remove(_pathfile.c_str());
+		_sCode = 204;
 		return;
 	}
-	if (_pathfile.find("/errors/") != std::string::npos) {
-		_sCode = 405;
-		fGet();
-		return;
-	}
-	std::remove(_pathfile.c_str());
-	_sCode = 204;
-	
+	_sCode = 403; 
+	fGet();
 }
 
 void Request::handleAction( std::string action ) {
@@ -192,10 +199,6 @@ void Request::handleAction( std::string action ) {
 
 std::string Request::makeResponse( void ) {
 	std::ostringstream mess;
-
-	if (_valid == false) {
-		_sCode = 400;
-	}
 
 	handleAction(_action);
 
