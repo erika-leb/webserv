@@ -72,10 +72,20 @@ void LocationConfig::get_uri(std::string &line)
     uri = line.substr(0, i);
     line = line.substr(i);
     trim_line(line);
+    std::cout << "location uri = " << uri << "s" << std::endl;
     for (size_t j = 0; j < line.size(); j++)
     {
-        if (std::isspace(line[j]))
+        // perror("ic");
+        // std::cout << "line j = " << line[j] << std::endl;        
+        if (!std::isspace(line[j]))
 		    throw std::runtime_error("error in configuration file's syntax (location)");
+    }
+    if (uri == "" || uri[0] != '/')
+        throw std::runtime_error("error in configuration file's syntax (location)");
+    for (size_t i = 0; i < uri.size(); i++)
+    {
+        if (uri[i] == '\\') // a verifier
+            throw std::runtime_error("error in configuration file's syntax (location)");
     }
 }
 

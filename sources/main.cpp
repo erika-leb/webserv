@@ -115,7 +115,7 @@ void parseConfig(std::string config_path)
     temp.open("temp.txt", std::ios::in);
 	// perror("trait");
 	GlobalConfig config(temp);
-	config.print_config();
+	// config.print_config();
 	temp.close();
 }
 
