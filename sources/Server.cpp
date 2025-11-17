@@ -79,11 +79,6 @@ void Server::launch()
 
 	while(flag == 0) // faut penser a arreter ailleurs aussi
 	{
-		// std::cout << "[DEBUG] _clients: " << std::endl;
-		// for (std::vector<Client*>::iterator it=_clients.begin(); it < _clients.end(); ++it) {
-		// 	std::cout << "client(" << (*it)->getFd() << ")" << std::endl;
-		// }
-		// std::cout << "[END]" << std::endl;
 		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
 		i++;
 		for (int i = 0; i < d; i++)
@@ -142,9 +137,9 @@ void Server::launch()
 								std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 								(*it)->addBuff(buff);
 								// std::cout << "Recu: " << (*it)->getBuff() << std::endl;
-								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) //voir plus tard si on essaye de traiter la requete au fur et a mesure
+								DEBUG_MSG("\nReceived: {\n" << (*it)->getBuff() << "}");
+								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
 								{
-									DEBUG_MSG("\nRequest: {\n" << (*it)->getBuff() << "}");
 									Request req(*(*it));
 									req.parseHttp();
 									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
