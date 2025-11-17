@@ -13,7 +13,6 @@ private:
 	std::stringstream	_rawHttp;
 	std::string	_action, _pathfile, _file, _fileType, _connection, _statusMess;
 	size_t		_sCode, _fileLength;
-	bool		_valid;
 
 public:
 	Request( Client& cli );
