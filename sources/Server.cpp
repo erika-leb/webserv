@@ -244,6 +244,8 @@ void Server::handleSigint(int sig)
 	if (sig == SIGINT)
 	{
 		std::cout << date(LOG) << ": Server shutdown" << std::endl;
+		if (std::remove("temp.txt") != 0)
+		    std::cerr << "Erreur lors de la suppression du fichier." << std::endl;
 		flag = 1;
 	}
 }

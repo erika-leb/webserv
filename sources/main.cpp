@@ -1,6 +1,9 @@
-#include "../includes/all.hpp"
-#include "../includes/Server.hpp"
-#include "../includes/Request.hpp"
+#include "all.hpp"
+#include "Server.hpp"
+#include "Request.hpp"
+#include "GlobalConfig.hpp"
+
+
 
 void get_line(std::ifstream &file, std::string &line)
 {
@@ -11,49 +14,41 @@ void get_line(std::ifstream &file, std::string &line)
 		
 }
 
-void trim_line(std::string &line)
+void process_loc(std::ifstream &file, std::fstream &temp, std::string &line)
 {
-	int start = 0;
-	int end = line.size();
-
-	while (start < line.size() && std::isspace(line[start]))
-		start++;
-	while (end > start && std::isspace(line[end - 1]))
-		end--;
-	line = line.substr(start, end - start);
+	trim_line(line);
+	if (line[line.size() - 1] != '{')
+		throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
+	temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+	while (1)
+	{
+		get_line(file, line);
+		if (file.eof()) // attention ici
+			throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
+		if (line[0] == '#' || line == "")
+			continue;
+		if (line == "}")
+			break;
+		if (line[line.size() - 1] != ';')
+			throw std::runtime_error("error in configuration file's syntaxe");
+		temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+	}
 }
-void process_serv(std::ifstream &file, std::fstream &temp, std::string line)
+
+void process_serv(std::ifstream &file, std::fstream &temp, std::string &line)
 {
 	int loc = 0;
 
 	line = line.substr(6);
 	trim_line(line);
 	temp << "server" << std::endl;
-	if (line[line.size() - 1] != ';')
-	{
-		while (1)
-		{
-			get_line(file, line);
-			// std::getline(file, line);
-			// trim_line(line);
-			if (file.eof()) // attention ici
-				throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
-			if (line[0] == '#' || line == "")
-				continue;
-			else if (line != "{")
-				throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
-			else
-				//rajouter une ligne ici pour traiter la ligne si eventuellement non vide
-		}
-	}
+	if (line[line.size() - 1] != '{')
+		throw std::runtime_error("error in configuration file's syntax");
 	while (1)
 	{
-		std::getline(file, line);
-		// if (!file.eof() && file.fail())
-			// throw std::runtime_error("error while reading configuration file" + static_cast<std::string>(strerror(errno)));
-		if (file.eof()) // attention ici
+		get_line(file, line);
+		if (file.eof())
 			throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
-		// trim_line(line);
 		if (line[0] == '#' || line == "")
 			continue;
 		if (line == "}")
@@ -61,7 +56,8 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string line)
 		if (loc == 0 && !(line.substr(0, 8) == "location")) // il s'agit d'une directive de serveur
 		{
 			if (line[line.size() - 1] != ';')
-				throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
+				throw std::runtime_error("error in configuration file's syntaxe");
+			temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 		}
 		else if (line.substr(0, 8) == "location") // il s'agit d'un serveur
 		{
@@ -70,33 +66,32 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string line)
 		}
 		else // directive apres le serveur
 			throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
-		temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+		// std::cout << "bem" << line << std::endl; // pour enlever le ; à la fin
+		// temp << "bem" << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 	}
 }
 
-std::fstream first_parse(std::ifstream &file)
+void first_parse(std::ifstream &file, std::fstream &temp)
 {
-	std::fstream temp("temp.txt");
 	std::string line;
 	int serv = 0;
 
+	temp.open("temp.txt", std::ios::out | std::ios::trunc);
 	if (!temp.is_open())
-		throw std::runtime_error("could not open temp file" + static_cast<std::string>(strerror(errno)));
+		throw std::runtime_error("could not open temp file: " + static_cast<std::string>(strerror(errno)));
 	while (1)
 	{
 		get_line(file, line);
-		std::getline(file, line);
-		// if (!file.eof() && file.fail())
-			// throw std::runtime_error("error while reading configuration file" + static_cast<std::string>(strerror(errno)));
 		if (file.eof()) // attention ici
 			break;
-		// trim_line(line);
-		if (line[0] == '#' || line == "")
+		// if (line[0] == '#' || line == "")
+		if (line[0] == '#' || line == "" || line == ";")
 			continue;
 		if (serv == 0 && !(line.substr(0, 6) == "server")) // il s'agit d'une directive globale
 		{
 			if (line[line.size() - 1] != ';')
-				throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
+				throw std::runtime_error("error in configuration file's syntaxe");
+			temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 		}
 		else if (line.substr(0, 6) == "server") // il s'agit d'un serveur
 		{
@@ -104,10 +99,8 @@ std::fstream first_parse(std::ifstream &file)
 			process_serv(file, temp, line);
 		}
 		else // directive apres le serveur
-			throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
-		temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+			throw std::runtime_error("error in configuration file's syntaxe");
 	}
-	return (temp);
 }
 
 void parseConfig(std::string config_path)
@@ -115,8 +108,15 @@ void parseConfig(std::string config_path)
 	std::ifstream file(config_path.c_str());
 	std::fstream temp;
 	if (!file)
-		throw std::runtime_error("could not open configuration file" + static_cast<std::string>(strerror(errno)));
-	temp = first_parse(file);
+		throw std::runtime_error("could not open configuration file: " + static_cast<std::string>(strerror(errno)));
+	first_parse(file, temp);
+    // perror("no");
+	temp.close();
+    temp.open("temp.txt", std::ios::in);
+	// perror("trait");
+	GlobalConfig config(temp);
+	config.print_config();
+	temp.close();
 }
 
 int main(int ac, char **av)
