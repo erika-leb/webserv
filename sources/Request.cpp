@@ -113,6 +113,10 @@ Request& Request::operator=( const Request& other ) {
 
 Request::~Request() {}
 
+std::string Request::getAction( void ) const {
+	return _action;
+}
+
 std::map<std::string, std::string> Request::getSpec( void ) const {
 	return _reqParam;
 }
@@ -199,8 +203,6 @@ void Request::handleAction( std::string action ) {
 
 std::string Request::makeResponse( void ) {
 	std::ostringstream mess;
-
-	handleAction(_action);
 
 	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;

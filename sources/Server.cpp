@@ -142,6 +142,10 @@ void Server::launch()
 								{
 									Request req(*(*it));
 									req.parseHttp();
+
+									if (req.is_cgi())
+										handleCGI(req.getPathfile());
+									req.handleAction(req.getAction());
 									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
 									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 									(*it)->clearRequestBuff(); // erase the processed request

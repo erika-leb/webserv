@@ -20,6 +20,7 @@ public:
 	Request& operator=( const Request& other );
 	~Request();
 
+	std::string getAction() const;
 	std::map<std::string, std::string> getSpec() const;
 
 
