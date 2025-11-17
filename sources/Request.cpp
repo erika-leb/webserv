@@ -36,6 +36,7 @@ static std::string getFile( std::string &pathfile, size_t* fileLength ) {
 static std::string ifError( std::string& path, std::string& con, int sCode ) {
 	std::string str;
 
+	// The path to error code must adapt to configuration file
 	switch (sCode)
 	{
 	case 201:
@@ -77,7 +78,6 @@ static void checkPath( std::string pathfile, size_t& eCode ) {
 		eCode = 404;
 	}
 	else if ((pathfile.find("/errors/")) != std::string::npos) {
-		// std::cout << "[DEBUG] `/errors/' found in url :" << _pathfile.find("/errors/") << std::endl;
 		eCode = 403;
 	}
 
