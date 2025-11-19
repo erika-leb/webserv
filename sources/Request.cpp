@@ -33,6 +33,7 @@ static std::string getFile( std::string &pathfile, size_t* fileLength ) {
 	return res;
 }
 
+/* This function can be reduce with a hash table */
 static std::string ifError( std::string& path, std::string& con, int sCode ) {
 	std::string str;
 
@@ -113,8 +114,24 @@ Request& Request::operator=( const Request& other ) {
 
 Request::~Request() {}
 
+std::string Request::getPathFile( void ) const {
+	return _pathfile;
+}
+
+std::string Request::getAction( void ) const {
+	return _action;
+}
+
 std::map<std::string, std::string> Request::getSpec( void ) const {
 	return _reqParam;
+}
+
+bool Request::is_cgi( std::string cgiFolder ) {
+
+	if (_pathfile.find(cgiFolder) != std::string::npos)
+		return true;
+	else
+		return false;
 }
 
 void Request::parseHttp( void ) {
@@ -199,8 +216,6 @@ void Request::handleAction( std::string action ) {
 
 std::string Request::makeResponse( void ) {
 	std::ostringstream mess;
-
-	handleAction(_action);
 
 	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
