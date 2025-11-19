@@ -20,9 +20,11 @@ public:
 	Request& operator=( const Request& other );
 	~Request();
 
+	std::string getPathFile() const;
 	std::string getAction() const;
 	std::map<std::string, std::string> getSpec() const;
 
+	bool is_cgi( std::string cgiFolder );
 
 	void parseHttp();
 

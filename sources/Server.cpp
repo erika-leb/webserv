@@ -136,15 +136,15 @@ void Server::launch()
 							{
 								std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 								(*it)->addBuff(buff);
-								// std::cout << "Recu: " << (*it)->getBuff() << std::endl;
 								DEBUG_MSG("\nReceived: {\n" << (*it)->getBuff() << "}");
 								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
 								{
 									Request req(*(*it));
 									req.parseHttp();
 
-									if (req.is_cgi())
-										handleCGI(req.getPathfile());
+									std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
+									if (req.is_cgi(cgiFolder)) // check if we are in the cgi folder
+										handleCGI(req.getPathFile());
 									req.handleAction(req.getAction());
 									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
 									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
