@@ -17,7 +17,7 @@ Server::Server()
 	ft_memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = htons(8080);
+	addr.sin_port = htons(8080); //ICI VERIFIER QUE LE PORT EST OK 
 
 	if (bind(_fdListen, (struct sockaddr*)&addr, sizeof(addr))) // utile car on est le serveur, inutile pour le client, equivaut a lister son numero dans l'annuaire
 	{

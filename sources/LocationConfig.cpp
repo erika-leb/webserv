@@ -1,6 +1,6 @@
 #include "LocationConfig.hpp"
 
-LocationConfig::LocationConfig(std::fstream &temp, std::string &line) : dir(), uri() // recuperer ce qu'il y a apres location
+LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConfig *sconf) : dir(), uri(), conf(sconf) // recuperer ce qu'il y a apres location
 {
     // int loc = 0;
     // perror("lola");
@@ -23,47 +23,54 @@ LocationConfig::LocationConfig(std::fstream &temp, std::string &line) : dir(), u
         }
         dir.push_back(Directive(line));
 	}
-
+	addOtherDir();
+	// ICI on rajoute les directives du serveur si elles ne sont pas presentes
 }
 
-// void LocationConfig::get_uri(std::string &line)
-// {
-//     size_t i = 0;
-//     int nbarg = 0;
-//     std::string word;
- 
-//     line = line.substr(8);
-//     trim_line(line);
+void LocationConfig::addOtherDir()
+{
+	std::vector<Directive> servDir; //directive serveur
+	std::vector<Directive> globDir;//ensuite directives globales
+	int flag;
 
-//     while (i < line.size() && !std::isspace(line[i]))
-//         i++;
-//     uri = line.substr(0, i);
-//     line = line.substr(i);
-//     trim_line(line);
-//     for (size_t j = 0; j < line.size(); j++)
-//     {
-//         if (std::isspace(line[j]))
-//         {
-//             if (!word.empty())
-//             {
-//                 nbarg++;
-//                 word.clear();
-//             }
-//         }
-//         else
-//             word = word + line[j];
-//     }
-//     if (!word.empty())
-//         nbarg++;
-//     if (nbarg != 0)
-// 		throw std::runtime_error("error in configuration file's syntax (location)");
-// }
+	servDir = conf->getDir();
+	for (std::vector<Directive>::iterator it = servDir.begin(); it != servDir.end(); ++it)
+	{
+		flag = 0;
+		for (std::vector<Directive>::iterator ite = dir.begin(); ite != dir.end(); ++ite)
+		{
+			if (it->getName() == ite->getName())
+			{
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 0)
+			dir.push_back(*it);
+	}
+
+	globDir = conf->getGlobConf()->getDir();
+	for (std::vector<Directive>::iterator it = globDir.begin(); it != globDir.end(); ++it)
+	{
+		flag = 0;
+		for (std::vector<Directive>::iterator ite = dir.begin(); ite != dir.end(); ++ite)
+		{
+			if (it->getName() == ite->getName())
+			{
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 0)
+			dir.push_back(*it);
+	}
+}
 
 void LocationConfig::get_uri(std::string &line)
 {
     size_t i = 0;
     // int nbarg = 0;
- 
+
     line = line.substr(8);
     trim_line(line);
 
@@ -76,7 +83,7 @@ void LocationConfig::get_uri(std::string &line)
     for (size_t j = 0; j < line.size(); j++)
     {
         // perror("ic");
-        // std::cout << "line j = " << line[j] << std::endl;        
+        // std::cout << "line j = " << line[j] << std::endl;
         if (!std::isspace(line[j]))
 		    throw std::runtime_error("error in configuration file's syntax (location)");
     }
@@ -101,7 +108,7 @@ void LocationConfig::print_location()
 }
 
 
-LocationConfig::LocationConfig(const LocationConfig &src) : dir(src.dir), uri(src.uri)
+LocationConfig::LocationConfig(const LocationConfig &src) : dir(src.dir), uri(src.uri), conf(src.conf)
 {
 }
 
@@ -116,10 +123,11 @@ LocationConfig &LocationConfig::operator=(const LocationConfig &src)
     {
         dir = src.dir;
         uri = src.uri;
+		conf = src.conf;
     }
     return (*this);
 }
 
-LocationConfig::LocationConfig() : dir(), uri()
+LocationConfig::LocationConfig() : dir(), uri(), conf(NULL)
 {
 }

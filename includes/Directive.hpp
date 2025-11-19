@@ -11,6 +11,10 @@ class Directive {
             ~Directive();
             Directive &operator=(const Directive &src);
 
+			std::string &getName();
+			int getNbArg() const;
+			std::vector<std::string> &getArg();
+
             void print_directive();
 
     private:
@@ -19,7 +23,7 @@ class Directive {
             std::vector<std::string> arg;
 
             Directive();
-		
+
 } ;
 
 #endif

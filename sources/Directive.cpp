@@ -33,6 +33,21 @@ Directive::Directive(std::string &line) : name(""), nbArg(0), arg() // verifier 
     }
 }
 
+std::string &Directive::getName()
+{
+	return (name);
+}
+
+int Directive::getNbArg() const
+{
+	return (nbArg);
+}
+
+std::vector<std::string> &Directive::getArg()
+{
+	return (arg);
+}
+
 Directive::Directive(const Directive &src) : name(src.name), nbArg(src.nbArg), arg(src.arg)
 {
 }
@@ -48,22 +63,33 @@ Directive &Directive::operator=(const Directive &src)
     {
         name = src.name;
         nbArg = src.nbArg;
-        arg = arg;
+        arg = src.arg;
     }
     return (*this);
 }
 
+// void Directive::print_directive()
+// {
+//     std::cout << "Directive name: " << name << std::endl;
+//     std::cout << "Arguments:" << std::endl;
+//     for (size_t i = 0; i < arg.size(); ++i)
+//     {
+//         std::cout << "  [" << i << "] " << arg[i] << std::endl;
+//     }
+//     std::cout << "nb of argument" << nbArg << std::endl;
+// }
+
 void Directive::print_directive()
 {
-    std::cout << "Directive name: " << name << std::endl;
-    std::cout << "Arguments:" << std::endl;
+    std::cout << "Directive: " << name;
+    // std::cout << "Arguments:" << std::endl;
     for (size_t i = 0; i < arg.size(); ++i)
     {
-        std::cout << "  [" << i << "] " << arg[i] << std::endl;
+        std::cout <<" " <<  arg[i] << "  [" << i << "] " ;
     }
-    std::cout << "nb of argument" << nbArg << std::endl;
+	std::cout << std::endl;
+    // std::cout << "nb of argument" << nbArg << std::endl;
 }
-
 
 Directive::Directive() : name(""), nbArg(0), arg()
 {

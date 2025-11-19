@@ -4,17 +4,31 @@
 #include "all.hpp"
 #include "Directive.hpp"
 #include "LocationConfig.hpp"
+#include "GlobalConfig.hpp"
 
 class Directive;
 class LocationConfig;
+class GlobalConfig;
 
 class ServerConfig {
 
 	public:
-        ServerConfig(std::fstream &temp);
+        ServerConfig(std::fstream &temp, GlobalConfig *gconf);
         ServerConfig(const ServerConfig &src);
         ~ServerConfig();
         ServerConfig &operator=(const ServerConfig &src);
+
+		void checkListen();
+		bool isValidListArg(std::string &s);
+		bool isValidPort(std::string &s);
+		bool isValidHostPort(std::string &s);
+		bool isValidIPv4(std::string &s);
+
+		void addGlobalDir();
+
+		std::vector<Directive>& getDir();
+
+		GlobalConfig *getGlobConf();
 
 		void print_server();
 
@@ -22,7 +36,10 @@ class ServerConfig {
 		std::vector<Directive> dir;
 		std::vector<LocationConfig> locs;
 
+		GlobalConfig *conf;
+
 		ServerConfig();
+
 } ;
 
 #endif

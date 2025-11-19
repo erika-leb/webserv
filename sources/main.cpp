@@ -3,15 +3,13 @@
 #include "Request.hpp"
 #include "GlobalConfig.hpp"
 
-
-
 void get_line(std::ifstream &file, std::string &line)
 {
 	std::getline(file, line);
 	trim_line(line);
 	if (!file.eof() && file.fail())
 		throw std::runtime_error("error while reading configuration file" + static_cast<std::string>(strerror(errno)));
-		
+
 }
 
 void process_loc(std::ifstream &file, std::fstream &temp, std::string &line)
@@ -115,7 +113,7 @@ void parseConfig(std::string config_path)
     temp.open("temp.txt", std::ios::in);
 	// perror("trait");
 	GlobalConfig config(temp);
-	// config.print_config();
+	config.print_config();
 	temp.close();
 }
 

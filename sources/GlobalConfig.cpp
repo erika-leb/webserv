@@ -30,7 +30,7 @@ GlobalConfig::GlobalConfig(std::fstream &temp) : dir()
         {
             // perror("cmi aùm");
             serv++;
-            servs.push_back(temp);
+            servs.push_back(ServerConfig(temp, this));
             //on traite le reste
         }
         else
@@ -39,6 +39,12 @@ GlobalConfig::GlobalConfig(std::fstream &temp) : dir()
     if (serv == 0)
         throw std::runtime_error("error configuration file should contain at least one server");
 }
+
+std::vector<Directive>& GlobalConfig::getDir()
+{
+	return (dir);
+}
+
 
 void GlobalConfig::print_config()
 {

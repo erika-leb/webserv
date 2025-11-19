@@ -1,54 +1,184 @@
 #include "ServerConfig.hpp"
 
-ServerConfig::ServerConfig(std::fstream &temp) : dir(), locs()
+ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf)
 {
     std::string line;
     int loc = 0;
 
     while (1)
 	{
-        // std::cout << "linguine = " << line << std::endl;
-        // perror("domaine");
         if (!((line.size() >= 8 && line.substr(0, 8) == "location") || line == "server"))
             std::getline(temp, line);
-        // perror("préjugé");
         trim_line(line);
-        // std::cout << "line = " << line << std::endl;
         if (!temp.eof() && temp.fail())
 		    throw std::runtime_error("error while reading temp file" + static_cast<std::string>(strerror(errno)));
-        // perror("catlina");
-        // std::cout << "line = " << line << std::endl;
-        // else if (temp.eof() || line == "}")
         else if (temp.eof() || line == "server")
         {
-            // perror("puede");
-            // std::cout << "line = " << line << std::endl;
             break ;
-        }    
+        }
         else if (loc == 0 && line.substr(0, 8) != "location")
         {
-            // perror("corazon"); 
             dir.push_back(Directive(line));
         }
-        // perror("loca");
         else if (line.substr(0, 8) == "location")
         {
             loc++;
-            // get_uri(line);
-            // line = line.substr(8);
-            // trim_line(line);
-            //ici on recupere l'url !!!!!!
-            locs.push_back(LocationConfig(temp, line));
-            //on traite le reste
+            locs.push_back(LocationConfig(temp, line, this));
         }
-        // ICI IL FAUT VERIFIER QUE LES  2 ARGS OBLIG SONT LA
         // else
         // {
         //     // std::cout << "luine = " << line << std::endl;
         //     throw std::runtime_error("error configuration file should contain at least one server");
         // }
     }
+	checkListen();
+	addGlobalDir();
+	// ICI on rajoute les directives globales si elles ne sont pas presentes
 }
+
+void ServerConfig::addGlobalDir()
+{
+	std::vector<Directive> globDir;
+	int flag = 0;
+
+	globDir = conf->getDir();
+	for (std::vector<Directive>::iterator it = globDir.begin(); it != globDir.end(); ++it)
+	{
+		flag = 0;
+		for (std::vector<Directive>::iterator ite = dir.begin(); ite != dir.end(); ++ite)
+		{
+			if (it->getName() == ite->getName())
+			{
+				// perror("ouh");
+				flag = 1;
+				break ;
+			}
+		}
+		if (flag == 0)
+			dir.push_back(*it);
+	}
+}
+
+GlobalConfig *ServerConfig::getGlobConf()
+{
+	return (conf);
+}
+
+
+std::vector<Directive>& ServerConfig::getDir()
+{
+	return (dir);
+}
+
+void ServerConfig::checkListen()
+{
+	std::vector<std::string> arg;
+
+	for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)
+    {
+        Directive &dir = *it;
+        if (dir.getName() == "listen")
+		{
+			if (dir.getNbArg() != 1)
+				throw std::runtime_error("error with configuration file : 'listen' directive should only have one argument");
+			arg = dir.getArg();
+			if (isValidListArg(arg[0]) == false)
+				throw std::runtime_error("error with configuration file : 'listen' directive is not valid");
+			return ;
+		}
+    }
+	throw std::runtime_error("error with configuration file : server need one 'listen' directive");
+}
+
+bool ServerConfig::isValidListArg(std::string &s)
+{
+	if (isValidPort(s) ==  true)
+		return (true);
+	if (isValidHostPort(s) == true)
+		return (true);
+	return (false);
+}
+
+bool ServerConfig::isValidPort(std::string &s)
+{
+	int port;
+
+	if (s.size() == 0)
+		return false;
+	for (std::string::size_type i = 0; i < s.size(); ++i)
+	{
+		if (!(std::isdigit(s[i])))
+			return (false);
+	}
+
+	port = std::atoi(s.c_str());
+	if (port < 1 || port > 65536)
+		return (false);
+	return (true);
+}
+
+bool ServerConfig::isValidIPv4(std::string &s)
+{
+	int dots = 0;
+	std::string block;
+	int count = 0;
+	int value;
+
+	for (std::string::size_type i = 0; i < s.size(); ++i)
+	{
+		if (s[i] == '.')
+			dots++;
+	}
+	if (dots != 3)
+		return (false);
+	for(std::string::size_type i = 0; i <= s.size(); ++i)
+	{
+		if (i == s.size() || s[i] == '.')
+		{
+			if (block.size() == 0)
+				return (false);
+			for (std::string::size_type j = 0; j < block.size(); ++j)
+			{
+                if (!std::isdigit(block[j]))
+                    return (false);
+			}
+			value = std::atoi(block.c_str());
+			if (value < 0 || value > 255)
+				return (false);
+			block = "";
+			count++;
+		}
+		else
+			block += s[i];
+	}
+	return (count == 4);
+}
+
+bool ServerConfig::isValidHostPort(std::string &s)
+{
+	std::string host;
+	std::string port;
+
+	std::string::size_type pos = s.find(':');
+	if (pos == std::string::npos)
+		return (false);
+
+	host = s.substr(0, pos);
+	port = s.substr(pos + 1);
+
+	if (port.size() == 0)
+		return (false);
+	if (isValidPort(port) == false)
+		return (false);
+	if (host == "*")
+		return true;
+	if (host == "0.0.0.0")
+		return true;
+	if (isValidIPv4(host))
+		return true;
+	return (false);
+}
+
 
 void ServerConfig::print_server()
 {
@@ -65,7 +195,7 @@ void ServerConfig::print_server()
     }
 }
 
-ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs)
+ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf)
 {
 }
 
@@ -80,10 +210,7 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &src)
     {
         dir = src.dir;
         locs = src.locs;
+		conf = src.conf;
     }
     return (*this);
-}
-
-ServerConfig::ServerConfig() : dir(), locs()
-{
 }

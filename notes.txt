@@ -1,3 +1,8 @@
+a faire encore pour config :
+- voir quelles directives on accepte (accepte-on les meme a chaque niveau ?)
+- decider quelles ou si des directives peuvent se trouver en doubon
+- verifier pour chaque serveur et chaque location, si la directive existe au niveau precedent, si c4'est le cas, la supplanter
+- implementer les elements de la config dans le serveur
 
 
 Rappel fichier config :
@@ -10,10 +15,10 @@ un serveur nginx = suite de directives
 Creer 3 classes = global config, server congif et location config
 
 
-regles 
+regles
 - aucune directive obligatoire au niveau global (root, index, qutoindex on/off, cgi8handler, client_max_body_size, error_page )
 - niveau serveur : listen et root obligatoire, index optionell (fichier par défault; index.html), error_pageet location optionnel
-- location optionnel; directives optionnel 
+- location optionnel; directives optionnel
 location /images {
 }
 c'est ok
