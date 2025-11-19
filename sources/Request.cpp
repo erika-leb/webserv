@@ -147,6 +147,7 @@ void Request::parseHttp( void ) {
 	
 	std::getline(_rawHttp, _pathfile, ' ');
 	remove_blank(_pathfile);
+	DEBUG_MSG("file: " << _pathfile);
 	if (_pathfile.empty())
 		_sCode = 400;
 	else {
@@ -219,7 +220,7 @@ std::string Request::makeResponse( void ) {
 
 	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
-	mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file
+	mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE; // Modify either the connection need to be maintained or not
 	if (_sCode != 204) {
 		mess << "Content-Type: " << "text/html" << ENDLINE; // Modify according to file

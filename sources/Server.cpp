@@ -143,8 +143,8 @@ void Server::launch()
 									req.parseHttp();
 
 									std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-									if (req.is_cgi(cgiFolder)) // check if we are in the cgi folder
-										handleCGI(req.getPathFile());
+									// if (req.is_cgi(cgiFolder)) // check if we are in the cgi folder
+									// 	handleCGI(req.getPathFile());
 									req.handleAction(req.getAction());
 									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
 									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);

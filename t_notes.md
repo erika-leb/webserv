@@ -7,6 +7,11 @@ sudo chown -R www-data:www-data /srv/tempserv/html
 sudo chmod -R 755 /srv/tempserv/html
 ```
 
+## # Security
+
+- '**../**' can't do
+- can't delete outside of a certain directory
+
 ## # What POST request does
 
 ``` text
