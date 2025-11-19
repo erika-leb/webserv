@@ -1,7 +1,4 @@
-Erika :
-- verifier que les brackets ont du sens
-- enlever les espaces et les brackets dans un fichier temporaire
-- read chaque ligne
+
 
 Rappel fichier config :
 un serveur nginx = suite de directives
@@ -13,10 +10,23 @@ un serveur nginx = suite de directives
 Creer 3 classes = global config, server congif et location config
 
 
+regles 
+- aucune directive obligatoire au niveau global (root, index, qutoindex on/off, cgi8handler, client_max_body_size, error_page )
+- niveau serveur : listen et root obligatoire, index optionell (fichier par défault; index.html), error_pageet location optionnel
+- location optionnel; directives optionnel 
+location /images {
+}
+c'est ok
 
 
+La logique standard est :
+-match le plus long préfixe (ex : /images/hd/ avant /images/)
+-si aucun match : fallback au location /
 
-
+etapes :
+- faire le systeme gloabale (est-ce que je fais un objet pour les directives ? ca me parait pas mal)
+- puis regarder pour chaque directives si elle est correctement
+- adapter le serveur
 
 
 🧩 ÉTAPE 1 — Vérifie que ton serveur “écoute” correctement

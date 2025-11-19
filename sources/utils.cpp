@@ -1,5 +1,17 @@
 #include "Server.hpp"
 
+void trim_line(std::string &line)
+{
+	size_t start = 0;
+	size_t end = line.size();
+
+	while (start < line.size() && std::isspace(line[start]))
+		start++;
+	while (end > start && std::isspace(line[end - 1]))
+		end--;
+	line = line.substr(start, end - start);
+}
+
 void	*ft_memset(void *b, int c, size_t len)
 {
 	unsigned char	*temp;
