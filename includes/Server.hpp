@@ -4,6 +4,7 @@
 #include "all.hpp"
 #include "Client.hpp"
 #include "Request.hpp"
+#include "Cgi.hpp"
 // faut ajouter un tableau ou je mets les fd aueje suis et la derniere connection pour tej ceux qui sont inactifs et les tej tous a la fin
 
 // struct Client {

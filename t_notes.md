@@ -68,7 +68,7 @@ con  = info.connection;
 
 ## # CGI implementation
 
-### /Plan
+### / Handle pipe and fork
 First we need to `fork()` the process after we encounter the [**cgi**](https://en.wikipedia.org/wiki/Common_Gateway_Interface) folder in the *URI*.  
 Now we have:  
 - Parent process -> waiting for child (continuing maybe ?)
@@ -77,8 +77,7 @@ Now we have:
 To make the output of the child be accessible to the parent we must use `pipe()`, then we add the *read* end of the pipe to the `epoll()` for listening.\*[not sure about the epoll part]  
 When the child process finish we put the output in a file and send back the file to the client.  
 The child must go into the correct directory before executing the **cgi**.
+Parent continues and intercept child exit signal to process the data being sent in the pipe.  
 
 Return:  
 The function must return all of the **cgi** has print into the Client *sendBuff* variable. (or directly in the send *file descriptor*).  
-
-### /Execution

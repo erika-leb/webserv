@@ -29,11 +29,12 @@
 
 /* C headers */
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/epoll.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <netdb.h>
-#include <sys/types.h>
-#include <sys/epoll.h>
 #include <fcntl.h>
 // #include <stdio.h>
 
@@ -52,10 +53,15 @@ enum dcode {
 void		*ft_memset(void *b, int c, size_t len);
 size_t		ft_strlen(const char *str);
 int			make_non_blocking(int sockfd);
+std::string date( int format );
+void 		trim_line(std::string &line);
+
 bool		isBlank( char c );
 void		remove_blank( std::string& str );
-std::string date(int format);
-void 		trim_line(std::string &line);
+
+void		handleCGI_fork( std::string path );
+void		handleCGI_pipe( std::string path );
+void		sigchld_handler( int sig );
 
 
 int		is_fd_open(int fd); // a supprimer plus tard

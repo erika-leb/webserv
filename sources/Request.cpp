@@ -162,6 +162,8 @@ void Request::parseHttp( void ) {
 			_sCode = 400;
 		}
 	}
+	else
+		_sCode = 400;
 }
 
 void Request::fGet( void ) {
