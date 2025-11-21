@@ -27,10 +27,12 @@ class Server {
 
 		// void add_client(int fd, std::string str, bool d);
 		static void handleSigint(int sig);
+
 		void modifyEvent(int fd, uint32_t events);
 		void deleteSocket(int client_fd);
 		bool is_listen_fd(int fd);
 		void NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_event &event);
+		int reveiveRequest(int i);
 
 	private:
 

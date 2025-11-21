@@ -107,12 +107,65 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
+int Server::reveiveRequest(int i)
+{
+	int client_fd;
+	char buff[MAXLINE];
+	int n;
+
+	std::string tmp;
+
+	client_fd = _events[i].data.fd;
+	n = read(client_fd, buff, sizeof(buff) - 1);
+	// printf("n = %d i = %d, fd = %d\n", n, i, client_fd);
+	if (n < 0)
+	{
+		deleteSocket(client_fd);
+		std::cerr << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+		return (1);
+	}
+	else if (n == 0)
+	{
+		std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (read() == 0)" << std::endl;
+		deleteSocket(client_fd);
+		return (1);
+
+	}
+	else
+	{
+		buff[n] = '\0';
+		for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+		{
+			if (client_fd == (*it)->getFd())
+			{
+				std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
+				(*it)->addBuff(buff);
+				DEBUG_MSG("\nReceived: {\n" << (*it)->getBuff() << "}");
+				if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
+				{
+					Request req(*(*it));
+					req.parseHttp();
+					std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
+					// if (req.is_cgi(cgiFolder)) // check if we are in the cgi folder
+					// 	handleCGI(req.getPathFile());
+					req.handleAction(req.getAction());
+					tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
+					modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
+					(*it)->clearRequestBuff(); // erase the processed request
+				}
+				return (1);
+			}
+		}
+	}
+	return (0);
+}
+
 void Server::launch()
 {
 	struct epoll_event event;
 	struct sockaddr_in cli;
 	int client_fd;
-	char buff[MAXLINE];
+	// char buff[MAXLINE];
 	int n;
 	int d;
 
@@ -131,74 +184,57 @@ void Server::launch()
 			// printf("EPOLLOUT = %d\n", EPOLLOUT);
 			if (_events[i].events & EPOLLIN)
 			{
-				if (is_listen_fd(_events[i].data.fd) == true)// new incoming connection
-				{
+				if (is_listen_fd(_events[i].data.fd) == true)
 					NewIncomingConnection(_events[i].data.fd, cli, event);
-					// cli_len = sizeof(cli);
-					// client_fd = accept(_events[i].data.fd, (struct sockaddr *)&cli, &cli_len);
-					// // client_fd = accept(_fdListen, (struct sockaddr *)&cli, &cli_len);
-					// if (client_fd < 0)
-					// {
-					// 	std::cout << "accept() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
-					// 	continue ;
-					// }
-					// if (make_non_blocking(client_fd) == -1)
-					// {
-					// 	close(client_fd);
-					// 	std::cerr << "failed to set client socket non-blocking" << std::endl;
-					// 	continue ;
-					// }
-					// event.data.fd = client_fd;
-					// event.events = EPOLLIN | EPOLLET; //est-ce qu'on reste en EPOLLET ??
-					// epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
-					// _clients.push_back(new Client(client_fd));
-					// std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
-				}
 				else
 				{
-					client_fd = _events[i].data.fd;
-					n = read(client_fd, buff, sizeof(buff) - 1);
-					// printf("n = %d i = %d, fd = %d\n", n, i, client_fd);
-					if (n < 0)
-					{
-						deleteSocket(client_fd);
-						std::cerr << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+					if (reveiveRequest(i) == 1)
 						break ;
-					}
-					else if (n == 0)
-					{
-						std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (read() == 0)" << std::endl;
-						deleteSocket(client_fd);
-						break ;
-					}
-					else
-					{
-						buff[n] = '\0';
-						for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-						{
-							if (client_fd == (*it)->getFd())
-							{
-								std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
-								(*it)->addBuff(buff);
-								DEBUG_MSG("\nReceived: {\n" << (*it)->getBuff() << "}");
-								if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
-								{
-									Request req(*(*it));
-									req.parseHttp();
-
-									std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-									// if (req.is_cgi(cgiFolder)) // check if we are in the cgi folder
-									// 	handleCGI(req.getPathFile());
-									req.handleAction(req.getAction());
-									tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
-									modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
-									(*it)->clearRequestBuff(); // erase the processed request
-								}
-								break ;
-							}
-						}
-					}
 				}
+				// {
+				// 	client_fd = _events[i].data.fd;
+				// 	n = read(client_fd, buff, sizeof(buff) - 1);
+				// 	// printf("n = %d i = %d, fd = %d\n", n, i, client_fd);
+				// 	if (n < 0)
+				// 	{
+				// 		deleteSocket(client_fd);
+				// 		std::cerr << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+				// 		break ;
+				// 	}
+				// 	else if (n == 0)
+				// 	{
+				// 		std::cout << date(LOG) << ": Client(" << client_fd << ") disconnected (read() == 0)" << std::endl;
+				// 		deleteSocket(client_fd);
+				// 		break ;
+				// 	}
+				// 	else
+				// 	{
+				// 		buff[n] = '\0';
+				// 		for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+				// 		{
+				// 			if (client_fd == (*it)->getFd())
+				// 			{
+				// 				std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
+				// 				(*it)->addBuff(buff);
+				// 				DEBUG_MSG("\nReceived: {\n" << (*it)->getBuff() << "}");
+				// 				if (((*it)->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
+				// 				{
+				// 					Request req(*(*it));
+				// 					req.parseHttp();
+
+				// 					std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
+				// 					// if (req.is_cgi(cgiFolder)) // check if we are in the cgi folder
+				// 					// 	handleCGI(req.getPathFile());
+				// 					req.handleAction(req.getAction());
+				// 					tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
+				// 					modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
+				// 					(*it)->clearRequestBuff(); // erase the processed request
+				// 				}
+				// 				break ;
+				// 			}
+				// 		}
+				// 	}
+				// }
 			}
 			if (_events[i].events & EPOLLOUT)
 			{
