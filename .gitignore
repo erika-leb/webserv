@@ -1,0 +1,25 @@
+# Fichiers objets
+*.o
+*.d
+
+# Binaire compilé
+webserv
+
+# Répertoire de build éventuel
+objects/
+
+# Fichiers temporaires
+*.tmp
+*.log
+
+# VSCode
+.vscode/
+
+# Fichiers générés par macOS
+.DS_Store
+
+# Fichiers Python utilisés pour les tests (cache)
+__pycache__/
+
+# Notes perso éventuelles à ne pas versionner
+*.swp

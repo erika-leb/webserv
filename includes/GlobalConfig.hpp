@@ -17,6 +17,7 @@ class GlobalConfig {
         GlobalConfig &operator=(const GlobalConfig &src);
 
 		std::vector<Directive>& getDir();
+		std::vector<ServerConfig>& getServ();
 
 		void print_config();
 
