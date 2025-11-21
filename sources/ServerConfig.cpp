@@ -1,6 +1,7 @@
 #include "ServerConfig.hpp"
 
-ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf)
+// ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf), _ip("127.0.0.1")
+ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf), _ip("127.0.0.1"), _port(8080)
 {
     std::string line;
     int loc = 0;
@@ -195,7 +196,8 @@ void ServerConfig::print_server()
     }
 }
 
-ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf)
+// ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf)
+ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf), _ip(src._ip), _port(src._port)
 {
 }
 
@@ -211,6 +213,8 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &src)
         dir = src.dir;
         locs = src.locs;
 		conf = src.conf;
+		_ip = src._ip;
+		_port = src._port;
     }
     return (*this);
 }

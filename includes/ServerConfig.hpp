@@ -38,6 +38,9 @@ class ServerConfig {
 
 		GlobalConfig *conf;
 
+		std::string _ip;
+		int _port;
+
 		ServerConfig();
 
 } ;
