@@ -101,7 +101,7 @@ void first_parse(std::ifstream &file, std::fstream &temp)
 	}
 }
 
-void parseConfig(std::string config_path)
+GlobalConfig parseConfig(std::string config_path)
 {
 	std::ifstream file(config_path.c_str());
 	std::fstream temp;
@@ -115,6 +115,7 @@ void parseConfig(std::string config_path)
 	GlobalConfig config(temp);
 	config.print_config();
 	temp.close();
+	return (config);
 }
 
 int main(int ac, char **av)
@@ -126,7 +127,7 @@ int main(int ac, char **av)
 		config_path = "default_conf.conf";
 	try
 	{
-		parseConfig(config_path);
+		GlobalConfig config = parseConfig(config_path);
 		Server serv;
 		signal(SIGINT, Server::handleSigint);
 		serv.launch();
