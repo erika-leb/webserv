@@ -5,7 +5,6 @@ Directive::Directive(std::string &line) : name(""), nbArg(0), arg() // verifier 
     size_t i = 0;
     std::string word;
 
-    // perror("solo");
     while (i < line.size() && !std::isspace(line[i]))
         i++;
     name = line.substr(0, i);
@@ -82,13 +81,11 @@ Directive &Directive::operator=(const Directive &src)
 void Directive::print_directive()
 {
     std::cout << "Directive: " << name;
-    // std::cout << "Arguments:" << std::endl;
     for (size_t i = 0; i < arg.size(); ++i)
     {
         std::cout <<" " <<  arg[i] << "  [" << i << "] " ;
     }
 	std::cout << std::endl;
-    // std::cout << "nb of argument" << nbArg << std::endl;
 }
 
 Directive::Directive() : name(""), nbArg(0), arg()

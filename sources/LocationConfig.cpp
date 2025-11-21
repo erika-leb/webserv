@@ -2,10 +2,7 @@
 
 LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConfig *sconf) : dir(), uri(), conf(sconf) // recuperer ce qu'il y a apres location
 {
-    // int loc = 0;
-    // perror("lola");
     get_uri(line);
-    // std::cout << "uri" << uri << std::endl;
 
     while (1)
 	{
@@ -13,24 +10,19 @@ LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConf
         trim_line(line);
         if (!temp.eof() && temp.fail())
 		    throw std::runtime_error("error while reading temp file" + static_cast<std::string>(strerror(errno)));
-        // perror("catlina");
-        // std::cout << "LINE = " << line << std::endl;
-        // std::cout << "LINE substr = " << line.substr(8) << std::endl;
         if (temp.eof() || (line.size() >= 8 && line.substr(0, 8) == "location") || (line.size() >= 6 && line == "server"))
         {
-            // perror("malleur");
             break ;
         }
         dir.push_back(Directive(line));
 	}
 	addOtherDir();
-	// ICI on rajoute les directives du serveur si elles ne sont pas presentes
 }
 
 void LocationConfig::addOtherDir()
 {
-	std::vector<Directive> servDir; //directive serveur
-	std::vector<Directive> globDir;//ensuite directives globales
+	std::vector<Directive> servDir; //server directives
+	std::vector<Directive> globDir; //then global directives
 	int flag;
 
 	servDir = conf->getDir();
@@ -69,7 +61,6 @@ void LocationConfig::addOtherDir()
 void LocationConfig::get_uri(std::string &line)
 {
     size_t i = 0;
-    // int nbarg = 0;
 
     line = line.substr(8);
     trim_line(line);
@@ -82,8 +73,6 @@ void LocationConfig::get_uri(std::string &line)
     std::cout << "location uri = " << uri << "s" << std::endl;
     for (size_t j = 0; j < line.size(); j++)
     {
-        // perror("ic");
-        // std::cout << "line j = " << line[j] << std::endl;
         if (!std::isspace(line[j]))
 		    throw std::runtime_error("error in configuration file's syntax (location)");
     }

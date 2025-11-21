@@ -30,6 +30,7 @@ class Server {
 		void modifyEvent(int fd, uint32_t events);
 		void deleteSocket(int client_fd);
 		bool is_listen_fd(int fd);
+		void NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_event &event);
 
 	private:
 

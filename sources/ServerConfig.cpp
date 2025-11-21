@@ -1,6 +1,5 @@
 #include "ServerConfig.hpp"
 
-// ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf), _ip("127.0.0.1")
 ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf), _ip("127.0.0.1"), _port(8080)
 {
     std::string line;
@@ -26,15 +25,9 @@ ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), loc
             loc++;
             locs.push_back(LocationConfig(temp, line, this));
         }
-        // else
-        // {
-        //     // std::cout << "luine = " << line << std::endl;
-        //     throw std::runtime_error("error configuration file should contain at least one server");
-        // }
     }
 	checkListen();
 	addGlobalDir();
-	// ICI on rajoute les directives globales si elles ne sont pas presentes
 }
 
 void ServerConfig::addGlobalDir()
@@ -50,7 +43,6 @@ void ServerConfig::addGlobalDir()
 		{
 			if (it->getName() == ite->getName())
 			{
-				// perror("ouh");
 				flag = 1;
 				break ;
 			}
@@ -204,7 +196,6 @@ void ServerConfig::print_server()
     }
 }
 
-// ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf)
 ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf), _ip(src._ip), _port(src._port)
 {
 }
