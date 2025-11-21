@@ -71,6 +71,11 @@ std::vector<Directive>& ServerConfig::getDir()
 	return (dir);
 }
 
+int ServerConfig::getPort()
+{
+	return (_port);
+}
+
 void ServerConfig::checkListen()
 {
 	std::vector<std::string> arg;

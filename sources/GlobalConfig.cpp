@@ -45,6 +45,10 @@ std::vector<Directive>& GlobalConfig::getDir()
 	return (dir);
 }
 
+std::vector<ServerConfig>& GlobalConfig::getServ()
+{
+	return (servs);
+}
 
 void GlobalConfig::print_config()
 {

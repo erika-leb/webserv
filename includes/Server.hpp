@@ -23,10 +23,13 @@ class Server {
 
 		void launch();
 
+		void initFdListen(int fd, int port);
+
 		// void add_client(int fd, std::string str, bool d);
 		static void handleSigint(int sig);
 		void modifyEvent(int fd, uint32_t events);
 		void deleteSocket(int client_fd);
+		bool is_listen_fd(int fd);
 
 	private:
 
@@ -34,7 +37,8 @@ class Server {
 
 		static volatile sig_atomic_t flag;
 		int _poll;
-		int _fdListen;
+		std::vector<int> _fdListen;
+		// int _fdListen;
 		struct epoll_event _events[SOMAXCONN];
 		// std::vector< Client *> _clients; //liste des sockets ouverts et leur derniere connection
 		std::vector< Client *> _clients; //liste des sockets ouverts et leur derniere connection
