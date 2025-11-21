@@ -115,6 +115,7 @@ bool ServerConfig::isValidPort(std::string &s)
 	port = std::atoi(s.c_str());
 	if (port < 1 || port > 65536)
 		return (false);
+	_port = port;
 	return (true);
 }
 
@@ -152,6 +153,8 @@ bool ServerConfig::isValidIPv4(std::string &s)
 		else
 			block += s[i];
 	}
+	if (count == 4)
+		_ip = s;
 	return (count == 4);
 }
 
