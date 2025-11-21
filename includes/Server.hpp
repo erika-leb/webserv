@@ -4,6 +4,7 @@
 #include "all.hpp"
 #include "Client.hpp"
 #include "Request.hpp"
+#include "GlobalConfig.hpp"
 // faut ajouter un tableau ou je mets les fd aueje suis et la derniere connection pour tej ceux qui sont inactifs et les tej tous a la fin
 
 // struct Client {
@@ -12,10 +13,12 @@
 // 	bool request_complete;
 // } ; //rajouter date de derniere connexion plus tard
 
+class GlobalConfig;
+
 class Server {
 
 	public:
-		Server();
+		Server(GlobalConfig *config);
 		~Server();
 
 		void launch();
@@ -26,6 +29,8 @@ class Server {
 		void deleteSocket(int client_fd);
 
 	private:
+
+		GlobalConfig *config;
 
 		static volatile sig_atomic_t flag;
 		int _poll;

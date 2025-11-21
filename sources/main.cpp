@@ -128,7 +128,7 @@ int main(int ac, char **av)
 	try
 	{
 		GlobalConfig config = parseConfig(config_path);
-		Server serv;
+		Server serv(&config);
 		signal(SIGINT, Server::handleSigint);
 		serv.launch();
 	}

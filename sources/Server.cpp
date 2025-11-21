@@ -2,8 +2,9 @@
 
 volatile sig_atomic_t Server::flag = 0;
 
-Server::Server()
+Server::Server(GlobalConfig *config) : config(config)
 {
+	(void)this->config;
 	struct sockaddr_in addr;
 	struct epoll_event event;
 
@@ -17,7 +18,7 @@ Server::Server()
 	ft_memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = htons(8080); //ICI VERIFIER QUE LE PORT EST OK 
+	addr.sin_port = htons(8080); //ICI VERIFIER QUE LE PORT EST OK
 
 	if (bind(_fdListen, (struct sockaddr*)&addr, sizeof(addr))) // utile car on est le serveur, inutile pour le client, equivaut a lister son numero dans l'annuaire
 	{
