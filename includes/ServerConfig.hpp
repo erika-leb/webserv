@@ -28,6 +28,7 @@ class ServerConfig {
 
 		std::vector<Directive>& getDir();
 		int getPort();
+		std::string &getIp();
 
 		GlobalConfig *getGlobConf();
 

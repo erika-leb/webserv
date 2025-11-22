@@ -68,6 +68,12 @@ int ServerConfig::getPort()
 	return (_port);
 }
 
+std::string &ServerConfig::getIp()
+{
+	return (_ip);
+}
+
+
 void ServerConfig::checkListen()
 {
 	std::vector<std::string> arg;

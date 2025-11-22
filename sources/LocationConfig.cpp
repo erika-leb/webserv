@@ -1,9 +1,9 @@
 #include "LocationConfig.hpp"
 
-LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConfig *sconf) : dir(), uri(), conf(sconf) // recuperer ce qu'il y a apres location
+LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConfig *sconf) : dir(), uri(), conf(sconf)
 {
     get_uri(line);
-
+	
     while (1)
 	{
         std::getline(temp, line);
@@ -21,8 +21,8 @@ LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConf
 
 void LocationConfig::addOtherDir()
 {
-	std::vector<Directive> servDir; //server directives
-	std::vector<Directive> globDir; //then global directives
+	std::vector<Directive> servDir;
+	std::vector<Directive> globDir;
 	int flag;
 
 	servDir = conf->getDir();
