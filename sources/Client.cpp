@@ -11,6 +11,8 @@ Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src
 Client::~Client()
 {
 	close(_fd);
+	if (_cgi)
+		delete _cgi;
 }
 
 Client &Client::operator=(const Client &src)
@@ -90,4 +92,12 @@ void Client::setCon( bool set ) {
 
 bool Client::isCon() {
 	return _con;
+}
+
+void Client::setCgi( Cgi* newCgi ) {
+	_cgi = newCgi;
+}
+
+Cgi& Client::getCgi() {
+	return (*_cgi);
 }

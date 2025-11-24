@@ -130,6 +130,7 @@ int main(int ac, char **av)
 		GlobalConfig config = parseConfig(config_path);
 		Server serv(&config);
 		signal(SIGINT, Server::handleSigint);
+		// signal(SIGCHLD, Cgi::sigchld_handler);
 		serv.launch();
 	}
 	catch(const std::exception& e)

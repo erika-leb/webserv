@@ -10,7 +10,6 @@ private:
 	Client& _cli;
 
 	std::string 		_path;
-	std::vector<char *> _args;
 	int 				_pipeDes[2];
 public:
 	Cgi( std::string URI, Client& cli );
@@ -18,10 +17,10 @@ public:
 	Cgi& operator=( Cgi& other );
 	~Cgi();
 
-	void 		handleCGI_fork( void );
+	void 		handleCGI_fork( int pollfd, struct epoll_event events[SOMAXCONN] );
 	std::string handleCGI_pipe( int pipefd );
 
-	void		sigchld_handler( int sig );
+	static void		sigchld_handler( int sig );
 };
 
 #endif

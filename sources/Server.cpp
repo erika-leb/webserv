@@ -142,26 +142,29 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
-void Server::prepareResponse(char buff[MAXLINE], std::string tmp, int client_fd, Client *cli)
+void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli)
 {
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	cli->addBuff(buff);
-	DEBUG_MSG("\nReceived: {\n" << (*it)->getBuff() << "}");
+	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
 	if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
 	{
 		Request req(*cli);
 		req.parseHttp();
 		std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-		// if (req.is_cgi(cgiFolder)) // check if we are in the cgi folder
-		// 	handleCGI(req.getPathFile());
+		if (req.is_cgi(cgiFolder)) { // check if we are in the cgi folder
+			cli->setCgi(new Cgi(req.getPathFile(), *cli));
+			Cgi& tmpCgi = cli->getCgi();
+			// cgi.handleCGI_fork(req.getPathFile());
+		}
 		req.handleAction(req.getAction());
-		tmp = req.makeResponse(); // close or keep-alive depending on the value of connection
+		tmp = req.makeResponse();
 		modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 		cli->clearRequestBuff(); // erase the processed request
 	}
 }
 
-int Server::reveiveRequest(int i, std::string tmp)
+int Server::reveiveRequest(int i, std::string& tmp)
 {
 	int client_fd;
 	char buff[MAXLINE];
@@ -188,7 +191,7 @@ int Server::reveiveRequest(int i, std::string tmp)
 		{
 			if (client_fd == (*it)->getFd())
 			{
-				prepareResponse(buff, tmp, client_fd, (*it));
+				prepareResponse(buff, tmp, client_fd, (*it)); // need pointer/reference to tmp to change it
 				return (1);
 			}
 		}

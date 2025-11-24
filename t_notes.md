@@ -74,10 +74,17 @@ Now we have:
 - Parent process -> waiting for child (continuing maybe ?)
 - Child process -> executing the **cgi**
 
-To make the output of the child be accessible to the parent we must use `pipe()`, then we add the *read* end of the pipe to the `epoll()` for listening.\*[not sure about the epoll part]  
+To make the output of the child be accessible to the parent we must use `pipe()`, then we add the *read* end of the pipe to the `epoll()` for listening. \*[not sure about the epoll part]  
 When the child process finish we put the output in a file and send back the file to the client.  
 The child must go into the correct directory before executing the **cgi**.
 Parent continues and intercept child exit signal to process the data being sent in the pipe.  
 
 Return:  
-The function must return all of the **cgi** has print into the Client *sendBuff* variable. (or directly in the send *file descriptor*).  
+\[FALSE\]The function must return all of the **cgi** has print into the Client *sendBuff* variable.  
+We need to parse the **cgi** response and send an HTTP header accordingly
+
+### / POST method case 
+In case of a **POST** method we need to redirect `STDIN_FILENO` of the child to something else ? don't know for now
+
+## / To do
+- [] Change the Client class to have a cgi per client

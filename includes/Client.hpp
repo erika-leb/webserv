@@ -2,6 +2,7 @@
 # define CLIENT_HPP
 
 #include "all.hpp"
+#include "Cgi.hpp"
 
 class Client {
 
@@ -28,7 +29,12 @@ class Client {
 
 		void setCon( bool set );
 		bool isCon();
+
+		void setCgi( Cgi* newCgi );
+		Cgi& getCgi();
 	private:
+		Cgi* _cgi;
+
 		int _fd;
 		std::string _buff;
 		std::string _sendBuff; //reponse a envoyer
