@@ -27,6 +27,8 @@ class Server {
 		int sendRequest(int i, std::string tmp);
 		unsigned long getIPAddr(std::string &ip, struct addrinfo **res);
 		void cleanClose();
+		void checkTimeOut();
+		int timeOut();
 
 	private:
 

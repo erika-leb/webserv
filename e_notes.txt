@@ -24,6 +24,7 @@ un serveur nginx = suite de directives
 1 directive = 1 URL/IRL -> 1 def, 1 valeur
 Creer 3 classes = global config, server congif et location config
 
+- si deeux serveurs avec memes adresse que fait-on ? ie comment gerer le virtual hosting ?
 
 regles
 - aucune directive obligatoire au niveau global (root, index, qutoindex on/off, cgi8handler, client_max_body_size, error_page )

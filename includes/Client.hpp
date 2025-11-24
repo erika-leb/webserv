@@ -28,11 +28,15 @@ class Client {
 
 		void setCon( bool set );
 		bool isCon();
+		void setlastConn(time_t);
+		time_t getlastConn();
+
 	private:
 		int _fd;
 		std::string _buff;
-		std::string _sendBuff; //reponse a envoyer
+		std::string _sendBuff; //response to send
 		bool _con;
+		time_t _lastConn;
 
 } ;
 

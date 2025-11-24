@@ -42,6 +42,7 @@
 // #define MAXLINE 10
 #define MAXLINE 4096
 #define ENDLINE "\r\n"
+#define TIMEOUT_SECONDS 60
 
 enum dcode {
 	HTTP,

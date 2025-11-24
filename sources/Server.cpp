@@ -188,6 +188,7 @@ int Server::reveiveRequest(int i, std::string tmp)
 		{
 			if (client_fd == (*it)->getFd())
 			{
+				(*it)->setlastConn(std::time(NULL));
 				prepareResponse(buff, tmp, client_fd, (*it));
 				return (1);
 			}
@@ -235,6 +236,38 @@ int Server::sendRequest(int i, std::string tmp)
 	return (0);
 }
 
+void Server::checkTimeOut()
+{
+	time_t now = std::time(NULL);
+
+	// perror("ici");
+	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
+	{
+		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
+		if (now - _clients[i]->getlastConn() > TIMEOUT_SECONDS)
+		{
+			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (read() == 0)" << std::endl;
+			deleteSocket(_clients[i]->getFd());
+		}
+	}
+}
+
+int Server::timeOut()
+{
+	time_t now = std::time(NULL);
+	int res = TIMEOUT_SECONDS;
+	int elapsed;
+
+	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
+	{
+		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
+		elapsed = now - _clients[i]->getlastConn();
+		if (TIMEOUT_SECONDS - elapsed > 0 && TIMEOUT_SECONDS - elapsed < res)
+			res = TIMEOUT_SECONDS - elapsed;
+	}
+	return ((res + 2) * 1000);
+}
+
 void Server::launch()
 {
 	struct epoll_event event;
@@ -244,25 +277,38 @@ void Server::launch()
 
 	while(flag == 0)
 	{
-		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
+		d = epoll_wait(_poll, _events, SOMAXCONN, timeOut());
+		// d = epoll_wait(_poll, _events, SOMAXCONN, -1);
 		for (int i = 0; i < d; i++)
 		{
 			if (_events[i].events & EPOLLIN)
 			{
 				if (is_listen_fd(_events[i].data.fd) == true)
+				{
 					NewIncomingConnection(_events[i].data.fd, cli, event);
+				}
 				else
 				{
-					if (reveiveRequest(i, tmp) == 1)
-						break ;
+					{
+						if (reveiveRequest(i, tmp) == 1)
+						{
+							// perror("doggy");
+							break;
+						}
+					}
 				}
 			}
 			if (_events[i].events & EPOLLOUT)
 			{
 				if (sendRequest(i, tmp) == 1)
-					break ;
+				{
+					break;
+				}
+					// break ;
 			}
 		}
+		// DEBUG_MSG("at");
+		checkTimeOut();
 	}
 }
 

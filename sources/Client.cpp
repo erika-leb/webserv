@@ -1,10 +1,10 @@
 #include "Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _buff(""), _sendBuff("")
+Client::Client(int fd) : _fd(fd), _buff(""), _sendBuff(""), _lastConn(std::time(NULL))
 {
 }
 
-Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff)
+Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff), _lastConn(src._lastConn)
 {
 }
 
@@ -19,6 +19,7 @@ Client &Client::operator=(const Client &src)
 		_fd = src._fd;
 		_buff = src._buff;
 		_sendBuff = src._sendBuff;
+		_lastConn = src._lastConn;
 	}
 	return (*this);
 }
@@ -90,4 +91,14 @@ void Client::setCon( bool set ) {
 
 bool Client::isCon() {
 	return _con;
+}
+
+void Client::setlastConn(time_t t)
+{
+	_lastConn = t;
+}
+
+time_t Client::getlastConn()
+{
+	return (_lastConn);
 }
