@@ -1,8 +1,18 @@
+
+valgrind --trace-children=yes --track-fds=yes --leak-check=full --show-leak-kinds=all ./webserv
 a faire encore pour config :
-- voir quelles directives on accepte (accepte-on les meme a chaque niveau ?)
+- voir quelles directives on accepte (accepte-on les meme a chaque niveau ?) voir sujet
 - decider quelles ou si des directives peuvent se trouver en doubon
-- verifier pour chaque serveur et chaque location, si la directive existe au niveau precedent, si c4'est le cas, la supplanter
 - implementer les elements de la config dans le serveur
+- mettre l'ip
+- mettre des securites par rapport a l'endroit un client peut recuperer/modif/suppr des fichiers
+
+a faire pour serveur:
+- verifier la date de derniere connection du client pour le tej apres un certain temps (gerer le timeout)
+
+a faire pour requete:
+- post
+- mettre securite pour ne pas accepter .. dans le chemin du fichier
 
 
 Rappel fichier config :
@@ -28,10 +38,21 @@ La logique standard est :
 -match le plus long préfixe (ex : /images/hd/ avant /images/)
 -si aucun match : fallback au location /
 
-etapes :
-- faire le systeme gloabale (est-ce que je fais un objet pour les directives ? ca me parait pas mal)
-- puis regarder pour chaque directives si elle est correctement
-- adapter le serveur
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 🧩 ÉTAPE 1 — Vérifie que ton serveur “écoute” correctement

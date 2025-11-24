@@ -1,6 +1,6 @@
 #include "ServerConfig.hpp"
 
-ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf)
+ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), locs(), conf(gconf), _ip("127.0.0.1"), _port(8080)
 {
     std::string line;
     int loc = 0;
@@ -25,15 +25,9 @@ ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), loc
             loc++;
             locs.push_back(LocationConfig(temp, line, this));
         }
-        // else
-        // {
-        //     // std::cout << "luine = " << line << std::endl;
-        //     throw std::runtime_error("error configuration file should contain at least one server");
-        // }
     }
 	checkListen();
 	addGlobalDir();
-	// ICI on rajoute les directives globales si elles ne sont pas presentes
 }
 
 void ServerConfig::addGlobalDir()
@@ -49,7 +43,6 @@ void ServerConfig::addGlobalDir()
 		{
 			if (it->getName() == ite->getName())
 			{
-				// perror("ouh");
 				flag = 1;
 				break ;
 			}
@@ -69,6 +62,17 @@ std::vector<Directive>& ServerConfig::getDir()
 {
 	return (dir);
 }
+
+int ServerConfig::getPort()
+{
+	return (_port);
+}
+
+std::string &ServerConfig::getIp()
+{
+	return (_ip);
+}
+
 
 void ServerConfig::checkListen()
 {
@@ -114,6 +118,7 @@ bool ServerConfig::isValidPort(std::string &s)
 	port = std::atoi(s.c_str());
 	if (port < 1 || port > 65536)
 		return (false);
+	_port = port;
 	return (true);
 }
 
@@ -151,6 +156,8 @@ bool ServerConfig::isValidIPv4(std::string &s)
 		else
 			block += s[i];
 	}
+	if (count == 4)
+		_ip = s;
 	return (count == 4);
 }
 
@@ -195,7 +202,7 @@ void ServerConfig::print_server()
     }
 }
 
-ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf)
+ServerConfig::ServerConfig(const ServerConfig &src) : dir(src.dir), locs(src.locs), conf(src.conf), _ip(src._ip), _port(src._port)
 {
 }
 
@@ -211,6 +218,8 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &src)
         dir = src.dir;
         locs = src.locs;
 		conf = src.conf;
+		_ip = src._ip;
+		_port = src._port;
     }
     return (*this);
 }

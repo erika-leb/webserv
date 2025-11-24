@@ -27,6 +27,8 @@ class ServerConfig {
 		void addGlobalDir();
 
 		std::vector<Directive>& getDir();
+		int getPort();
+		std::string &getIp();
 
 		GlobalConfig *getGlobConf();
 
@@ -37,6 +39,9 @@ class ServerConfig {
 		std::vector<LocationConfig> locs;
 
 		GlobalConfig *conf;
+
+		std::string _ip;
+		int _port;
 
 		ServerConfig();
 
