@@ -49,11 +49,11 @@ enum dcode {
 	LOG
 };
 
-struct ListenInfo {
-	// int fd;
-	std::string ip;
-	int port;
-};
+// struct ListenInfo {
+// 	// int fd;
+// 	std::string ip;
+// 	int port;
+// };
 
 
 

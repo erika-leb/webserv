@@ -1,10 +1,12 @@
 #include "Client.hpp"
 
-Client::Client(int fd, ListenInfo info) : _fd(fd), _buff(""), _sendBuff(""), _lastConn(std::time(NULL)), _ip(info.ip), _port(info.port)
+// Client::Client(int fd, ListenInfo info) : _fd(fd), _buff(""), _sendBuff(""), _lastConn(std::time(NULL)), _ip(info.ip), _port(info.port)
+Client::Client(int fd, ServerConfig &conf) : _fd(fd), _buff(""), _sendBuff(""), _lastConn(std::time(NULL)), _conf(conf)
 {
 }
 
-Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff), _lastConn(src._lastConn), _ip(src._ip), _port(src._port)
+Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff), _lastConn(src._lastConn), _conf(src._conf)
+// Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff), _lastConn(src._lastConn), _ip(src._ip), _port(src._port)
 {
 }
 
@@ -20,8 +22,8 @@ Client &Client::operator=(const Client &src)
 		_buff = src._buff;
 		_sendBuff = src._sendBuff;
 		_lastConn = src._lastConn;
-		_ip = src._ip;
-		_port = src._port;
+		// _ip = src._ip;
+		// _port = src._port;
 	}
 	return (*this);
 }
@@ -105,13 +107,18 @@ time_t Client::getlastConn()
 	return (_lastConn);
 }
 
-std::string &Client::getIp()
+ServerConfig &Client::getServ()
 {
-	return (_ip);
+	return (_conf);
 }
 
-int Client::getPort()
-{
-	return (_port);
-}
+// std::string &Client::getIp()
+// {
+// 	return (_ip);
+// }
+
+// int Client::getPort()
+// {
+// 	return (_port);
+// }
 

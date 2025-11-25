@@ -5,8 +5,11 @@
 #include "Client.hpp"
 #include "Request.hpp"
 #include "GlobalConfig.hpp"
+#include "ServerConfig.hpp"
 
 class GlobalConfig;
+
+class ServerConfig;
 
 class Server {
 
@@ -37,8 +40,8 @@ class Server {
 		static volatile sig_atomic_t flag;
 
 		int 						_poll;
-		std::map<int, ListenInfo>	_fdListen;
-		// std::vector<int> 		_fdListen;
+		// std::map<int, ListenInfo>	_fdListen;
+		std::map<int, ServerConfig>	_fdListen;
 		struct epoll_event			_events[SOMAXCONN];
 		std::vector< Client *>		_clients;
 

@@ -6,9 +6,10 @@ a faire encore pour config :
 - implementer les elements de la config dans le serveur
 - mettre l'ip
 - mettre des securites par rapport a l'endroit un client peut recuperer/modif/suppr des fichiers
+- root/location : mettre un root de base; verifier que dans root, location on a pas .., ni ~,
 
 a faire pour serveur:
-- verifier la date de derniere connection du client pour le tej apres un certain temps (gerer le timeout)
+- recupere les donnes de la config serveur
 
 a faire pour requete:
 - post

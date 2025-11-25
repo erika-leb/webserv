@@ -4,7 +4,8 @@ volatile sig_atomic_t Server::flag = 0;
 
 void Server::cleanClose()
 {
-	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 		// close (_fdListen[i]);
 		close(it->first);
 	close(_poll);
@@ -78,7 +79,7 @@ Server::Server(GlobalConfig *config) : config(config)
 {
 	std::vector<ServerConfig> servs = this->config->getServ();
 	int fd;
-	ListenInfo info;
+	// ListenInfo info;
 
 	_poll = epoll_create(1);
 	if (_poll == -1)
@@ -89,9 +90,12 @@ Server::Server(GlobalConfig *config) : config(config)
 		if (fd < 0)
 			throw std::runtime_error("socket failed"+ static_cast<std::string>(strerror(errno)));
 		// info.fd = fd;
-		info.ip = servs[i].getIp();
-		info.port = servs[i].getPort();
-		_fdListen[fd] = info;
+		// info.ip = servs[i].getIp();
+		// info.port = servs[i].getPort();
+		// _fdListen[fd] = servs[i];
+		_fdListen.insert(std::make_pair(fd, servs[i]));
+
+		// _fdListen[fd] = info;
 		// _fdListen.push_back(socket(AF_INET, SOCK_STREAM, 0));
 		initFdListen(fd, servs[i].getPort(), servs[i].getIp());
 		// std::cout << "fd d'ecoute = " << fd << std::endl;
@@ -123,7 +127,8 @@ void Server::deleteSocket(int client_fd)
 
 bool Server::is_listen_fd(int fd)
 {
-	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 		if (it->first == fd)
 			return (true);
     return false;
@@ -150,7 +155,8 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	event.data.fd = client_fd;
 	event.events = EPOLLIN | EPOLLET;
 	epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
-	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 	{
 		// std::cout << "it->first = " << it->first << "; client fd = " << client_fd << std::endl;
 		if (it->first == fd)
@@ -329,7 +335,8 @@ void Server::launch()
 
 Server::~Server()
 {
-	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 		close(it->first);
 	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
