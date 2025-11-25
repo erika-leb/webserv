@@ -4,8 +4,9 @@ volatile sig_atomic_t Server::flag = 0;
 
 void Server::cleanClose()
 {
-	for (std::vector<int>::size_type i = 0; i < _fdListen.size(); i++)
-		close (_fdListen[i]);
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+		// close (_fdListen[i]);
+		close(it->first);
 	close(_poll);
 }
 
@@ -50,7 +51,7 @@ void Server::initFdListen(int fd, int port, std::string &ip)
 
 	freeaddrinfo(res);
 
-	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr))) // = to write servor's number down in the phonebook
+	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr))) // = to write servor's number down in the phonebook, connect a port to a fd
 	{
 		cleanClose();
 		throw std::runtime_error("bind() failed " + static_cast<std::string>(strerror(errno)));
@@ -76,14 +77,25 @@ void Server::initFdListen(int fd, int port, std::string &ip)
 Server::Server(GlobalConfig *config) : config(config)
 {
 	std::vector<ServerConfig> servs = this->config->getServ();
+	int fd;
+	ListenInfo info;
 
 	_poll = epoll_create(1);
 	if (_poll == -1)
 		throw std::runtime_error("epoll_create failed"+ static_cast<std::string>(strerror(errno)));
 	for (std::vector<ServerConfig>::size_type i = 0; i < servs.size(); i++)
 	{
-		_fdListen.push_back(socket(AF_INET, SOCK_STREAM, 0));
-		initFdListen(_fdListen[i], servs[i].getPort(), servs[i].getIp());
+		fd = socket(AF_INET, SOCK_STREAM, 0);
+		if (fd < 0)
+			throw std::runtime_error("socket failed"+ static_cast<std::string>(strerror(errno)));
+		// info.fd = fd;
+		info.ip = servs[i].getIp();
+		info.port = servs[i].getPort();
+		_fdListen[fd] = info;
+		// _fdListen.push_back(socket(AF_INET, SOCK_STREAM, 0));
+		initFdListen(fd, servs[i].getPort(), servs[i].getIp());
+		// std::cout << "fd d'ecoute = " << fd << std::endl;
+		// initFdListen(_fdListen[i], servs[i].getPort(), servs[i].getIp());
 	}
 }
 
@@ -111,9 +123,9 @@ void Server::deleteSocket(int client_fd)
 
 bool Server::is_listen_fd(int fd)
 {
-    for (size_t i = 0; i < _fdListen.size(); i++)
-        if (_fdListen[i] == fd)
-            return true;
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+		if (it->first == fd)
+			return (true);
     return false;
 }
 
@@ -138,7 +150,13 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	event.data.fd = client_fd;
 	event.events = EPOLLIN | EPOLLET;
 	epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
-	_clients.push_back(new Client(client_fd));
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	{
+		// std::cout << "it->first = " << it->first << "; client fd = " << client_fd << std::endl;
+		if (it->first == fd)
+			_clients.push_back(new Client(client_fd, it->second));
+	}
+	// _clients.push_back(new Client(client_fd));
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
@@ -146,7 +164,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string tmp, int client_fd,
 {
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	cli->addBuff(buff);
-	DEBUG_MSG("\nReceived: {\n" << (*it)->getBuff() << "}");
+	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
 	if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
 	{
 		Request req(*cli);
@@ -292,7 +310,6 @@ void Server::launch()
 					{
 						if (reveiveRequest(i, tmp) == 1)
 						{
-							// perror("doggy");
 							break;
 						}
 					}
@@ -304,18 +321,16 @@ void Server::launch()
 				{
 					break;
 				}
-					// break ;
 			}
 		}
-		// DEBUG_MSG("at");
 		checkTimeOut();
 	}
 }
 
 Server::~Server()
 {
-	for (std::vector<int>::size_type i = 0; i < _fdListen.size(); i++)
-		close (_fdListen[i]);
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+		close(it->first);
 	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		close((*it)->getFd());

@@ -69,16 +69,21 @@ con  = info.connection;
 ## # CGI implementation
 
 ### /Plan
-First we need to `fork()` the process after we encounter the [**cgi**](https://en.wikipedia.org/wiki/Common_Gateway_Interface) folder in the *URI*.  
-Now we have:  
+First we need to `fork()` the process after we encounter the [**cgi**](https://en.wikipedia.org/wiki/Common_Gateway_Interface) folder in the *URI*.
+Now we have:
 - Parent process -> waiting for child (continuing maybe ?)
 - Child process -> executing the **cgi**
 
-To make the output of the child be accessible to the parent we must use `pipe()`, then we add the *read* end of the pipe to the `epoll()` for listening.\*[not sure about the epoll part]  
-When the child process finish we put the output in a file and send back the file to the client.  
+To make the output of the child be accessible to the parent we must use `pipe()`, then we add the *read* end of the pipe to the `epoll()` for listening.\*[not sure about the epoll part]
+When the child process finish we put the output in a file and send back the file to the client.
 The child must go into the correct directory before executing the **cgi**.
 
-Return:  
-The function must return all of the **cgi** has print into the Client *sendBuff* variable. (or directly in the send *file descriptor*).  
+Return:
+The function must return all of the **cgi** has print into the Client *sendBuff* variable. (or directly in the send *file descriptor*).
 
 ### /Execution
+
+GET /script.py HTTP/1.1
+
+exec script.py
+

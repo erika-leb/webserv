@@ -49,6 +49,13 @@ enum dcode {
 	LOG
 };
 
+struct ListenInfo {
+	// int fd;
+	std::string ip;
+	int port;
+};
+
+
 
 void		*ft_memset(void *b, int c, size_t len);
 size_t		ft_strlen(const char *str);

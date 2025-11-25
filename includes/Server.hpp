@@ -36,10 +36,11 @@ class Server {
 
 		static volatile sig_atomic_t flag;
 
-		int 					_poll;
-		std::vector<int> 		_fdListen;
-		struct epoll_event 		_events[SOMAXCONN];
-		std::vector< Client *>	_clients;
+		int 						_poll;
+		std::map<int, ListenInfo>	_fdListen;
+		// std::vector<int> 		_fdListen;
+		struct epoll_event			_events[SOMAXCONN];
+		std::vector< Client *>		_clients;
 
 		Server(const Server &src);
 		Server &operator=(const Server &rhs);
