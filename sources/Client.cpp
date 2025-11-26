@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _buff(""), _sendBuff("")
+Client::Client(int fd) : _fd(fd), _buff(""), _sendBuff(""), _cgi(NULL)
 {
 }
 
@@ -95,9 +95,11 @@ bool Client::isCon() {
 }
 
 void Client::setCgi( Cgi* newCgi ) {
+	if (_cgi)
+		delete _cgi;
 	_cgi = newCgi;
 }
 
-Cgi& Client::getCgi() {
-	return (*_cgi);
+Cgi* Client::getCgi() {
+	return (_cgi);
 }

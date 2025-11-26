@@ -17,8 +17,10 @@ public:
 	Cgi& operator=( Cgi& other );
 	~Cgi();
 
-	void 		handleCGI_fork( int pollfd, struct epoll_event events[SOMAXCONN] );
-	std::string handleCGI_pipe( int pipefd );
+	int			getFd( int );
+
+	void 		handleCGI_fork( int pollfd);
+	int			handleCGI_pipe( int pipefd );
 
 	static void		sigchld_handler( int sig );
 };

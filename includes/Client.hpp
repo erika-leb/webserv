@@ -31,7 +31,7 @@ class Client {
 		bool isCon();
 
 		void setCgi( Cgi* newCgi );
-		Cgi& getCgi();
+		Cgi* getCgi();
 	private:
 		Cgi* _cgi;
 

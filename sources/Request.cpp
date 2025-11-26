@@ -126,6 +126,10 @@ std::map<std::string, std::string> Request::getSpec( void ) const {
 	return _reqParam;
 }
 
+int Request::getsCode( void ) const {
+	return _sCode;
+}
+
 bool Request::is_cgi( std::string cgiFolder ) {
 
 	if (_pathfile.find(cgiFolder) != std::string::npos)

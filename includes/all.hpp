@@ -43,6 +43,8 @@
 // #define MAXLINE 10
 #define MAXLINE 4096
 #define ENDLINE "\r\n"
+#define READ	0
+#define WRITE	1
 
 enum dcode {
 	HTTP,
@@ -59,11 +61,6 @@ void 		trim_line(std::string &line);
 bool		isBlank( char c );
 void		remove_blank( std::string& str );
 
-void		handleCGI_fork( std::string path );
-void		handleCGI_pipe( std::string path );
-void		sigchld_handler( int sig );
-
-
-int		is_fd_open(int fd); // a supprimer plus tard
+int			is_fd_open(int fd); // a supprimer plus tard
 
 #endif

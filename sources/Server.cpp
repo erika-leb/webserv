@@ -152,13 +152,14 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		Request req(*cli);
 		req.parseHttp();
 		std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-		if (req.is_cgi(cgiFolder)) { // check if we are in the cgi folder
+		if (req.is_cgi(cgiFolder) && (req.getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
 			cli->setCgi(new Cgi(req.getPathFile(), *cli));
-			Cgi& tmpCgi = cli->getCgi();
-			// cgi.handleCGI_fork(req.getPathFile());
+			cli->getCgi()->handleCGI_fork(_poll);
 		}
-		req.handleAction(req.getAction());
-		tmp = req.makeResponse();
+		else {
+			req.handleAction(req.getAction());
+			tmp = req.makeResponse();
+		}
 		modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 		cli->clearRequestBuff(); // erase the processed request
 	}
@@ -256,12 +257,19 @@ void Server::launch()
 					NewIncomingConnection(_events[i].data.fd, cli, event);
 				else
 				{
-					if (reveiveRequest(i, tmp) == 1)
-						break ;
+					if (is_pipe_fd(_events[i].data.fd) == true) {
+						receiveCgi(i, tmp);
+						break;
+					}
+					else {
+						if (reveiveRequest(i, tmp) == 1)
+							break;
+					}
 				}
 			}
 			if (_events[i].events & EPOLLOUT)
 			{
+				
 				if (sendRequest(i, tmp) == 1)
 					break ;
 			}
@@ -302,4 +310,27 @@ void Server::handleSigint(int sig)
 		    std::cerr << "Erreur lors de la suppression du fichier." << std::endl;
 		flag = 1;
 	}
+}
+
+bool Server::is_pipe_fd( int fd ) {
+	for (std::vector< Client *>::iterator it=_clients.begin(); it != _clients.end(); ++it) {
+		if ((*it)->getCgi()->getFd(READ) == fd)
+			return true;
+	}
+	return false;
+}
+
+void Server::receiveCgi( int i, std::string tmp ) {
+	int pipe_fd;
+	int n;
+
+	pipe_fd = _events[i].data.fd;
+	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		if ((*it)->getCgi() == NULL)
+			continue;
+		if (pipe_fd == (*it)->getCgi()->getFd(READ)) {
+			(*it)->getCgi()->handleCGI_pipe(pipe_fd);
+		}
+	}
+	return ;
 }

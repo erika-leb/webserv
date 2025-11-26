@@ -15,16 +15,17 @@ private:
 	size_t		_sCode, _fileLength;
 
 public:
-	Request( Client& cli );
-	Request( const Request& cpy );
+	Request( Client& );
+	Request( const Request& );
 	Request& operator=( const Request& other );
 	~Request();
 
 	std::string getPathFile() const;
 	std::string getAction() const;
 	std::map<std::string, std::string> getSpec() const;
+	int getsCode() const;
 
-	bool is_cgi( std::string cgiFolder );
+	bool is_cgi( std::string );
 
 	void parseHttp();
 
@@ -32,7 +33,7 @@ public:
 	void fPost();
 	void fDelete();
 
-	void handleAction( std::string action );
+	void handleAction( std::string );
 	std::string makeResponse();
 };
 

@@ -29,6 +29,9 @@ class Server {
 		unsigned long getIPAddr(std::string &ip, struct addrinfo **res);
 		void cleanClose();
 
+		bool is_pipe_fd( int );
+		void receiveCgi( int , std::string );
+
 	private:
 
 		GlobalConfig 			*config;
