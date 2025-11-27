@@ -32,6 +32,7 @@ class Client {
 
 		void setCgi( Cgi* newCgi );
 		Cgi* getCgi();
+
 	private:
 		Cgi* _cgi;
 

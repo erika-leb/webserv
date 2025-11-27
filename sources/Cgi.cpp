@@ -120,13 +120,11 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 		char 				buff[MAXLINE];
 
 		int n = read(pipefd, buff, MAXLINE);
-		if (n < 0)
-		{
+		if (n < 0) {
 			std::cerr << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 			return 1;
 		}
-		else if (n == 0)
-		{
+		else if (n == 0) {
 			return 1;
 		}
 		ss << buff;
