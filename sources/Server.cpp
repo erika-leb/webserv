@@ -159,8 +159,8 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		else {
 			req.handleAction(req.getAction());
 			tmp = req.makeResponse();
+			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 		}
-		modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 		cli->clearRequestBuff(); // erase the processed request
 	}
 }
@@ -309,27 +309,33 @@ void Server::handleSigint(int sig)
 		if (std::remove("temp.txt") != 0)
 		    std::cerr << "Erreur lors de la suppression du fichier." << std::endl;
 		flag = 1;
+		// exit(0);
 	}
 }
 
 bool Server::is_pipe_fd( int fd ) {
 	for (std::vector< Client *>::iterator it=_clients.begin(); it != _clients.end(); ++it) {
-		if ((*it)->getCgi()->getFd(READ) == fd)
-			return true;
+		if ((*it)->getCgi() != NULL) {
+			if ((*it)->getCgi()->getFd(READ) == fd)
+				return true;
+		}
 	}
 	return false;
 }
 
 void Server::receiveCgi( int i, std::string tmp ) {
 	int pipe_fd;
-	int n;
 
+	(void)tmp;
 	pipe_fd = _events[i].data.fd;
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if ((*it)->getCgi() == NULL)
 			continue;
 		if (pipe_fd == (*it)->getCgi()->getFd(READ)) {
 			(*it)->getCgi()->handleCGI_pipe(pipe_fd);
+			epoll_ctl(_poll, EPOLL_CTL_DEL, pipe_fd, NULL);
+			// (*it)->deleteCgi(); // is this function really needed ?
+			modifyEvent((*it)->getFd(), EPOLLIN | EPOLLOUT);
 		}
 	}
 	return ;

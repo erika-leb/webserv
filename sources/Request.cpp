@@ -91,6 +91,7 @@ Request::Request( Client& cli ): _cli(cli) {
 
 	_sCode = 200;
 	_connection = "keep-alive";
+	cli.setCon(true);
 	std::getline(ss, tmp);
 	_rawHttp << tmp;
 	while (std::getline(ss, tmp)) {

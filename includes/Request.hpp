@@ -4,6 +4,8 @@
 #include "all.hpp"
 #include "Client.hpp"
 
+class Client;
+
 class Request
 {
 private:

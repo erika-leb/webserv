@@ -6,12 +6,20 @@ static int checkCode( std::string& str ) {
 	std::string code(str.substr(0, 3));
 	std::stringstream ss(code);
 
+	for (int i=0; i < 3; i++) {
+		if (std::isdigit(code[i]) == 1) {
+			str = "500 Internal server error";
+			return 0;
+		}
+	}
+
 	int icode;
 	ss >> icode;
 	if (icode < 100 || icode > 599) {
 		str = "500 Internal server error";
+		return 0;
 	}
-
+	return 0;
 }
 static std::string extractValue( std::string& line, std::string key ) {
 	size_t pos = line.find(key);
@@ -19,7 +27,7 @@ static std::string extractValue( std::string& line, std::string key ) {
 	if (pos == std::string::npos) return "";
 	
 	size_t end = pos + key.length();
-	while (line[end] != '\n')
+	while (line[end] != '\n' && line[end])
 		end++;
 
 	return line.substr(pos + key.length(), end);
@@ -32,7 +40,7 @@ static std::string parseHeader( std::string& rawHeader, size_t cLen ) {
 	ss << "HTTP/1.1 ";
 	if (tmp.length() == 0)
 		ss << "200 Ok" << ENDLINE;
-	else
+	else if ( checkCode(tmp) == 0)
 		ss << tmp << ENDLINE;
 	ss << "Date: " << date(HTTP) << ENDLINE;
 	ss << "Server: " <<  "localhost" << ENDLINE; // bruh we gonna struggle to get the server name there
@@ -45,20 +53,24 @@ static std::string parseHeader( std::string& rawHeader, size_t cLen ) {
 
 static std::string parseCgiOutput( std::stringstream& ss ) {
 	std::string header;
-	std::string tmp;
+	std::string tmp, content;
 
-	while (tmp != "\n") {
+	std::getline(ss, tmp);
+	while ( (tmp != "\n") && (tmp.size() != 0)) {
+		header.append(tmp);
 		std::getline(ss, tmp);
-		header += tmp;
-		tmp.clear();
+	}
+	while (std::getline(ss, tmp)) {
+		content.append(tmp);	
 	}
 
-	header = parseHeader(header, ss.str().size());
-	return header + ss.str();
+	header = parseHeader(header, content.size());
+	return header + content;
 }
 
-Cgi::Cgi( std::string URI, Client& cli ): _cli(cli) {
+Cgi::Cgi( std::string URI, Client& cli ): _cli(cli), _path(URI) {
 	// Parse URI with query and stuff
+	DEBUG_MSG("cgi file: " << _path);
 }
 
 Cgi::Cgi( Cgi& cpy ): _cli(cpy._cli),  _path(cpy._path) {
@@ -73,6 +85,7 @@ Cgi& Cgi::operator=( Cgi& other ) {
 		this->_pipeDes[0] = other._pipeDes[0];
 		this->_pipeDes[1] = other._pipeDes[1];;
 	}
+	return *this;
 }
 
 Cgi::~Cgi() {}
@@ -86,20 +99,24 @@ int Cgi::getFd( int fd ) {
 	default:
 		break;
 	}
+	return -1;
 }
 
 void Cgi::handleCGI_fork( int pollfd) {
+	char * const env[] = { (char *)"foo=barr", NULL};
+	char * const args[] = {(char *)"", NULL};
 
 	if ( (pipe(_pipeDes)) == -1)
-		; // throw error
+		DEBUG_MSG("PIPE ERROR"); // throw error
 	
 	if (fork() == 0) {
 		// CHILD
 		/* If POST request dup2(STDIN, ?)*/
 		close(_pipeDes[READ]);
-		dup2(STDOUT_FILENO, _pipeDes[WRITE]);
-		if ( (execve(_path.c_str(), NULL, NULL)) == -1)
-			; // throw error
+		dup2(_pipeDes[WRITE], STDOUT_FILENO);
+		if ( (execve(_path.c_str(), args, env)) == -1)
+			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
+		exit(1);
 	}
 	else {
 		// PARENT
@@ -127,10 +144,15 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 		else if (n == 0) {
 			return 1;
 		}
-		ss << buff;
+		buff[n] = '\0';
+		std::string	strbuff(buff);
+		ss << strbuff;
 		
-		_cli.setSendBuff(parseCgiOutput(ss));
+		DEBUG_MSG("sendBuff: " << ss.str());
+		strbuff = parseCgiOutput(ss);
+		_cli.setSendBuff(strbuff);
 		close(pipefd);
+		return 0;
 }
 
 void Cgi::sigchld_handler( int sig ) {

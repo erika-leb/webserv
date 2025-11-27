@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _buff(""), _sendBuff(""), _cgi(NULL)
+Client::Client(int fd) : _cgi(NULL), _fd(fd), _buff(""), _sendBuff("")
 {
 }
 
@@ -98,6 +98,11 @@ void Client::setCgi( Cgi* newCgi ) {
 	if (_cgi)
 		delete _cgi;
 	_cgi = newCgi;
+}
+
+void Client::deleteCgi() {
+	if (_cgi)
+		delete _cgi;
 }
 
 Cgi* Client::getCgi() {

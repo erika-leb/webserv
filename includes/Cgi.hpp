@@ -5,6 +5,8 @@
 #include "Request.hpp"
 #include "Client.hpp"
 
+class Client;
+
 class Cgi
 {
 private:

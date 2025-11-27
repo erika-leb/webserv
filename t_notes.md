@@ -89,3 +89,4 @@ In case of a **POST** method we need to redirect `STDIN_FILENO` of the child to 
 ## / To do
 - [i] Change the Client class to have a cgi per client
 - [ ] Fix the case where there is arbitrary spaces between value HTTP header
+- [ ] Exit program when crtl-C not just passing the flag to 1

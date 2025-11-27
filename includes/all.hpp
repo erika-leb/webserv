@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include <string.h>
 // #include <stdio.h>
 
 // #include <errno

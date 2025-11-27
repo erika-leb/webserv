@@ -4,6 +4,8 @@
 #include "all.hpp"
 #include "Cgi.hpp"
 
+class Cgi;
+
 class Client {
 
 	public:
@@ -31,6 +33,7 @@ class Client {
 		bool isCon();
 
 		void setCgi( Cgi* newCgi );
+		void deleteCgi(); // is this function really needed ?
 		Cgi* getCgi();
 
 	private:
