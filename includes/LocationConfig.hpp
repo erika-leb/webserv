@@ -19,6 +19,11 @@ class LocationConfig {
         void get_uri(std::string &line);
 		void addOtherDir();
 
+		void checkBasicDir();
+
+		std::string &getUri();
+		std::vector<Directive> &getDir();
+
         void print_location();
 
 	private:

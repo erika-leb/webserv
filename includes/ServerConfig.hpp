@@ -26,11 +26,13 @@ class ServerConfig {
 
 		void addGlobalDir();
 
-		std::vector<Directive>& getDir();
-		int getPort();
-		std::string &getIp();
+		std::vector<Directive>&		getDir();
+		int							getPort();
+		std::string					&getIp();
+		GlobalConfig				*getGlobConf();
+		std::vector<LocationConfig> &getLocation();
 
-		GlobalConfig *getGlobConf();
+		void checkBasicDir();
 
 		void print_server();
 

@@ -1,36 +1,34 @@
 
 valgrind --trace-children=yes --track-fds=yes --leak-check=full --show-leak-kinds=all ./webserv
+
+TO DO:
+- terminer de traiter le fichier de config
+- faire la requete post
+- faire des tests pour fichier conf a l'aide des fichier de Kim et Allan
+
 a faire encore pour config :
 - voir quelles directives on accepte (accepte-on les meme a chaque niveau ?) voir sujet
 - decider quelles ou si des directives peuvent se trouver en doubon
 - implementer les elements de la config dans le serveur
-- mettre l'ip
-- mettre des securites par rapport a l'endroit un client peut recuperer/modif/suppr des fichiers
+- mettre des securites par rapport a l'endroit un client peut recuperer/modif/suppr des fichiers   OK
 - root/location : mettre un root de base; verifier que dans root, location on a pas .., ni ~,
+- root/location = prendre le + long location
 
 a faire pour serveur:
-- recupere les donnes de la config serveur
+
 
 a faire pour requete:
 - post
-- mettre securite pour ne pas accepter .. dans le chemin du fichier
+
 
 
 Rappel fichier config :
 un serveur nginx = suite de directives
-3 niveaux
-- niveau global : contient des directives et herite des deux autres niveaux (map)
-- niveau serveur : herite des directives globales et possede lui-meme des directives et des locations
-- niveau location : herite du global et du serveru et possede egalement des directives (si la directive etait deja definie a un niveau plus haut, la valeur au niveau de la location a priorite et on ecrase la valeur)
-1 directive = 1 URL/IRL -> 1 def, 1 valeur
-Creer 3 classes = global config, server congif et location config
 
 - si deeux serveurs avec memes adresse que fait-on ? ie comment gerer le virtual hosting ?
+- si le fichier de conf ne termine pas par .conf c'est grave ?
 
 regles
-- aucune directive obligatoire au niveau global (root, index, qutoindex on/off, cgi8handler, client_max_body_size, error_page )
-- niveau serveur : listen et root obligatoire, index optionell (fichier par défault; index.html), error_pageet location optionnel
-- location optionnel; directives optionnel
 location /images {
 }
 c'est ok

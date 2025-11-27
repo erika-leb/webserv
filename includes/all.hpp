@@ -43,6 +43,7 @@
 #define MAXLINE 4096
 #define ENDLINE "\r\n"
 #define TIMEOUT_SECONDS 60
+#define ROOT_DEFAULT "html"
 
 enum dcode {
 	HTTP,
@@ -55,7 +56,7 @@ enum dcode {
 // 	int port;
 // };
 
-
+class Directive;
 
 void		*ft_memset(void *b, int c, size_t len);
 size_t		ft_strlen(const char *str);
@@ -64,6 +65,8 @@ bool		isBlank( char c );
 void		remove_blank( std::string& str );
 std::string date(int format);
 void 		trim_line(std::string &line);
+bool		isDirectivePresent(std::string name, std::vector<Directive> dir);
+Directive 	&getDirective(std::string name, std::vector<Directive> dir);
 
 
 int		is_fd_open(int fd); // a supprimer plus tard

@@ -1,6 +1,6 @@
 #include "Directive.hpp"
 
-Directive::Directive(std::string &line) : name(""), nbArg(0), arg() // verifier que la directive est correcte sinon trhow
+Directive::Directive(std::string line) : name(""), nbArg(0), arg() // verifier que la directive est correcte sinon trhow
 {
     size_t i = 0;
     std::string word;
@@ -30,6 +30,21 @@ Directive::Directive(std::string &line) : name(""), nbArg(0), arg() // verifier 
         arg.push_back(word);
         word.clear();
     }
+	checkBasicDir();
+}
+
+void Directive::checkRoot()
+{
+	if (name.find("..") != std::string::npos)
+		throw std::runtime_error("error configuration file's root directive");
+	if (name.find("~") != std::string::npos)
+		throw std::runtime_error("error configuration file's root directive");
+}
+
+void Directive::checkBasicDir()
+{
+	if (name == "root")
+		checkRoot();
 }
 
 std::string &Directive::getName()

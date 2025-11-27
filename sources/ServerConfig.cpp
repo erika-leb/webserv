@@ -28,6 +28,13 @@ ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), loc
     }
 	checkListen();
 	addGlobalDir();
+	checkBasicDir();
+}
+
+void ServerConfig::checkBasicDir()
+{
+	if (isDirectivePresent("root", dir) == false)
+		dir.push_back(Directive("root " + std::string(ROOT_DEFAULT)));
 }
 
 void ServerConfig::addGlobalDir()
@@ -73,6 +80,10 @@ std::string &ServerConfig::getIp()
 	return (_ip);
 }
 
+std::vector<LocationConfig> &ServerConfig::getLocation()
+{
+	return (locs);
+}
 
 void ServerConfig::checkListen()
 {

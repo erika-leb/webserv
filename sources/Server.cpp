@@ -308,17 +308,11 @@ void Server::launch()
 			if (_events[i].events & EPOLLIN)
 			{
 				if (is_listen_fd(_events[i].data.fd) == true)
-				{
 					NewIncomingConnection(_events[i].data.fd, cli, event);
-				}
 				else
 				{
-					{
-						if (reveiveRequest(i, tmp) == 1)
-						{
-							break;
-						}
-					}
+					if (reveiveRequest(i, tmp) == 1)
+						break;
 				}
 			}
 			if (_events[i].events & EPOLLOUT)

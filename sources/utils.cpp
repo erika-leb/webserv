@@ -63,7 +63,7 @@ std::string date(int format) {
 	std::tm* timezone;
 	if (format == HTTP)
 		timezone = std::gmtime(&date);
-	else 
+	else
 		timezone = std::localtime(&date);
 
 	char buff[80];
@@ -76,7 +76,7 @@ std::string date(int format) {
 		// std::strftime(buff, sizeof(buff), "[%F][%H:%M:%S]", gmt);
 		std::strftime(buff, sizeof(buff), "[%H:%M:%S]", timezone);
 		break;
-	
+
 	default:
 		buff[0] = '\0';
 		break;
@@ -86,6 +86,25 @@ std::string date(int format) {
 }
 
 
+bool isDirectivePresent(std::string name, std::vector<Directive> dir)
+{
+	for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)
+	{
+		if (name == it->getName())
+			return (true);
+	}
+	return (false);
+}
+
+Directive &getDirective(std::string name, std::vector<Directive> dir)
+{
+	for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)
+	{
+		if (name == it->getName())
+			return (*it);
+	}
+	throw std::runtime_error("root directive absent of conf file");
+}
 
 
 
