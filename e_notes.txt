@@ -11,8 +11,8 @@ a faire encore pour config :
 - decider quelles ou si des directives peuvent se trouver en doubon
 - implementer les elements de la config dans le serveur
 - mettre des securites par rapport a l'endroit un client peut recuperer/modif/suppr des fichiers   OK
-- root/location : mettre un root de base; verifier que dans root, location on a pas .., ni ~,
-- root/location = prendre le + long location
+- root/location : mettre un root de base; verifier que dans root, location on a pas .., ni ~,  OK
+- root/location = prendre le + long location OK
 
 a faire pour serveur:
 

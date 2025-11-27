@@ -22,11 +22,15 @@ LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConf
 
 void LocationConfig::checkBasicDir()
 {
-	if (isDirectivePresent("root", dir) == false)
+	if (isDirectivePresent("root", dir) == false) //add a default root if necessary
 	{
 		std::string tmp = std::string("root ") + ROOT_DEFAULT;
 		dir.push_back(Directive(tmp));
 	}
+	if (uri.find("..") != std::string::npos)
+		throw std::runtime_error("error configuration file's uri name");
+	if (uri.find("~") != std::string::npos)
+		throw std::runtime_error("error configuration file's uri name");
 }
 
 void LocationConfig::addOtherDir()

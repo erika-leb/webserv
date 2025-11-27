@@ -35,9 +35,9 @@ Directive::Directive(std::string line) : name(""), nbArg(0), arg() // verifier q
 
 void Directive::checkRoot()
 {
-	if (name.find("..") != std::string::npos)
+	if (arg[0].find("..") != std::string::npos)
 		throw std::runtime_error("error configuration file's root directive");
-	if (name.find("~") != std::string::npos)
+	if (arg[0].find("~") != std::string::npos)
 		throw std::runtime_error("error configuration file's root directive");
 }
 
