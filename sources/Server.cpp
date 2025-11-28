@@ -268,7 +268,7 @@ void Server::checkTimeOut()
 		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
 		if (now - _clients[i]->getlastConn() > TIMEOUT_SECONDS)
 		{
-			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (read() == 0)" << std::endl;
+			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (TIMEOUT)" << std::endl;
 			deleteSocket(_clients[i]->getFd());
 		}
 	}

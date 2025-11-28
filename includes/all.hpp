@@ -44,7 +44,7 @@
 // #define MAXLINE 10
 #define MAXLINE 4096
 #define ENDLINE "\r\n"
-#define TIMEOUT_SECONDS 60
+#define TIMEOUT_SECONDS 3
 #define READ	0
 #define WRITE	1
 
