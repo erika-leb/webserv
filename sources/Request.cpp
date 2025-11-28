@@ -29,7 +29,7 @@ static std::string getFile( std::string &pathfile, size_t* fileLength ) {
 		DEBUG_MSG("ERROR: Couldn't open file [" << pathfile << "]");
 		res.clear();
 	}
-	
+
 	return res;
 }
 
@@ -143,16 +143,18 @@ void Request::parseHttp( void ) {
 	std::string	tmp;
 
 	std::getline(_rawHttp, _action, ' ');
+	DEBUG_MSG("befewrtgqwergreqore file: " << _action);
 	remove_blank(_action);
 	if (_action != "GET" &&
 			_action != "POST" &&
 			_action != "DELETE") {
 		_sCode = 405;
 	}
-	
+
 	std::getline(_rawHttp, _pathfile, ' ');
+	DEBUG_MSG("before file: " << _pathfile);
 	remove_blank(_pathfile);
-	DEBUG_MSG("file: " << _pathfile);
+	DEBUG_MSG("after file: " << _pathfile);
 	if (_pathfile.empty())
 		_sCode = 400;
 	else {
@@ -194,7 +196,7 @@ void Request::fDelete( void ) {
 		_sCode = 204;
 		return;
 	}
-	_sCode = 403; 
+	_sCode = 403;
 	fGet();
 }
 
@@ -227,7 +229,8 @@ std::string Request::makeResponse( void ) {
 
 	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
-	mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file / fetch the host of the request
+	mess << "Server: " << _cli.getIp() << ":" << _cli.getPort() << ENDLINE; // Modify according configuration file / fetch the host of the request
+	// mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE; // Modify either the connection need to be maintained or not
 	if (_sCode != 204) {
 		mess << "Content-Type: " << "text/html" << ENDLINE; // Modify according to file

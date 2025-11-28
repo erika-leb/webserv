@@ -9,7 +9,7 @@ class Cgi;
 class Client {
 
 	public:
-		Client(int fd);
+		Client(int fd, ListenInfo info);
 		Client(const Client &src);
 		Client &operator=(const Client &src);
 		~Client();
@@ -36,13 +36,21 @@ class Client {
 		void deleteCgi(); // is this function really needed ?
 		Cgi* getCgi();
 
+		void setlastConn(time_t);
+		time_t getlastConn();
+		std::string &getIp();
+		int getPort();
+
 	private:
 		Cgi* _cgi;
 
 		int _fd;
 		std::string _buff;
-		std::string _sendBuff; //reponse a envoyer
+		std::string _sendBuff; //response to send
 		bool _con;
+		time_t _lastConn;
+		std::string _ip;
+		int 		_port;
 
 } ;
 

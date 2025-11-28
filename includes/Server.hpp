@@ -28,6 +28,8 @@ class Server {
 		int sendRequest(int i, std::string tmp);
 		unsigned long getIPAddr(std::string &ip, struct addrinfo **res);
 		void cleanClose();
+		void checkTimeOut();
+		int timeOut();
 
 		bool is_pipe_fd( int );
 		void receiveCgi( int , std::string );
@@ -38,10 +40,11 @@ class Server {
 
 		static volatile sig_atomic_t flag;
 
-		int 					_poll;
-		std::vector<int> 		_fdListen;
-		struct epoll_event 		_events[SOMAXCONN];
-		std::vector< Client *>	_clients;
+		int 						_poll;
+		std::map<int, ListenInfo>	_fdListen;
+		// std::vector<int> 		_fdListen;
+		struct epoll_event			_events[SOMAXCONN];
+		std::vector< Client *>		_clients;
 
 		Server(const Server &src);
 		Server &operator=(const Server &rhs);

@@ -4,8 +4,9 @@ volatile sig_atomic_t Server::flag = 0;
 
 void Server::cleanClose()
 {
-	for (std::vector<int>::size_type i = 0; i < _fdListen.size(); i++)
-		close (_fdListen[i]);
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+		// close (_fdListen[i]);
+		close(it->first);
 	close(_poll);
 }
 
@@ -50,7 +51,7 @@ void Server::initFdListen(int fd, int port, std::string &ip)
 
 	freeaddrinfo(res);
 
-	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr))) // = to write servor's number down in the phonebook
+	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr))) // = to write servor's number down in the phonebook, connect a port to a fd
 	{
 		cleanClose();
 		throw std::runtime_error("bind() failed " + static_cast<std::string>(strerror(errno)));
@@ -76,14 +77,25 @@ void Server::initFdListen(int fd, int port, std::string &ip)
 Server::Server(GlobalConfig *config) : config(config)
 {
 	std::vector<ServerConfig> servs = this->config->getServ();
+	int fd;
+	ListenInfo info;
 
 	_poll = epoll_create(1);
 	if (_poll == -1)
 		throw std::runtime_error("epoll_create failed"+ static_cast<std::string>(strerror(errno)));
 	for (std::vector<ServerConfig>::size_type i = 0; i < servs.size(); i++)
 	{
-		_fdListen.push_back(socket(AF_INET, SOCK_STREAM, 0));
-		initFdListen(_fdListen[i], servs[i].getPort(), servs[i].getIp());
+		fd = socket(AF_INET, SOCK_STREAM, 0);
+		if (fd < 0)
+			throw std::runtime_error("socket failed"+ static_cast<std::string>(strerror(errno)));
+		// info.fd = fd;
+		info.ip = servs[i].getIp();
+		info.port = servs[i].getPort();
+		_fdListen[fd] = info;
+		// _fdListen.push_back(socket(AF_INET, SOCK_STREAM, 0));
+		initFdListen(fd, servs[i].getPort(), servs[i].getIp());
+		// std::cout << "fd d'ecoute = " << fd << std::endl;
+		// initFdListen(_fdListen[i], servs[i].getPort(), servs[i].getIp());
 	}
 }
 
@@ -111,9 +123,9 @@ void Server::deleteSocket(int client_fd)
 
 bool Server::is_listen_fd(int fd)
 {
-    for (size_t i = 0; i < _fdListen.size(); i++)
-        if (_fdListen[i] == fd)
-            return true;
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+		if (it->first == fd)
+			return (true);
     return false;
 }
 
@@ -138,7 +150,13 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	event.data.fd = client_fd;
 	event.events = EPOLLIN | EPOLLET;
 	epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
-	_clients.push_back(new Client(client_fd));
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+	{
+		// std::cout << "it->first = " << it->first << "; client fd = " << client_fd << std::endl;
+		if (it->first == fd)
+			_clients.push_back(new Client(client_fd, it->second));
+	}
+	// _clients.push_back(new Client(client_fd));
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
@@ -192,7 +210,8 @@ int Server::reveiveRequest(int i, std::string& tmp)
 		{
 			if (client_fd == (*it)->getFd())
 			{
-				prepareResponse(buff, tmp, client_fd, (*it)); // need pointer/reference to tmp to change it
+				(*it)->setlastConn(std::time(NULL));
+				prepareResponse(buff, tmp, client_fd, (*it));
 				return (1);
 			}
 		}
@@ -239,6 +258,38 @@ int Server::sendRequest(int i, std::string tmp)
 	return (0);
 }
 
+void Server::checkTimeOut()
+{
+	time_t now = std::time(NULL);
+
+	// perror("ici");
+	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
+	{
+		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
+		if (now - _clients[i]->getlastConn() > TIMEOUT_SECONDS)
+		{
+			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (read() == 0)" << std::endl;
+			deleteSocket(_clients[i]->getFd());
+		}
+	}
+}
+
+int Server::timeOut()
+{
+	time_t now = std::time(NULL);
+	int res = TIMEOUT_SECONDS;
+	int elapsed;
+
+	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
+	{
+		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
+		elapsed = now - _clients[i]->getlastConn();
+		if (TIMEOUT_SECONDS - elapsed > 0 && TIMEOUT_SECONDS - elapsed < res)
+			res = TIMEOUT_SECONDS - elapsed;
+	}
+	return ((res + 2) * 1000);
+}
+
 void Server::launch()
 {
 	struct epoll_event event;
@@ -248,13 +299,16 @@ void Server::launch()
 
 	while(flag == 0)
 	{
-		d = epoll_wait(_poll, _events, SOMAXCONN, -1);
+		d = epoll_wait(_poll, _events, SOMAXCONN, timeOut());
+		// d = epoll_wait(_poll, _events, SOMAXCONN, -1);
 		for (int i = 0; i < d; i++)
 		{
 			if (_events[i].events & EPOLLIN)
 			{
 				if (is_listen_fd(_events[i].data.fd) == true)
+				{
 					NewIncomingConnection(_events[i].data.fd, cli, event);
+				}
 				else
 				{
 					if (is_pipe_fd(_events[i].data.fd) == true) {
@@ -271,16 +325,19 @@ void Server::launch()
 			{
 				
 				if (sendRequest(i, tmp) == 1)
-					break ;
+				{
+					break;
+				}
 			}
 		}
+		checkTimeOut();
 	}
 }
 
 Server::~Server()
 {
-	for (std::vector<int>::size_type i = 0; i < _fdListen.size(); i++)
-		close (_fdListen[i]);
+	for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
+		close(it->first);
 	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		close((*it)->getFd());
