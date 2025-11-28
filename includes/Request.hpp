@@ -31,6 +31,10 @@ public:
 
 	void parseHttp();
 
+	std::string getFile( std::string &pathfile, size_t* fileLength );
+	void getPath(std::string &pathfile);
+	void checkPath( std::string pathfile, size_t& eCode );
+
 	void fGet();
 	void fPost();
 	void fDelete();

@@ -6,7 +6,8 @@
 class Directive {
 
     public:
-            Directive(std::string &line);
+            Directive(std::string line);
+			Directive();
             Directive(const Directive &src);
             ~Directive();
             Directive &operator=(const Directive &src);
@@ -14,6 +15,9 @@ class Directive {
 			std::string &getName();
 			int getNbArg() const;
 			std::vector<std::string> &getArg();
+			void checkBasicDir();
+			void checkRoot();
+			void checkError();
 
             void print_directive();
 
@@ -22,7 +26,7 @@ class Directive {
             int nbArg;
             std::vector<std::string> arg;
 
-            Directive();
+            // Directive();
 
 } ;
 

@@ -9,13 +9,74 @@ static bool startWith( std::string& str, std::string prefix ) {
 }
 */
 
-static std::string getFile( std::string &pathfile, size_t* fileLength ) {
+// NB = pas trop de protection sur les getline
+
+static void getLargerLocation(int *j, size_t *size, std::string &pathfile, std::vector<LocationConfig> locs)
+{
+	Directive	directive;
+	std::vector<std::string> arg;
+
+	for (std::vector<LocationConfig>::size_type i = 0; i < locs.size(); i++)
+	{
+		directive = getDirective("root", locs[i].getDir());
+		arg = directive.getArg();
+		if (pathfile.rfind(locs[i].getUri(), 0) == 0)
+		{
+			if (arg[0].size() > (*size))
+			{
+				(*size) = arg[0].size();
+				(*j) = i;
+			}
+		}
+	}
+}
+
+void Request::getPath(std::string &pathfile)
+{
+	ServerConfig conf = _cli.getServ();
+	std::vector<LocationConfig> locs = conf.getLocation();
+	Directive	directive;
+	std::vector<std::string> arg;
+	int j =  -1;
+	size_t size = 0;
+
+	// std::cout << "pathfile = " << pathfile << std::endl;
+	if (_sCode == 400 || _sCode == 403 || _sCode == 404
+			|| _sCode == 405 || _sCode == 500)
+	{
+		if (pathfile[0] != '/')
+			pathfile.insert(0, "/");
+		pathfile.insert(0, "html");
+	}
+	else
+	{
+		getLargerLocation(&j, &size, pathfile, locs);
+		if (j != -1)
+		{
+			directive = getDirective("root", locs[j].getDir());
+			arg = directive.getArg();
+		}
+		else
+		{
+			directive = getDirective("root", conf.getDir());
+			arg = directive.getArg();
+		}
+		if (pathfile[0] != '/')
+			pathfile.insert(0, "/");
+		pathfile.insert(0, arg[0]);
+	}
+}
+
+// static std::string getFile( std::string &pathfile, size_t* fileLength ) {
+std::string Request::getFile( std::string &pathfile, size_t* fileLength ) {
 	std::fstream	fs;
 	std::string		tmp, res;
 
 	// pathfile modify according to root directory in configuration file
-	if (pathfile.find(".html") != std::string::npos)
-		pathfile.insert(1, "/html");
+
+	// if (pathfile.find(".html") != std::string::npos)
+		// pathfile.insert(1, "/html");
+	getPath(pathfile);
 	fs.open(pathfile.c_str(), std::ios::in);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp)) {
@@ -47,19 +108,19 @@ static std::string ifError( std::string& path, std::string& con, int sCode ) {
 		// no path
 		str = " No content"; break;
 	case 400:
-		path = "./errors/400.html";
+		path = "/errors/400.html";
 		str = " Bad request"; con = "close"; break;
 	case 403:
-		path = "./errors/403.html";
+		path = "/errors/403.html";
 		str = " Forbidden"; break;
 	case 404:
-		path = "./errors/404.html";
+		path = "/errors/404.html";
 		str = " Not found"; break;
 	case 405:
-		path = "./errors/405.html";
+		path = "/errors/405.html";
 		str = " Method not allowed"; break; // Connection normally keep-alive
 	case 500:
-		path = "./errors/500.html";
+		path = "/errors/500.html";
 		str = " Internal server error"; con = "close"; break;
 	default:
 		str = " Ok"; con = "keep-alive"; break;
@@ -68,12 +129,14 @@ static std::string ifError( std::string& path, std::string& con, int sCode ) {
 	return str;
 }
 
-static void checkPath( std::string pathfile, size_t& eCode ) {
+void Request::checkPath( std::string pathfile, size_t& eCode ) {
 	// Statement to adapt with configuration file
-	if (pathfile.find(".html") != std::string::npos)
-		pathfile.insert(0, "./html");
-	else
-		pathfile.insert(0, "."); // insert root directory cf. configuration file
+	// if (pathfile.find(".html") != std::string::npos)
+	// 	pathfile.insert(0, "./html");
+	// else
+	// 	pathfile.insert(0, "."); // insert root directory cf. configuration file
+
+	getPath(pathfile);
 
 	if (access(pathfile.c_str(), F_OK) < 0) {
 		eCode = 404;
@@ -160,7 +223,7 @@ void Request::parseHttp( void ) {
 	else {
 		checkPath(_pathfile, _sCode);
 	}
-	_pathfile.insert(0, ".");
+	// _pathfile.insert(0, ".");
 
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);
@@ -191,7 +254,9 @@ void Request::fPost( void ) {
 
 void Request::fDelete( void ) {
 	DEBUG_MSG("DELETE request");
-	if (access(_pathfile.c_str(), W_OK) == 0) {
+	getPath(_pathfile);
+	std::cout << "delete pathfile : " << _pathfile << std::endl;
+	if (access(_pathfile.c_str(), W_OK) == 0) {    //le travail sur le prefixe du fichier a-t-il ete deja fait ?
 		std::remove(_pathfile.c_str());
 		_sCode = 204;
 		return;
@@ -226,10 +291,11 @@ void Request::handleAction( std::string action ) {
 
 std::string Request::makeResponse( void ) {
 	std::ostringstream mess;
+	ServerConfig conf = _cli.getServ();
 
 	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
-	mess << "Server: " << _cli.getIp() << ":" << _cli.getPort() << ENDLINE; // Modify according configuration file / fetch the host of the request
+	mess << "Server: " << conf.getIp() << ":" << conf.getPort() << ENDLINE; // Modify according configuration file / fetch the host of the request
 	// mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE; // Modify either the connection need to be maintained or not
 	if (_sCode != 204) {

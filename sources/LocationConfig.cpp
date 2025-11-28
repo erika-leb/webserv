@@ -17,6 +17,20 @@ LocationConfig::LocationConfig(std::fstream &temp, std::string &line, ServerConf
         dir.push_back(Directive(line));
 	}
 	addOtherDir();
+	checkBasicDir();
+}
+
+void LocationConfig::checkBasicDir()
+{
+	if (isDirectivePresent("root", dir) == false) //add a default root if necessary
+	{
+		std::string tmp = std::string("root ") + ROOT_DEFAULT;
+		dir.push_back(Directive(tmp));
+	}
+	if (uri.find("..") != std::string::npos)
+		throw std::runtime_error("error configuration file's uri name");
+	if (uri.find("~") != std::string::npos)
+		throw std::runtime_error("error configuration file's uri name");
 }
 
 void LocationConfig::addOtherDir()
@@ -83,6 +97,16 @@ void LocationConfig::get_uri(std::string &line)
         if (uri[i] == '\\') // a verifier
             throw std::runtime_error("error in configuration file's syntax (location)");
     }
+}
+
+std::string &LocationConfig::getUri()
+{
+	return (uri);
+}
+
+std::vector<Directive> &LocationConfig::getDir()
+{
+	return (dir);
 }
 
 void LocationConfig::print_location()

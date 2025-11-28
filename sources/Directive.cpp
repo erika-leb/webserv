@@ -1,6 +1,6 @@
 #include "Directive.hpp"
 
-Directive::Directive(std::string &line) : name(""), nbArg(0), arg() // verifier que la directive est correcte sinon trhow
+Directive::Directive(std::string line) : name(""), nbArg(0), arg() // verifier que la directive est correcte sinon trhow
 {
     size_t i = 0;
     std::string word;
@@ -30,6 +30,33 @@ Directive::Directive(std::string &line) : name(""), nbArg(0), arg() // verifier 
         arg.push_back(word);
         word.clear();
     }
+	checkBasicDir();
+}
+
+void Directive::checkRoot()
+{
+	if (arg[0].find("..") != std::string::npos)
+		throw std::runtime_error("error configuration file's root directive");
+	if (arg[0].find("~") != std::string::npos)
+		throw std::runtime_error("error configuration file's root directive");
+}
+
+// void Directive::checkError()
+// {
+// 	if (nbArg != 2)
+// 		throw std::runtime_error("error configuration file's error directive");
+// 	if (arg[0] != 400)
+// }
+
+void Directive::checkBasicDir()
+{
+	if (name == "root")
+		checkRoot();
+	// else if (name == "error")
+	// 	checkError();
+
+	// else
+	// 	throw std::runtime_error("error in configuration file's directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?
 }
 
 std::string &Directive::getName()

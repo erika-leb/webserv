@@ -28,7 +28,7 @@ void process_loc(std::ifstream &file, std::fstream &temp, std::string &line)
 		if (line == "}")
 			break;
 		if (line[line.size() - 1] != ';')
-			throw std::runtime_error("error in configuration file's syntaxe");
+			throw std::runtime_error("error in configuration file's syntaxe1");
 		temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 	}
 }
@@ -54,7 +54,7 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string &line)
 		if (loc == 0 && !(line.substr(0, 8) == "location")) // il s'agit d'une directive de serveur
 		{
 			if (line[line.size() - 1] != ';')
-				throw std::runtime_error("error in configuration file's syntaxe");
+				throw std::runtime_error("error in configuration file's syntaxe2");
 			temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 		}
 		else if (line.substr(0, 8) == "location") // il s'agit d'un serveur
@@ -63,7 +63,7 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string &line)
 			process_loc(file, temp, line);
 		}
 		else // directive apres le serveur
-			throw std::runtime_error("error in configuration file's syntaxe" + static_cast<std::string>(strerror(errno)));
+			throw std::runtime_error("" + static_cast<std::string>(strerror(errno)));
 		// std::cout << "bem" << line << std::endl; // pour enlever le ; à la fin
 		// temp << "bem" << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 	}
@@ -88,7 +88,7 @@ void first_parse(std::ifstream &file, std::fstream &temp)
 		if (serv == 0 && !(line.substr(0, 6) == "server")) // il s'agit d'une directive globale
 		{
 			if (line[line.size() - 1] != ';')
-				throw std::runtime_error("error in configuration file's syntaxe");
+				throw std::runtime_error("error in configuration file's syntaxe3");
 			temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 		}
 		else if (line.substr(0, 6) == "server") // il s'agit d'un serveur
@@ -97,7 +97,7 @@ void first_parse(std::ifstream &file, std::fstream &temp)
 			process_serv(file, temp, line);
 		}
 		else // directive apres le serveur
-			throw std::runtime_error("error in configuration file's syntaxe");
+			throw std::runtime_error("error in configuration file's syntaxe4");
 	}
 }
 
