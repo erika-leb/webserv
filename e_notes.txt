@@ -19,6 +19,7 @@ a faire pour serveur:
 
 a faire pour requete:
 - post
+- protection si chemin avec .. ou ~
 
 
 

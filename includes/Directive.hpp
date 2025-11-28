@@ -17,6 +17,7 @@ class Directive {
 			std::vector<std::string> &getArg();
 			void checkBasicDir();
 			void checkRoot();
+			void checkError();
 
             void print_directive();
 

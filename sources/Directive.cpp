@@ -41,10 +41,22 @@ void Directive::checkRoot()
 		throw std::runtime_error("error configuration file's root directive");
 }
 
+// void Directive::checkError()
+// {
+// 	if (nbArg != 2)
+// 		throw std::runtime_error("error configuration file's error directive");
+// 	if (arg[0] != 400)
+// }
+
 void Directive::checkBasicDir()
 {
 	if (name == "root")
 		checkRoot();
+	// else if (name == "error")
+	// 	checkError();
+
+	// else
+	// 	throw std::runtime_error("error in configuration file's directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?
 }
 
 std::string &Directive::getName()
