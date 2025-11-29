@@ -45,6 +45,12 @@
 #define TIMEOUT_SECONDS 60
 #define ROOT_DEFAULT "html"
 
+#define ERROR_400 "/errors/400.html"
+#define ERROR_403 "/errors/403.html"
+#define ERROR_404 "/errors/404.html"
+#define ERROR_405 "/errors/405.html"
+#define ERROR_500 "/errors/500.html"
+
 enum dcode {
 	HTTP,
 	LOG

@@ -45,7 +45,7 @@ void LocationConfig::addOtherDir()
 		flag = 0;
 		for (std::vector<Directive>::iterator ite = dir.begin(); ite != dir.end(); ++ite)
 		{
-			if (it->getName() == ite->getName())
+			if (it->getName() == ite->getName() && it->getName() != "error_page")
 			{
 				flag = 1;
 				break;
