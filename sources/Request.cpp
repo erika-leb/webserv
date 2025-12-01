@@ -11,24 +11,34 @@ static bool startWith( std::string& str, std::string prefix ) {
 
 // NB = pas trop de protection sur les getline
 
-static void getWriteLocation(int *j, size_t *size, std::string &pathfile, std::vector<LocationConfig> locs)
+static void getWriteLocation(int *j, std::string &pathfile, std::vector<LocationConfig> locs)
 {
 	Directive	directive;
 	std::vector<std::string> arg;
+	std::string uri;
+	size_t size = 0;
 
+	// DEBUG_MSG("Paht " << pathfile);
 	for (std::vector<LocationConfig>::size_type i = 0; i < locs.size(); i++)
 	{
 		directive = getDirective("root", locs[i].getDir());
 		arg = directive.getArg();
-		if (pathfile.rfind(locs[i].getUri(), 0) == 0)
+		uri = locs[i].getUri();
+		if (pathfile.rfind(uri, 0) == 0)
 		{
-			if (arg[0].size() > (*size))
+			// DEBUG_MSG("uri " << locs[i].getUri()<< "P");
+			// DEBUG_MSG("arg[0].size() " << arg[0].size());
+			// DEBUG_MSG("(*size) " << size);
+			if (uri.size() > size)
+			// if (arg[0].size() > size)
 			{
-				(*size) = arg[0].size();
+				// perror("omg");
+				size = arg[0].size();
 				(*j) = i;
 			}
 		}
 	}
+	// DEBUG_MSG("j final " << (*j));
 }
 
 void Request::getPath(std::string &pathfile)
@@ -37,54 +47,35 @@ void Request::getPath(std::string &pathfile)
 	Directive	directive;
 	std::vector<std::string> arg;
 	int j =  -1;
-	size_t size = 0;
 
 	// std::cout << "pathfile = " << pathfile << std::endl;
-	if (_sCode == 400 || _sCode == 403 || _sCode == 404
-			|| _sCode == 405 || _sCode == 500)
+	getWriteLocation(&j, pathfile, locs);
+	if (j != -1)
 	{
-		// if (pathfile[0] != '/')
-		// 	pathfile.insert(0, "/");
-		// pathfile.insert(0, "html");
-		perror("wtf");
-		getWriteLocation(&j, &size, pathfile, locs);
-		if (j != -1) // inutile ?
-		{
-			perror("caliente");
-			directive = getDirective("root", locs[j].getDir());
-			arg = directive.getArg();
-			setErrorPath(j);
-		}
-		else
-		{
-			directive = getDirective("root", _serv.getDir());
-			arg = directive.getArg();
-		}
+		// DEBUG_MSG("400 = " << _errorPath[400]);
+		// DEBUG_MSG("403 = " << _errorPath[403]);
+		// DEBUG_MSG("404 = " << _errorPath[404]);
+		// DEBUG_MSG("405 = " << _errorPath[405]);
+		// DEBUG_MSG("500 = " << _errorPath[500]);
+		directive = getDirective("root", _serv.getDir());
+		perror("ici");
+		arg = directive.getArg();
+		setErrorPath(j);
+		// DEBUG_MSG("400 = " << _errorPath[400]);
+		// DEBUG_MSG("403 = " << _errorPath[403]);
+		// DEBUG_MSG("404 = " << _errorPath[404]);
+		// DEBUG_MSG("405 = " << _errorPath[405]);
+		// DEBUG_MSG("500 = " << _errorPath[500]);
+		// perror("violencia");
 	}
 	else
 	{
-		getWriteLocation(&j, &size, pathfile, locs);
-		if (j != -1)
-		{
-			directive = getDirective("root", _serv.getDir());
-			perror("ici");
-			arg = directive.getArg();
-			setErrorPath(j);
-			perror("violencia");
-		}
-		else
-		{
-			directive = getDirective("root", _serv.getDir());
-			arg = directive.getArg();
-		}
+		directive = getDirective("root", _serv.getDir());
+		arg = directive.getArg();
 	}
-	std::cerr << "path = " << pathfile << std::endl;
-	std::cerr << "arg[0] = " << arg[0] << std::endl;
-	std::cerr << "path = " << pathfile << std::endl;
 	if (pathfile[0] != '/')
 		pathfile.insert(0, "/");
 	pathfile.insert(0, arg[0]);
-	DEBUG_MSG("nouveau chemin d erreur " << _errorPath[404]);
 }
 
 // static std::string getFile( std::string &pathfile, size_t* fileLength ) {
@@ -92,10 +83,6 @@ std::string Request::getFile( std::string &pathfile, size_t* fileLength ) {
 	std::fstream	fs;
 	std::string		tmp, res;
 
-	// pathfile modify according to root directory in configuration file
-
-	// if (pathfile.find(".html") != std::string::npos)
-		// pathfile.insert(1, "/html");
 	DEBUG_MSG("first path to get " << pathfile);
 	getPath(pathfile);
 	fs.open(pathfile.c_str(), std::ios::in);
@@ -129,23 +116,18 @@ std::string Request::ifError( std::string& path, std::string& con, int sCode ) {
 		// no path
 		str = " No content"; break;
 	case 400:
-		// path = "/errors/400.html";
 		path = _errorPath[400];
 		str = " Bad request"; con = "close"; break;
 	case 403:
-		// path = "/errors/403.html";
 		path = _errorPath[403];
 		str = " Forbidden"; break;
 	case 404:
 		path = _errorPath[404];
-		// path = "/errors/404.html";
 		str = " Not found"; break;
 	case 405:
-		// path = "/errors/405.html";
 		path = _errorPath[405];
 		str = " Method not allowed"; break; // Connection normally keep-alive
 	case 500:
-		// path = "/errors/500.html";
 		path = _errorPath[500];
 		str = " Internal server error"; con = "close"; break;
 	default:
@@ -156,12 +138,6 @@ std::string Request::ifError( std::string& path, std::string& con, int sCode ) {
 }
 
 void Request::checkPath( std::string pathfile, size_t& eCode ) {
-	// Statement to adapt with configuration file
-	// if (pathfile.find(".html") != std::string::npos)
-	// 	pathfile.insert(0, "./html");
-	// else
-	// 	pathfile.insert(0, "."); // insert root directory cf. configuration file
-
 	getPath(pathfile);
 	DEBUG_MSG("after first getPaht = " << pathfile);
 	if (access(pathfile.c_str(), F_OK) < 0) {
@@ -174,7 +150,7 @@ void Request::checkPath( std::string pathfile, size_t& eCode ) {
 	return ;
 }
 
-void Request::setErrorPath(int j)
+void Request::setErrorPath(int j) // ICI CHANGER POUR AJOUTER LE LOCATION SI BESOIN
 {
 	std::vector<LocationConfig> locs = _serv.getLocation();
 	std::vector<Directive> dirs;
@@ -185,8 +161,7 @@ void Request::setErrorPath(int j)
 		dirs = _serv.getDir();
 	else
 		dirs = locs[j].getDir();
-
-	perror("sexo");
+	DEBUG_MSG(" j = " << j);
 	for(std::vector<Directive>::size_type i = 0; i < dirs.size(); i++)
 	{
 		name = dirs[i].getName();
@@ -217,7 +192,6 @@ void Request::setErrorPath(int j)
 				_errorPath[405] = arg[1];
 		}
 	}
-	perror("alcool");
 	if (j == -1 && _errorPath.find(405) == _errorPath.end())
 	    _errorPath[405] = ERROR_405;
 	if (j == -1 && _errorPath.find(400) == _errorPath.end())
@@ -228,7 +202,6 @@ void Request::setErrorPath(int j)
 	    _errorPath[404] = ERROR_404;
 	if (j == -1 && _errorPath.find(500) == _errorPath.end())
 	    _errorPath[500] = ERROR_500;
-	perror("pride");
 }
 
 Request::Request( Client& cli ): _cli(cli), _serv(_cli.getServ()) {
@@ -246,13 +219,7 @@ Request::Request( Client& cli ): _cli(cli), _serv(_cli.getServ()) {
 		remove_blank(value);
 		_reqParam[key] = value;
 	}
-	// _serv = _cli.getServ();
 	setErrorPath(-1);
-	// DEBUG_MSG("400 = " << _errorPath[400]);
-	// DEBUG_MSG("403 = " << _errorPath[403]);
-	// DEBUG_MSG("404 = " << _errorPath[404]);
-	// DEBUG_MSG("405 = " << _errorPath[405]);
-	// DEBUG_MSG("500 = " << _errorPath[500]);
 }
 
 Request::Request( const Request& cpy ): _cli(cpy._cli), _serv(cpy._serv) {
@@ -295,7 +262,6 @@ void Request::parseHttp( void ) {
 	std::string	tmp;
 
 	std::getline(_rawHttp, _action, ' ');
-	DEBUG_MSG("befewrtgqwergreqore file: " << _action);
 	remove_blank(_action);
 
 	if (_action != "GET" &&
@@ -306,7 +272,6 @@ void Request::parseHttp( void ) {
 
 	std::getline(_rawHttp, _pathfile, ' ');
 	remove_blank(_pathfile);
-	DEBUG_MSG(" Path = " << _pathfile);
 	if (_pathfile.empty())
 		_sCode = 400;
 	else {
@@ -325,18 +290,7 @@ void Request::parseHttp( void ) {
 
 void Request::fGet( void ) {
 	DEBUG_MSG("GET request");
-	DEBUG_MSG("400 = " << _errorPath[400]);
-	DEBUG_MSG("403 = " << _errorPath[403]);
-	DEBUG_MSG("404 = " << _errorPath[404]);
-	DEBUG_MSG("405 = " << _errorPath[405]);
-	DEBUG_MSG("500 = " << _errorPath[500]);
-	ifError(_pathfile, _connection, _sCode); // ici _pathfile change pour error
-	DEBUG_MSG("400 = " << _errorPath[400]);
-	DEBUG_MSG("403 = " << _errorPath[403]);
-	DEBUG_MSG("404 = " << _errorPath[404]);
-	DEBUG_MSG("405 = " << _errorPath[405]);
-	DEBUG_MSG("500 = " << _errorPath[500]);
-	DEBUG_MSG("code = " << _sCode << "; error = " << _errorPath[404]);
+	ifError(_pathfile, _connection, _sCode); // ici _pathfile change pour error;
 	_file = getFile(_pathfile, &_fileLength);
 	if (_file.empty()) {
 		_sCode = 403;

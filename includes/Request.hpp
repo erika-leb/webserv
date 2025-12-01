@@ -36,7 +36,7 @@ public:
 	std::string ifError( std::string& path, std::string& con, int sCode );
 
 	void setErrorPath(int i);
-	void setLocErrorPath(int i);
+	// void setLocErrorPath(int i);
 
 	void fGet();
 	void fPost();

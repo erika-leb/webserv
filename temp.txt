@@ -1,0 +1,20 @@
+root html
+autoindex off
+server
+listen 127.0.0.1:8080
+index index.html
+autoindex queoi?
+location / 
+autoindex on
+cgi_handler .php /usr/bin/php-cgi
+location  /test/ 
+index index.html
+error_page  404  404.html
+error_page  403  403.html
+server
+listen 127.0.14.1:8081
+root test/
+index index.html
+error_page  204 404.html
+error_page  500  500.html
+error_page  300  300.html

@@ -41,19 +41,32 @@ void Directive::checkRoot()
 		throw std::runtime_error("error configuration file's root directive");
 }
 
-// void Directive::checkError()
-// {
-// 	if (nbArg != 2)
-// 		throw std::runtime_error("error configuration file's error directive");
-// 	if (arg[0] != 400)
-// }
+void Directive::checkError()
+{
+	int code;
+
+	if (nbArg != 2)
+		throw std::runtime_error("error configuration file's error directive");
+	if (arg[0].size() != 3)
+		throw std::runtime_error("error configuration file's error directive");
+	for (size_t i = 0; i < arg[0].size(); i++)
+	{
+		if (arg[0][i] < '0' || arg[0][i] > '9')
+			throw std::runtime_error("error configuration file's error directive");
+	}
+	code = std::atoi(arg[0].c_str());
+	if ( code < 300 || code > 599)
+		throw std::runtime_error("error configuration file's error directive");
+	if (arg[1].empty())
+		throw std::runtime_error("error configuration file's error directive"); //usefull ?
+}
 
 void Directive::checkBasicDir()
 {
 	if (name == "root")
 		checkRoot();
-	// else if (name == "error")
-	// 	checkError();
+	else if (name == "error_page")
+		checkError();
 
 	// else
 	// 	throw std::runtime_error("error in configuration file's directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?
