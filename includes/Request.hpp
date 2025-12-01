@@ -36,6 +36,8 @@ public:
 	std::string ifError( std::string& path, std::string& con, int sCode );
 
 	void setErrorPath(int i);
+
+	bool IsMethodAllowed();
 	// void setLocErrorPath(int i);
 
 	void fGet();

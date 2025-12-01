@@ -28,7 +28,18 @@ ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), loc
     }
 	checkListen();
 	addGlobalDir();
+	checkAllowedDirective();
 	checkBasicDir();
+}
+
+void ServerConfig::checkAllowedDirective()
+{
+    for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)
+	{
+		Directive &dir = *it;
+		if (dir.getName() == "allow_methods")
+    	    throw std::runtime_error("error in configuration file : allow_methods only auhtorized in locations");
+	}
 }
 
 void ServerConfig::checkBasicDir()

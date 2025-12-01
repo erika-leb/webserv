@@ -46,27 +46,37 @@ void Directive::checkError()
 	int code;
 
 	if (nbArg != 2)
-		throw std::runtime_error("error configuration file's error directive");
+		throw std::runtime_error("error in configuration file : error_page directive");
 	if (arg[0].size() != 3)
-		throw std::runtime_error("error configuration file's error directive");
+		throw std::runtime_error("error in configuration file : error_page directive");
 	for (size_t i = 0; i < arg[0].size(); i++)
 	{
 		if (arg[0][i] < '0' || arg[0][i] > '9')
-			throw std::runtime_error("error configuration file's error directive");
+			throw std::runtime_error("error in configuration file : error_page directive");
 	}
 	code = std::atoi(arg[0].c_str());
 	if ( code < 300 || code > 599)
-		throw std::runtime_error("error configuration file's error directive");
+		throw std::runtime_error("error in configuration file : error_page directive");
 	if (arg[1].empty())
-		throw std::runtime_error("error configuration file's error directive"); //usefull ?
+		throw std::runtime_error("error in configuration file : error_page directive"); //usefull ?
 }
 
 void Directive::checkBasicDir()
 {
+	if (nbArg == 0)
+		throw std::runtime_error("error in configuration file : directive should have at least one attribute"); //usefull ?
 	if (name == "root")
 		checkRoot();
 	else if (name == "error_page")
 		checkError();
+	else if (name == "allow_methods")
+	{
+		for (std::string::size_type i = 0; i < arg.size(); i++)
+		{
+			if (arg[i] != "GET" && arg[i] != "DELETE" && arg[i] != "POST")
+				throw std::runtime_error("error configuration file : allowed methods can only be GET, POST AND DELETE");
+		}
+	}
 
 	// else
 	// 	throw std::runtime_error("error in configuration file's directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?

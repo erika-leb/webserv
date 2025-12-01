@@ -33,6 +33,7 @@ class ServerConfig {
 		std::vector<LocationConfig> &getLocation();
 
 		void checkBasicDir();
+		void checkAllowedDirective();
 
 		void print_server();
 

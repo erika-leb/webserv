@@ -19,6 +19,8 @@ class GlobalConfig {
 		std::vector<Directive>& getDir();
 		std::vector<ServerConfig>& getServ();
 
+		void checkAllowedDirective();
+
 		void print_config();
 
 	private:

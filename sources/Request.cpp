@@ -41,6 +41,39 @@ static void getWriteLocation(int *j, std::string &pathfile, std::vector<Location
 	// DEBUG_MSG("j final " << (*j));
 }
 
+bool Request::IsMethodAllowed()
+{
+	std::vector<LocationConfig> locs = _serv.getLocation();
+	int j = -1;
+	Directive dir;
+	std::vector<std::string> arg;
+	int flag = 0;
+
+	getWriteLocation(&j, _pathfile, locs);
+	if (j != -1)
+	{
+		for (std::vector<Directive>::size_type i = 0; i < locs[j].getDir().size(); i++)
+		{
+			dir = locs[j].getDir()[i];
+			if (dir.getName() == "allow_methods")
+			{
+				arg = dir.getArg();
+				for (std::vector<std::string>::size_type k = 0; k < arg.size(); k++)
+				{
+					if (arg[k] == _action)
+						flag = 1;
+				}
+			}
+		}
+	}
+	else
+		return (true);
+	if (flag == 1)
+		return (true);
+	else
+		return (false);
+}
+
 void Request::getPath(std::string &pathfile)
 {
 	std::vector<LocationConfig> locs = _serv.getLocation();
@@ -106,7 +139,6 @@ std::string Request::getFile( std::string &pathfile, size_t* fileLength ) {
 std::string Request::ifError( std::string& path, std::string& con, int sCode ) {
 	std::string str;
 
-	// The path to error code must adapt to configuration file
 	switch (sCode)
 	{
 	case 201:
@@ -169,28 +201,73 @@ void Request::setErrorPath(int j) // ICI CHANGER POUR AJOUTER LE LOCATION SI BES
 		if (name == "error_page" && arg[0] == "500")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
-				_errorPath[500] = arg[1];
+			{
+				if (j == -1)
+					_errorPath[500] = arg[1];
+				else
+					_errorPath[500] = locs[j].getUri() + arg[1];
+			}
 		}
 		if (name == "error_page" && arg[0] == "400")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
-				_errorPath[400] = arg[1];
+			{
+				if (j == -1)
+					_errorPath[400] = arg[1];
+				else
+					_errorPath[400] = locs[j].getUri() + arg[1];
+			}
 		}
 		if (name == "error_page" && arg[0] == "403")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
-				_errorPath[403] = arg[1];
+			{
+				if (j == -1)
+					_errorPath[403] = arg[1];
+				else
+					_errorPath[403] = locs[j].getUri() + arg[1];
+			}
 		}
 		if (name == "error_page" && arg[0] == "404")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
-				_errorPath[404] = arg[1];
+			{
+				if (j == -1)
+					_errorPath[404] = arg[1];
+				else
+					_errorPath[404] = locs[j].getUri() + arg[1];
+			}
 		}
 		if (name == "error_page" && arg[0] == "405")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
-				_errorPath[405] = arg[1];
+			{
+				if (j == -1)
+					_errorPath[405] = arg[1];
+				else
+					_errorPath[405] = locs[j].getUri() + arg[1];
+			}
 		}
+		// if (name == "error_page" && arg[0] == "400")
+		// {
+		// 	if (access(arg[1].c_str(), F_OK) < 0)
+		// 		_errorPath[400] = arg[1];
+		// }
+		// if (name == "error_page" && arg[0] == "403")
+		// {
+		// 	if (access(arg[1].c_str(), F_OK) < 0)
+		// 		_errorPath[403] = arg[1];
+		// }
+		// if (name == "error_page" && arg[0] == "404")
+		// {
+		// 	if (access(arg[1].c_str(), F_OK) < 0)
+		// 		_errorPath[404] = arg[1];
+		// }
+		// if (name == "error_page" && arg[0] == "405")
+		// {
+		// 	if (access(arg[1].c_str(), F_OK) < 0)
+		// 		_errorPath[405] = arg[1];
+		// }
 	}
 	if (j == -1 && _errorPath.find(405) == _errorPath.end())
 	    _errorPath[405] = ERROR_405;
@@ -270,13 +347,18 @@ void Request::parseHttp( void ) {
 		_sCode = 405;
 	}
 
+
 	std::getline(_rawHttp, _pathfile, ' ');
 	remove_blank(_pathfile);
 	if (_pathfile.empty())
 		_sCode = 400;
+	else if (IsMethodAllowed() == false)
+		_sCode = 405;
 	else {
 		checkPath(_pathfile, _sCode);
 	}
+
+
 	// APRES ICI on est a 404
 
 	std::getline(_rawHttp, tmp);
@@ -309,7 +391,7 @@ void Request::fDelete( void ) {
 	DEBUG_MSG("DELETE request");
 	getPath(_pathfile);
 	std::cout << "delete pathfile : " << _pathfile << std::endl;
-	if (access(_pathfile.c_str(), W_OK) == 0) {    //le travail sur le prefixe du fichier a-t-il ete deja fait ?
+	if (access(_pathfile.c_str(), W_OK) == 0) {
 		std::remove(_pathfile.c_str());
 		_sCode = 204;
 		return;

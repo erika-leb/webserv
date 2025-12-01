@@ -91,7 +91,9 @@ void LocationConfig::get_uri(std::string &line)
 		    throw std::runtime_error("error in configuration file's syntax (location)");
     }
     if (uri == "" || uri[0] != '/')
-        throw std::runtime_error("error in configuration file's syntax (location)");
+		throw std::runtime_error("error in configuration file's syntax (location)");
+	if ((uri[uri.size() - 1]) != '/')
+		uri = uri + '/';
     for (size_t i = 0; i < uri.size(); i++)
     {
         if (uri[i] == '\\') // a verifier
