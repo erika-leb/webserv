@@ -43,13 +43,21 @@
 #define MAXLINE 4096
 #define ENDLINE "\r\n"
 #define TIMEOUT_SECONDS 60
-#define ROOT_DEFAULT "html"
 
-#define ERROR_400 "/errors/400.html"
+#define ERROR_400 "/errors/400.html" //potentiel soucis si on est pas dans htlm ?? PROTECTION SI FICHIERS CHANGES DE PLACE ???
 #define ERROR_403 "/errors/403.html"
 #define ERROR_404 "/errors/404.html"
 #define ERROR_405 "/errors/405.html"
 #define ERROR_500 "/errors/500.html"
+
+#define REDIR_301 "/redirections/301.html"
+#define REDIR_302 "/redirections/302.html"
+#define REDIR_307 "/redirections/307.html"
+#define REDIR_308 "/redirections/308.html"
+
+#define ROOT "html"
+
+const std::string ROOT_STR = "html";
 
 enum dcode {
 	HTTP,
@@ -72,7 +80,7 @@ void		remove_blank( std::string& str );
 std::string date(int format);
 void 		trim_line(std::string &line);
 bool		isDirectivePresent(std::string name, std::vector<Directive> dir);
-Directive 	&getDirective(std::string name, std::vector<Directive> dir);
+Directive 	getDirective(std::string name, std::vector<Directive> dir);
 
 
 int		is_fd_open(int fd); // a supprimer plus tard

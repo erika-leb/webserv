@@ -39,13 +39,15 @@ void ServerConfig::checkAllowedDirective()
 		Directive &dir = *it;
 		if (dir.getName() == "allow_methods")
     	    throw std::runtime_error("error in configuration file : allow_methods only auhtorized in locations");
+		if (dir.getName() == "return")
+    	    throw std::runtime_error("error in configuration file : redirection only auhtorized in locations");
 	}
 }
 
 void ServerConfig::checkBasicDir()
 {
 	if (isDirectivePresent("root", dir) == false)
-		dir.push_back(Directive("root " + std::string(ROOT_DEFAULT)));
+		dir.push_back(Directive("root " + std::string(ROOT)));
 }
 
 void ServerConfig::addGlobalDir()

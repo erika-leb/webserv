@@ -35,10 +35,24 @@ Directive::Directive(std::string line) : name(""), nbArg(0), arg() // verifier q
 
 void Directive::checkRoot()
 {
+	// std::cout << "deb - " << arg[0] <<std::endl;
+	// std::cout << "arg[0][arg[0].size()] - " << arg[0][arg[0].size() - 1] <<std::endl;
+	if (arg[0].empty())
+		throw std::runtime_error("error configuration file's root directive");
 	if (arg[0].find("..") != std::string::npos)
 		throw std::runtime_error("error configuration file's root directive");
 	if (arg[0].find("~") != std::string::npos)
 		throw std::runtime_error("error configuration file's root directive");
+	if (arg[0][arg[0].size() - 1] == '/')
+	{
+		// perror("I");
+		arg[0] = arg[0].substr(0, arg[0].size() - 1);
+		// std::cout << "arg - " << arg[0] <<std::endl;
+	}
+	if (arg[0][0] == '/')
+		arg[0] = arg[0].substr(1, arg[0].size());
+	// std::cout << "fin - " << arg[0] <<std::endl;
+	// perror("It");
 }
 
 void Directive::checkError()
@@ -59,6 +73,33 @@ void Directive::checkError()
 		throw std::runtime_error("error in configuration file : error_page directive");
 	if (arg[1].empty())
 		throw std::runtime_error("error in configuration file : error_page directive"); //usefull ?
+
+	// std::cout << "arg av = " << arg[1] << std::endl;
+	if (arg[1][0] != '/')
+		arg[1] = '/' + arg[1];
+	if (arg[1][arg[1].size() - 1] == '/')
+		arg[1] = arg[1].substr(0, arg[1].size() - 2);
+	// std::cout << "arg ap = " << arg[1] << std::endl;
+}
+
+void Directive::checkRedir()
+{
+	int code;
+
+	if (nbArg != 2)
+		throw std::runtime_error("error in configuration file : redirection directive");
+	if (arg[0].size() != 3)
+		throw std::runtime_error("error in configuration file : redirection directive");
+	for (size_t i = 0; i < arg[0].size(); i++)
+	{
+		if (arg[0][i] < '0' || arg[0][i] > '9')
+			throw std::runtime_error("error in configuration file : redirection directive");
+	}
+	code = std::atoi(arg[0].c_str());
+	if ( code != 301 && code != 302 && code != 307 && code != 308)
+		throw std::runtime_error("error in configuration file : redirection code should only be 301, 302, 307 or 308");
+	if (arg[1].empty())
+		throw std::runtime_error("error in configuration file : redirection directive"); //usefull ?
 }
 
 void Directive::checkBasicDir()
@@ -77,6 +118,8 @@ void Directive::checkBasicDir()
 				throw std::runtime_error("error configuration file : allowed methods can only be GET, POST AND DELETE");
 		}
 	}
+	else if (name == "return")
+		checkRedir();
 
 	// else
 	// 	throw std::runtime_error("error in configuration file's directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?

@@ -24,7 +24,7 @@ void LocationConfig::checkBasicDir()
 {
 	if (isDirectivePresent("root", dir) == false) //add a default root if necessary
 	{
-		std::string tmp = std::string("root ") + ROOT_DEFAULT;
+		std::string tmp = std::string("root ") + ROOT;
 		dir.push_back(Directive(tmp));
 	}
 	if (uri.find("..") != std::string::npos)

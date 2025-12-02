@@ -13,7 +13,7 @@ private:
 	std::map<std::string, std::string>	_reqParam, _params;
 	std::stringstream	_rawHttp;
 	std::map<int, std::string> _errorPath;
-	std::string	_action, _pathfile, _file, _fileType, _connection, _statusMess;
+	std::string	_action, _pathfile, _file, _fileType, _connection, _statusMess, _location;
 	size_t		_sCode, _fileLength;
 
 public:
@@ -37,7 +37,9 @@ public:
 
 	void setErrorPath(int i);
 
-	bool IsMethodAllowed();
+	// bool IsMethodAllowed();
+	// int IsRedir();
+	void checkRedirAndMethod();
 	// void setLocErrorPath(int i);
 
 	void fGet();

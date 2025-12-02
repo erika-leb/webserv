@@ -37,6 +37,8 @@ void GlobalConfig::checkAllowedDirective()
 		Directive &dir = *it;
 		if (dir.getName() == "allow_methods")
     	    throw std::runtime_error("error in configuration file : allow_methods only auhtorized in locations");
+			if (dir.getName() == "return")
+    	    throw std::runtime_error("error in configuration file : redirection only auhtorized in locations");
 	}
 }
 
