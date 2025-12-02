@@ -5,6 +5,7 @@
 #include "Client.hpp"
 
 class Client;
+class ServerConfig;
 
 class Request
 {

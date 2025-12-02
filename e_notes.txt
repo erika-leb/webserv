@@ -14,7 +14,7 @@ a faire encore pour config :
 - root/location : mettre un root de base; verifier que dans root, location on a pas .., ni ~,  OK
 - root/location = prendre le + long location OK
 - proteger les fichiers d'erreur additionnel comme Thib a fait ou pas ?
-- reflechir a des protection si les fichiers d'erreur de base sont bouges, est-ce qu'on a le droit de faire ca en correction ? Dans tous les cas il faut proteger, pareil pour les 300
+- reflechir a des protection si les fichiers d'erreur de base sont bouges, est-ce qu'on a le droit de faire ca en correction ? Dans tous les cas il faut proteger, pareil pour les 300 IMPORTANT
 
 a faire pour serveur:
 

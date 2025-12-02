@@ -18,17 +18,18 @@ static void getWriteLocation(int *j, std::string &pathfile, std::vector<Location
 	std::string uri;
 	size_t size = 0;
 
-	// DEBUG_MSG("Paht " << pathfile);
+	DEBUG_MSG("Paht " << pathfile);
 	for (std::vector<LocationConfig>::size_type i = 0; i < locs.size(); i++)
 	{
 		directive = getDirective("root", locs[i].getDir());
 		arg = directive.getArg();
 		uri = locs[i].getUri();
+		DEBUG_MSG("uri " << locs[i].getUri()<< " et i =" << i);
 		if (pathfile.rfind(uri, 0) == 0)
 		{
-			// DEBUG_MSG("uri " << locs[i].getUri()<< "P");
+			DEBUG_MSG("uri " << locs[i].getUri()<< "P");
 			// DEBUG_MSG("arg[0].size() " << arg[0].size());
-			// DEBUG_MSG("(*size) " << size);
+			DEBUG_MSG("(*size) " << size);
 			if (uri.size() > size)
 			// if (arg[0].size() > size)
 			{
@@ -38,7 +39,7 @@ static void getWriteLocation(int *j, std::string &pathfile, std::vector<Location
 			}
 		}
 	}
-	// DEBUG_MSG("j final " << (*j));
+	DEBUG_MSG("j final " << (*j));
 }
 
 void Request::checkRedirAndMethod()
@@ -51,6 +52,7 @@ void Request::checkRedirAndMethod()
 	int code;
 
 	getWriteLocation(&j, _pathfile, locs);
+	std::cout << "j = " << j <<std::endl;
 	if (j != -1)
 	{
 		for (std::vector<Directive>::size_type i = 0; i < locs[j].getDir().size(); i++)
@@ -58,15 +60,18 @@ void Request::checkRedirAndMethod()
 			dir = locs[j].getDir()[i];
 			if (dir.getName() == "allow_methods")
 			{
+				flag = 1;
+				perror("exper");
 				arg = dir.getArg();
 				for (std::vector<std::string>::size_type k = 0; k < arg.size(); k++)
 				{
 					if (arg[k] == _action)
-						flag = 1;
+						flag = 0;
 				}
 			}
 			if (dir.getName() == "return")
 			{
+				perror("riment");
 				arg = dir.getArg();
 				code = std::atoi(arg[0].c_str());
 				_sCode = code;
@@ -75,42 +80,9 @@ void Request::checkRedirAndMethod()
 			}
 		}
 	}
-	if (flag == 0)
+	if (flag == 1) //methode pas autorisee
 		_sCode = 405;
 }
-
-// bool Request::IsMethodAllowed()
-// {
-// 	std::vector<LocationConfig> locs = _serv.getLocation();
-// 	int j = -1;
-// 	Directive dir;
-// 	std::vector<std::string> arg;
-// 	int flag = 0;
-
-// 	getWriteLocation(&j, _pathfile, locs);
-// 	if (j != -1)
-// 	{
-// 		for (std::vector<Directive>::size_type i = 0; i < locs[j].getDir().size(); i++)
-// 		{
-// 			dir = locs[j].getDir()[i];
-// 			if (dir.getName() == "allow_methods")
-// 			{
-// 				arg = dir.getArg();
-// 				for (std::vector<std::string>::size_type k = 0; k < arg.size(); k++)
-// 				{
-// 					if (arg[k] == _action)
-// 						flag = 1;
-// 				}
-// 			}
-// 		}
-// 	}
-// 	else
-// 		return (true);
-// 	if (flag == 1)
-// 		return (true);
-// 	else
-// 		return (false);
-// }
 
 void Request::getPath(std::string &pathfile)
 {
@@ -119,6 +91,7 @@ void Request::getPath(std::string &pathfile)
 	std::vector<std::string> arg;
 	int j =  -1;
 
+	// std::cout << "coddddddddddeeeeee =" << _sCode << std::endl;
 	// std::cout << "pathfile = " << pathfile << std::endl;
 	getWriteLocation(&j, pathfile, locs);
 	if (j != -1)
@@ -128,7 +101,8 @@ void Request::getPath(std::string &pathfile)
 	arg = directive.getArg();
 	// if (pathfile[0] != '/') //inutile ??
 	// 	pathfile.insert(0, "/"); // inutile ??
-	if (_sCode < 400)
+	std::cout << "codeeeeee =" << _sCode << std::endl;
+	if (_sCode < 300)
 		pathfile.insert(0, arg[0]);
 	// DEBUG_MSG("400 = " << _errorPath[400]);
 	// DEBUG_MSG("403 = " << _errorPath[403]);
@@ -157,7 +131,7 @@ std::string Request::getFile( std::string &pathfile, size_t* fileLength ) {
 		DEBUG_MSG("ERROR: Couldn't open file [" << pathfile << "]");
 		res.clear();
 	}
-
+	DEBUG_MSG("after first path to get " << pathfile);
 	return res;
 }
 
@@ -174,17 +148,17 @@ std::string Request::ifError( std::string& path, std::string& con, int sCode ) {
 		// no path
 		str = " No content"; break;
 	case 301:
-		path = REDIR_301;
-		str = "Moved Permanently"; break;
+		path = ROOT_STR + REDIR_301;
+		str = " Moved Permanently"; break;
 	case 302:
-		path = REDIR_302;
-		str = "Found"; break;
+		path = ROOT_STR + REDIR_302;
+		str = " Found"; break;
 	case 307:
-		path = REDIR_307;
-		str = "Temporary Redirect"; break;
+		path = ROOT_STR + REDIR_307;
+		str = " Temporary Redirect"; break;
 	case 308:
-		path = REDIR_308;
-		str = "Permanent Redirect"; break;
+		path = ROOT_STR + REDIR_308;
+		str = " Permanent Redirect"; break;
 	case 400:
 		path = _errorPath[400];
 		str = " Bad request"; con = "close"; break;
@@ -209,18 +183,17 @@ std::string Request::ifError( std::string& path, std::string& con, int sCode ) {
 
 void Request::checkPath( std::string pathfile, size_t& eCode ) {
 	getPath(pathfile);
+	std::cout << "bef code = " << eCode << std::endl;
 	DEBUG_MSG("after first getPaht = " << pathfile);
-	if (access(pathfile.c_str(), F_OK) < 0) {
+	if (_sCode == 200 && (pathfile.c_str(), F_OK) < 0) {
 		eCode = 404;
 	}
-	else if ((pathfile.find("/errors/")) != std::string::npos) {
+	else if (_sCode == 200 && (pathfile.find("/errors/")) != std::string::npos) {
 		eCode = 403;
 	}
 	std::cout << "code = " << eCode << std::endl;
 	return ;
 }
-
-// Directive &getDirective(std::string name, std::vector<Directive> dir)
 
 void Request::setErrorPath(int j) // ICI CHANGER POUR AJOUTER LE LOCATION SI BESOIN
 {
@@ -406,6 +379,8 @@ void Request::parseHttp( void ) {
 	}
 	else
 		_sCode = 400;
+	DEBUG_MSG("path at end of parse = " + _pathfile);
+	std::cout << "ode =" << _sCode << std::endl;
 }
 
 void Request::fGet( void ) {
@@ -446,6 +421,7 @@ void Request::handleAction( std::string action ) {
 
 	DEBUG_MSG("CHOOSE Method " << _action);
 	DEBUG_MSG("path = " + _pathfile);
+	std::cout << "codi = " << _sCode << std::endl;
 	int i;
 	if (_sCode == 200) {
 		for (i = 0; i < 3; i++) {
@@ -485,7 +461,7 @@ std::string Request::makeResponse( void ) {
 	}
 	else
 		mess << ENDLINE;
-
+	std::cerr << "message envopye = " << mess.str() << std::endl;
 	_cli.setSendBuff(mess.str());
 	if (_connection == "keep-alive")
 		_cli.setCon(true);
