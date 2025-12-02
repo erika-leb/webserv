@@ -315,6 +315,7 @@ void Server::launch()
 					NewIncomingConnection(_events[i].data.fd, cli, event);
 				else
 				{
+					// get the valid cgi and store it in a variable to reuse in ne next statement
 					if (is_pipe_fd(_events[i].data.fd) == true) {
 						receiveCgi(i, tmp);
 						break;

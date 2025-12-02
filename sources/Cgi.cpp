@@ -21,6 +21,7 @@ static int checkCode( std::string& str ) {
 	}
 	return 0;
 }
+
 static std::string extractValue( std::string& line, std::string key ) {
 	size_t pos = line.find(key);
 
@@ -70,7 +71,6 @@ static std::string parseCgiOutput( std::stringstream& ss ) {
 
 Cgi::Cgi( std::string URI, Client& cli ): _cli(cli), _path(URI) {
 	// Parse URI with query and stuff
-	DEBUG_MSG("cgi file: " << _path);
 }
 
 Cgi::Cgi( Cgi& cpy ): _cli(cpy._cli),  _path(cpy._path) {
@@ -111,12 +111,12 @@ void Cgi::handleCGI_fork( int pollfd) {
 	
 	if (fork() == 0) {
 		// CHILD
-		/* If POST request dup2(STDIN, ?)*/
+		/* If POST request  or query dup2(STDIN, ?)*/
 		close(_pipeDes[READ]);
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
 		if ( (execve(_path.c_str(), args, env)) == -1)
 			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
-		exit(1);
+		exit(1); // leak
 	}
 	else {
 		// PARENT
@@ -145,7 +145,7 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 			return 1;
 		}
 		buff[n] = '\0';
-		std::string	strbuff(buff);
+		std::string	strbuff(buff); // necessary ?
 		ss << strbuff;
 		
 		DEBUG_MSG("sendBuff: " << ss.str());
