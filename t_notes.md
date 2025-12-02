@@ -12,6 +12,65 @@ sudo chmod -R 755 /srv/tempserv/html
 - '**../**' can't do
 - can't delete outside of a certain directory
 
+## # Directory listing (by ChatGPT)
+
+```c++
+static void send_all(int sock, const char *data, size_t len) {
+    while (len > 0) {
+        ssize_t sent = send(sock, data, len, 0);
+        if (sent <= 0) return;
+        data += sent;
+        len  -= sent;
+    }
+}
+
+static void send_text(int sock, const std::string &s) {
+    send_all(sock, s.c_str(), s.size());
+}
+
+static std::string html_escape(const std::string &s) {
+    std::string out;
+    for (size_t i=0;i<s.size();++i) {
+        switch (s[i]) {
+            case '&': out += "&amp;"; break;
+            case '<': out += "&lt;";  break;
+            case '>': out += "&gt;";  break;
+            default:  out += s[i];    break;
+        }
+    }
+    return out;
+}
+
+static void send_directory_listing(int client, const std::string &path) {
+    DIR *dir = opendir(path.c_str());
+    if (!dir) {
+        send_text(client, "HTTP/1.1 404 Not Found\r\n\r\nCannot open directory");
+        return;
+    }
+
+    std::string body = "<html><body><h2>Index of " + html_escape(path) + "</h2><ul>";
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        std::string name = entry->d_name;
+        body += "<li><a href=\"" + name + "\">" + html_escape(name) + "</a></li>";
+    }
+    closedir(dir);
+
+    body += "</ul></body></html>";
+
+    char header[256];
+    sprintf(header,
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/html\r\n"
+            "Content-Length: %lu\r\n\r\n",
+            (unsigned long)body.size());
+
+    send_text(client, header);
+    send_text(client, body);
+}
+```
+
 ## # What POST request does
 
 ``` text
@@ -86,7 +145,22 @@ We need to parse the **cgi** response and send an HTTP header accordingly
 ### / POST method case 
 In case of a **POST** method we need to redirect `STDIN_FILENO` of the child to something else ? don't know for now
 
+### / Example of environment variable
+
+``` text
+REQUEST_METHOD=GET
+QUERY_STRING=name=Bob&age=22
+SCRIPT_NAME=/cgi-bin/test.cgi
+SERVER_PROTOCOL=HTTP/1.1
+SERVER_NAME=example.com
+SERVER_PORT=80
+REMOTE_ADDR=192.168.1.10
+HTTP_USER_AGENT=Mozilla/5.0
+HTTP_ACCEPT=*/*
+```
+
 ## / To do
 - [i] Change the Client class to have a cgi per client
 - [ ] Fix the case where there is arbitrary spaces between value HTTP header
-- [ ] Exit program when crtl-C not just passing the flag to 1
+- [ ] Exit program when crtl-C not just passing the flag to 1 (making `execve()` impossible to fail)
+- [ ] CGI Environment variable

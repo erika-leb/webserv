@@ -34,6 +34,7 @@ class Server {
 		void checkTimeOut();
 		int timeOut();
 
+		// CGI functions
 		bool is_pipe_fd( int );
 		void receiveCgi( int , std::string );
 

@@ -12,10 +12,11 @@ class Cgi
 private:
 	Client&		_cli;
 
-	std::string	_path;
+	std::string	_path, _method;
 	int 		_pipeDes[2];
+	std::string _queryString;
 public:
-	Cgi( std::string URI, Client& cli );
+	Cgi( std::string URI, std::string method, Client& cli );
 	Cgi( Cgi& cpy );
 	Cgi& operator=( Cgi& other );
 	~Cgi();

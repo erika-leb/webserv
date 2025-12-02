@@ -31,6 +31,8 @@ static std::string extractValue( std::string& line, std::string key ) {
 	while (line[end] != '\n' && line[end])
 		end++;
 
+	if (line[end - 1] == '\r')
+		end--;
 	return line.substr(pos + key.length(), end);
 }
 
@@ -57,7 +59,7 @@ static std::string parseCgiOutput( std::stringstream& ss ) {
 	std::string tmp, content;
 
 	std::getline(ss, tmp);
-	while ( (tmp != "\n") && (tmp.size() != 0)) {
+	while ( (tmp != "\n" || tmp != "\r\n") && (tmp.size() != 0)) {
 		header.append(tmp);
 		std::getline(ss, tmp);
 	}
@@ -69,8 +71,15 @@ static std::string parseCgiOutput( std::stringstream& ss ) {
 	return header + content;
 }
 
-Cgi::Cgi( std::string URI, Client& cli ): _cli(cli), _path(URI) {
+Cgi::Cgi( std::string URI, std::string method, Client& cli ): _cli(cli), _path(URI), _method(method) {
 	// Parse URI with query and stuff
+	size_t pos = URI.find_first_of('?');
+	if (pos != std::string::npos) {
+		_path = URI.substr(0, pos);
+		_queryString = URI.substr(pos + 1);
+	}
+	else
+		_queryString = "";
 }
 
 Cgi::Cgi( Cgi& cpy ): _cli(cpy._cli),  _path(cpy._path) {
@@ -114,6 +123,7 @@ void Cgi::handleCGI_fork( int pollfd) {
 		/* If POST request  or query dup2(STDIN, ?)*/
 		close(_pipeDes[READ]);
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
+		DEBUG_MSG("cgi path: " << _path);
 		if ( (execve(_path.c_str(), args, env)) == -1)
 			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
 		exit(1); // leak
@@ -122,7 +132,7 @@ void Cgi::handleCGI_fork( int pollfd) {
 		// PARENT
 		close(_pipeDes[WRITE]);
 		if (make_non_blocking(_pipeDes[READ]) == -1) {
-			std::cerr << "bruhhhhh" << std::endl;
+			std::cerr << "Non blocking error" << std::endl;
 			return ;
 		}
 		struct epoll_event event;
@@ -148,7 +158,6 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 		std::string	strbuff(buff); // necessary ?
 		ss << strbuff;
 		
-		DEBUG_MSG("sendBuff: " << ss.str());
 		strbuff = parseCgiOutput(ss);
 		_cli.setSendBuff(strbuff);
 		close(pipefd);

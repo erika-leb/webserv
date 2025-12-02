@@ -206,7 +206,6 @@ void Request::parseHttp( void ) {
 	std::string	tmp;
 
 	std::getline(_rawHttp, _action, ' ');
-	DEBUG_MSG("befewrtgqwergreqore file: " << _action);
 	remove_blank(_action);
 	if (_action != "GET" &&
 			_action != "POST" &&
@@ -215,13 +214,19 @@ void Request::parseHttp( void ) {
 	}
 
 	std::getline(_rawHttp, _pathfile, ' ');
-	DEBUG_MSG("before file: " << _pathfile);
 	remove_blank(_pathfile);
-	DEBUG_MSG("after file: " << _pathfile);
+
+	// Only for test purpose
+	std::string pathWithoutQuery(_pathfile);
+	size_t end;
+	if ( (end = _pathfile.find('?')) != std::string::npos )
+		pathWithoutQuery = _pathfile.substr(0, end);
+
+
 	if (_pathfile.empty())
 		_sCode = 400;
 	else {
-		checkPath(_pathfile, _sCode);
+		checkPath(pathWithoutQuery, _sCode);
 	}
 	// _pathfile.insert(0, ".");
 
@@ -296,7 +301,6 @@ std::string Request::makeResponse( void ) {
 	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
 	mess << "Server: " << conf.getIp() << ":" << conf.getPort() << ENDLINE; // Modify according configuration file / fetch the host of the request
-	// mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE; // Modify either the connection need to be maintained or not
 	if (_sCode != 204) {
 		mess << "Content-Type: " << "text/html" << ENDLINE; // Modify according to file
