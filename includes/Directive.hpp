@@ -15,9 +15,11 @@ class Directive {
 			std::string &getName();
 			int getNbArg() const;
 			std::vector<std::string> &getArg();
+
 			void checkBasicDir();
 			void checkRoot();
 			void checkError();
+			void checkRedir();
 
             void print_directive();
 
