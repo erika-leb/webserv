@@ -111,9 +111,38 @@ int Cgi::getFd( int fd ) {
 	return -1;
 }
 
+std::vector<char *> Cgi::makeEnv() {
+	std::map<std::string, std::string> cgi;
+
+	cgi["REQUEST_METHOD"] = _method;
+    cgi["QUERY_STRING"]    = _queryString;
+    cgi["SCRIPT_FILENAME"] = _path;
+    cgi["CONTENT_LENGTH"]  = "0";
+    cgi["SERVER_PROTOCOL"] = "HTTP/1.1";
+    cgi["GATEWAY_INTERFACE"] = "CGI/1.1";
+    cgi["SERVER_SOFTWARE"] = "Webserv/1.0";
+    cgi["SERVER_NAME"]     = "localhost"; // modify this according to configuration file don't know how
+    cgi["SERVER_PORT"]     = "8080"; // Same as the other one
+
+    std::vector<std::string> env_storage;
+    env_storage.reserve(cgi.size());
+
+    std::vector<char*> envp;
+    envp.reserve(cgi.size() + 1);
+
+    for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
+        env_storage.push_back(it->first + "=" + it->second);
+        envp.push_back(const_cast<char*>(env_storage.back().c_str()));
+    }
+
+    envp.push_back(NULL);
+	return envp;
+}
+
 void Cgi::handleCGI_fork( int pollfd) {
-	char * const env[] = { (char *)"foo=barr", NULL};
-	char * const args[] = {(char *)"", NULL};
+	char * const args[] = {(char *)_path.c_str(), NULL};
+
+	std::vector<char *> env = makeEnv();
 
 	if ( (pipe(_pipeDes)) == -1)
 		DEBUG_MSG("PIPE ERROR"); // throw error
@@ -124,7 +153,7 @@ void Cgi::handleCGI_fork( int pollfd) {
 		close(_pipeDes[READ]);
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
 		DEBUG_MSG("cgi path: " << _path);
-		if ( (execve(_path.c_str(), args, env)) == -1)
+		if ( (execve(_path.c_str(), args, &env[0])) == -1)
 			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
 		exit(1); // leak
 	}
