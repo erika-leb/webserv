@@ -181,18 +181,60 @@ std::string Request::ifError( std::string& path, std::string& con, int sCode ) {
 	return str;
 }
 
+// void Request::checkPath( std::string pathfile, size_t& eCode ) {
+// 	struct stat fileStat;
+
+// 	getPath(pathfile);
+// 	std::cout << "bef code = " << eCode << std::endl;
+// 	DEBUG_MSG("after first getPaht = " << pathfile);
+// 	if (_sCode != 200)
+// 		return;
+// 	if (stat(pathfile.c_str(), &fileStat) < 0){
+// 		eCode = 404;
+// 		DEBUG_MSG("Path does not exist: " << pathfile);
+// 		return ;
+// 	}
+// 	if ((pathfile.c_str(), F_OK) < 0) {
+// 		eCode = 404;
+// 	}
+// 	else if ((pathfile.find("/errors/")) != std::string::npos) {
+// 		eCode = 403;
+// 	}
+// 	std::cout << "code = " << eCode << std::endl;
+// }
+
 void Request::checkPath( std::string pathfile, size_t& eCode ) {
+	struct stat fileStat;
+
 	getPath(pathfile);
-	std::cout << "bef code = " << eCode << std::endl;
 	DEBUG_MSG("after first getPaht = " << pathfile);
-	if (_sCode == 200 && (pathfile.c_str(), F_OK) < 0) {
+	if (_sCode != 200)
+		return;
+	if (stat(pathfile.c_str(), &fileStat) < 0){
 		eCode = 404;
+		DEBUG_MSG("Path does not exist: " << pathfile);
+		return ;
 	}
-	else if (_sCode == 200 && (pathfile.find("/errors/")) != std::string::npos) {
+	if (S_ISREG(fileStat.st_mode)) //c'est un fichier
+	{
+		// eCode = 404; // a modifier
+		//on gere comme un dossier
+	}
+	else if (S_ISDIR(fileStat.st_mode)) // c'est un dossier
+	{
+		// if ((pathfile.c_str(), F_OK) < 0) {
+		eCode = 404;
+		// }
+	}
+	else //c'est un autre type de fichier
+	{
+		eCode = 403; // Accès non autorisé à ce type
+        DEBUG_MSG("Path is neither file nor directory: " << pathfile);
+	}
+
+	if ((pathfile.find("/errors/")) != std::string::npos) {
 		eCode = 403;
 	}
-	std::cout << "code = " << eCode << std::endl;
-	return ;
 }
 
 void Request::setErrorPath(int j) // ICI CHANGER POUR AJOUTER LE LOCATION SI BESOIN

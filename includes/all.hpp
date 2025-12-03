@@ -37,6 +37,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
 // #include <stdio.h>
 
 // #include <errno
