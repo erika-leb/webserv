@@ -18,6 +18,8 @@ private:
 	std::map<int, std::string> _errorPath;
 	std::string	_action, _pathfile, _file, _fileType, _connection, _statusMess, _location;
 	size_t		_sCode, _fileLength;
+	int 			_locationIndex;
+	std::vector<LocationConfig> _locs;
 
 public:
 	Request( Client& );
@@ -25,6 +27,7 @@ public:
 	Request& operator=( const Request& other );
 	~Request();
 
+	void getWriteLocation(int *j, std::string &pathfile);
 	std::string getPathFile() const;
 	std::string getAction() const;
 	std::map<std::string, std::string> getSpec() const;
@@ -39,7 +42,7 @@ public:
 	void checkPath( std::string pathfile, size_t& eCode );
 	std::string ifError( std::string& path, std::string& con, int sCode );
 
-	void setErrorPath(int i);
+	void setErrorPath();
 
 	// bool IsMethodAllowed();
 	// int IsRedir();

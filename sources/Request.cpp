@@ -11,7 +11,7 @@ static bool startWith( std::string& str, std::string prefix ) {
 
 // NB = pas trop de protection sur les getline
 
-static void getWriteLocation(int *j, std::string &pathfile, std::vector<LocationConfig> locs)
+void Request::getWriteLocation(int *j, std::string &pathfile)
 {
 	Directive	directive;
 	std::vector<std::string> arg;
@@ -19,15 +19,15 @@ static void getWriteLocation(int *j, std::string &pathfile, std::vector<Location
 	size_t size = 0;
 
 	DEBUG_MSG("Paht " << pathfile);
-	for (std::vector<LocationConfig>::size_type i = 0; i < locs.size(); i++)
+	for (std::vector<LocationConfig>::size_type i = 0; i < _locs.size(); i++)
 	{
-		directive = getDirective("root", locs[i].getDir());
+		directive = getDirective("root", _locs[i].getDir());
 		arg = directive.getArg();
-		uri = locs[i].getUri();
+		uri = _locs[i].getUri();
 		DEBUG_MSG("uri " << locs[i].getUri()<< " et i =" << i);
 		if (pathfile.rfind(uri, 0) == 0)
 		{
-			DEBUG_MSG("uri " << locs[i].getUri()<< "P");
+			DEBUG_MSG("uri " << _locs[i].getUri()<< "P");
 			// DEBUG_MSG("arg[0].size() " << arg[0].size());
 			DEBUG_MSG("(*size) " << size);
 			if (uri.size() > size)
@@ -44,20 +44,20 @@ static void getWriteLocation(int *j, std::string &pathfile, std::vector<Location
 
 void Request::checkRedirAndMethod()
 {
-	std::vector<LocationConfig> locs = _serv.getLocation();
+	// std::vector<LocationConfig> locs = _serv.getLocation();
 	int j = -1;
 	Directive dir;
 	std::vector<std::string> arg;
 	int flag = 0;
 	int code;
 
-	getWriteLocation(&j, _pathfile, locs);
+	getWriteLocation(&j, _pathfile);
 	std::cout << "j = " << j <<std::endl;
 	if (j != -1)
 	{
-		for (std::vector<Directive>::size_type i = 0; i < locs[j].getDir().size(); i++)
+		for (std::vector<Directive>::size_type i = 0; i < _locs[j].getDir().size(); i++)
 		{
-			dir = locs[j].getDir()[i];
+			dir = _locs[j].getDir()[i];
 			if (dir.getName() == "allow_methods")
 			{
 				flag = 1;
@@ -86,16 +86,16 @@ void Request::checkRedirAndMethod()
 
 void Request::getPath(std::string &pathfile)
 {
-	std::vector<LocationConfig> locs = _serv.getLocation();
+	// std::vector<LocationConfig> locs = _serv.getLocation();
 	Directive	directive;
 	std::vector<std::string> arg;
 	int j =  -1;
 
 	// std::cout << "coddddddddddeeeeee =" << _sCode << std::endl;
 	// std::cout << "pathfile = " << pathfile << std::endl;
-	getWriteLocation(&j, pathfile, locs);
+	getWriteLocation(&j, pathfile);
 	if (j != -1)
-		directive = getDirective("root", locs[j].getDir());
+		directive = getDirective("root", _locs[j].getDir());
 	else
 		directive = getDirective("root", _serv.getDir());
 	arg = directive.getArg();
@@ -216,10 +216,7 @@ void Request::checkPath( std::string pathfile, size_t& eCode ) {
 		return ;
 	}
 	if (S_ISREG(fileStat.st_mode)) //c'est un fichier
-	{
-		// eCode = 404; // a modifier
-		//on gere comme un dossier
-	}
+	{}
 	else if (S_ISDIR(fileStat.st_mode)) // c'est un dossier
 	{
 		// if ((pathfile.c_str(), F_OK) < 0) {
@@ -231,31 +228,31 @@ void Request::checkPath( std::string pathfile, size_t& eCode ) {
 		eCode = 403; // Accès non autorisé à ce type
         DEBUG_MSG("Path is neither file nor directory: " << pathfile);
 	}
-
 	if ((pathfile.find("/errors/")) != std::string::npos) {
 		eCode = 403;
 	}
 }
 
-void Request::setErrorPath(int j) // ICI CHANGER POUR AJOUTER LE LOCATION SI BESOIN
+void Request::setErrorPath() // ICI CHANGER POUR AJOUTER LE LOCATION SI BESOIN
 {
-	std::vector<LocationConfig> locs = _serv.getLocation();
+	// std::vector<LocationConfig> locs = _serv.getLocation();
 	std::vector<Directive> dirs;
 	std::string name;
 	std::vector<std::string> arg;
 	Directive root;
 
-	if (j == -1)
+	// (void) j;
+	if (_locationIndex == -1)
 	{
 		dirs = _serv.getDir();
 		root = getDirective("root", dirs);
 	}
 	else
 	{
-		dirs = locs[j].getDir();
+		dirs = _locs[_locationIndex].getDir();
 		root = getDirective("root", dirs);
 	}
-	DEBUG_MSG(" j = " << j);
+	DEBUG_MSG(" _locationIndex = " << _locationIndex);
 	for(std::vector<Directive>::size_type i = 0; i < dirs.size(); i++)
 	{
 		name = dirs[i].getName();
@@ -264,62 +261,62 @@ void Request::setErrorPath(int j) // ICI CHANGER POUR AJOUTER LE LOCATION SI BES
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
 			{
-				if (j == -1)
-					_errorPath[500] = root.getArg()[0] + arg[1]; // ajouter ici le root
+				if (_locationIndex == -1)
+					_errorPath[500] = root.getArg()[0] + arg[1]; // a_locationIndexouter ici le root
 				else
-					_errorPath[500] = root.getArg()[0] + locs[j].getUri() + arg[1]; //ajouter le root.getArg()[0]
+					_errorPath[500] = root.getArg()[0] + _locs[_locationIndex].getUri() + arg[1]; //a_locationIndexouter le root.getArg()[0]
 			}
 		}
 		if (name == "error_page" && arg[0] == "400")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
 			{
-				if (j == -1)
+				if (_locationIndex == -1)
 					_errorPath[400] = root.getArg()[0] + arg[1];
 				else
-					_errorPath[400] = root.getArg()[0] + locs[j].getUri() + arg[1];
+					_errorPath[400] = root.getArg()[0] + _locs[_locationIndex].getUri() + arg[1];
 			}
 		}
 		if (name == "error_page" && arg[0] == "403")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
 			{
-				if (j == -1)
+				if (_locationIndex == -1)
 					_errorPath[403] = root.getArg()[0] + arg[1];
 				else
-					_errorPath[403] = root.getArg()[0] + locs[j].getUri() + arg[1];
+					_errorPath[403] = root.getArg()[0] + _locs[_locationIndex].getUri() + arg[1];
 			}
 		}
 		if (name == "error_page" && arg[0] == "404")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
 			{
-				if (j == -1)
+				if (_locationIndex == -1)
 					_errorPath[404] = root.getArg()[0] + arg[1];
 				else
-					_errorPath[404] = root.getArg()[0] + locs[j].getUri() + arg[1];
+					_errorPath[404] = root.getArg()[0] + _locs[_locationIndex].getUri() + arg[1];
 			}
 		}
 		if (name == "error_page" && arg[0] == "405")
 		{
 			if (access(arg[1].c_str(), F_OK) < 0)
 			{
-				if (j == -1)
+				if (_locationIndex == -1)
 					_errorPath[405] = root.getArg()[0] + arg[1];
 				else
-					_errorPath[405] = root.getArg()[0] + locs[j].getUri() + arg[1];
+					_errorPath[405] = root.getArg()[0] + _locs[_locationIndex].getUri() + arg[1];
 			}
 		}
 	}
-	if (j == -1 && _errorPath.find(405) == _errorPath.end())
+	if (_locationIndex == -1 && _errorPath.find(405) == _errorPath.end())
 	    _errorPath[405] = ROOT_STR + ERROR_405; //chemin entier
-	if (j == -1 && _errorPath.find(400) == _errorPath.end())
+	if (_locationIndex == -1 && _errorPath.find(400) == _errorPath.end())
 	    _errorPath[400] = ROOT_STR + ERROR_400;
-	if (j == -1 && _errorPath.find(403) == _errorPath.end())
+	if (_locationIndex == -1 && _errorPath.find(403) == _errorPath.end())
 	    _errorPath[403] = ROOT_STR + ERROR_403;
-	if (j == -1 && _errorPath.find(404) == _errorPath.end())
+	if (_locationIndex == -1 && _errorPath.find(404) == _errorPath.end())
 	    _errorPath[404] = ROOT_STR + ERROR_404;
-	if (j == -1 && _errorPath.find(500) == _errorPath.end())
+	if (_locationIndex == -1 && _errorPath.find(500) == _errorPath.end())
 	    _errorPath[500] = ROOT_STR + ERROR_500;
 	DEBUG_MSG("400 = " << _errorPath[400]);
 	DEBUG_MSG("403 = " << _errorPath[403]);
@@ -328,10 +325,11 @@ void Request::setErrorPath(int j) // ICI CHANGER POUR AJOUTER LE LOCATION SI BES
 	DEBUG_MSG("500 = " << _errorPath[500]);
 }
 
-Request::Request( Client& cli ): _cli(cli), _serv(_cli.getServ()) {
+Request::Request( Client& cli ): _cli(cli), _serv(_cli.getServ()), _locationIndex(-1) {
 	std::stringstream ss(cli.getBuff()), rawParam;
 	std::string key, value, tmp;
 
+	_locs = _serv.getLocation();
 	_sCode = 200;
 	_connection = "keep-alive";
 	cli.setCon(true);
@@ -344,12 +342,13 @@ Request::Request( Client& cli ): _cli(cli), _serv(_cli.getServ()) {
 		remove_blank(value);
 		_reqParam[key] = value;
 	}
-	setErrorPath(-1);
+	setErrorPath();
 }
 
-Request::Request( const Request& cpy ): _cli(cpy._cli), _serv(cpy._serv) {
+Request::Request( const Request& cpy ): _cli(cpy._cli), _serv(cpy._serv), _locationIndex(cpy._locationIndex) {
 	_reqParam = cpy._reqParam;
 	_errorPath = cpy._errorPath;
+	_locs = cpy._locs;
 }
 
 Request& Request::operator=( const Request& other ) {
@@ -357,6 +356,8 @@ Request& Request::operator=( const Request& other ) {
 	{
 		_reqParam = other._reqParam;
 		_errorPath = other._errorPath;
+		_locationIndex = other._locationIndex;
+		_locs = other._locs;
 	}
 	return *this;
 }
@@ -486,11 +487,11 @@ void Request::handleAction( std::string action ) {
 
 std::string Request::makeResponse( void ) {
 	std::ostringstream mess;
-	ServerConfig conf = _cli.getServ();
+	// ServerConfig conf = _cli.getServ();
 
 	mess << "HTTP/1.1" << " " << _sCode << ifError(_pathfile, _connection, _sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
-	mess << "Server: " << conf.getIp() << ":" << conf.getPort() << ENDLINE; // Modify according configuration file / fetch the host of the request
+	mess << "Server: " << _serv.getIp() << ":" << _serv.getPort() << ENDLINE; // Modify according configuration file / fetch the host of the request
 	// mess << "Server: " << "localhost" << ENDLINE; // Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE; // Modify either the connection need to be maintained or not
 	if (_sCode > 300 && _sCode < 400)
