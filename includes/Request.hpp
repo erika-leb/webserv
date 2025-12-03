@@ -39,6 +39,7 @@ public:
 
 	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void getPath(std::string &pathfile);
+	void checkAutoindex();
 	void checkPath( std::string pathfile, size_t& eCode );
 	std::string ifError( std::string& path, std::string& con, int sCode );
 

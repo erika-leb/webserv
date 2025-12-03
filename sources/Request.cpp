@@ -203,6 +203,17 @@ std::string Request::ifError( std::string& path, std::string& con, int sCode ) {
 // 	std::cout << "code = " << eCode << std::endl;
 // }
 
+void Request::checkAutoindex()
+{
+	std::vector<Directive> dirs;
+
+	if (_locationIndex == -1)
+		dirs = _serv.getDir();
+	else
+		dirs = _locs[_locationIndex].getDir();
+	// if ()
+}
+
 void Request::checkPath( std::string pathfile, size_t& eCode ) {
 	struct stat fileStat;
 
@@ -220,7 +231,8 @@ void Request::checkPath( std::string pathfile, size_t& eCode ) {
 	else if (S_ISDIR(fileStat.st_mode)) // c'est un dossier
 	{
 		// if ((pathfile.c_str(), F_OK) < 0) {
-		eCode = 404;
+		checkAutoindex();
+		// eCode = 404;
 		// }
 	}
 	else //c'est un autre type de fichier

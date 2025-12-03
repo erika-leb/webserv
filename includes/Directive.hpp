@@ -20,6 +20,7 @@ class Directive {
 			void checkRoot();
 			void checkError();
 			void checkRedir();
+			void checkAutoindex();
 
             void print_directive();
 
