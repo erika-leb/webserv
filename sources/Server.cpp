@@ -177,9 +177,9 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		req.parseHttp();
 		std::string cgiFolder(".php"); // erase this line and replace the argument of the function with the actual folder from configuration file
 		// std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-		std::cout << "cooddee = " << req.getsCode() << std::endl;
+		// std::cout << "cooddee = " << req.getsCode() << std::endl;
 		if (req.is_cgi(cgiFolder) && (req.getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
-			DEBUG_MSG("ICI");
+			// DEBUG_MSG("ICI");
 			cli->setCgi(new Cgi(req.getPathFile(), *cli));
 			cli->getCgi()->handleCGI_fork(_poll);
 		}

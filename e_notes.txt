@@ -47,7 +47,7 @@ logique de request = - on verifie que le _pathfile (le fichier) existe (checkFil
 - on remet
 
 - root = pas de / ni avant ni apres OK   ex : html
-- location = / a la fin et au debut Ok   ex : /test/
+- location = / a la fin oui mais apres normalement meme si on dirait que non   ex : /test
 - fichier = slash au debut mais pas a la fin OK ex : /04.html
 - cgi = slash avant mais pas apres
 

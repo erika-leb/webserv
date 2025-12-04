@@ -3,24 +3,59 @@
 
 // NB = pas trop de protection sur les getline
 
+// void Request::getWriteLocation(std::string &pathfile)
+// {
+// 	Directive	directive;
+// 	size_t		size;
+// 	std::vector<std::string> arg;
+// 	std::string uri;
+// 	size = 0;
+// 	DEBUG_MSG("Paht avant de chercher la loc " << pathfile);
+// 	for (std::vector<LocationConfig>::size_type i = 0; i < _locs.size(); i++)
+// 	{
+// 		directive = getDirective("root", _locs[i].getDir());
+// 		arg = directive.getArg();
+// 		uri = _locs[i].getUri();
+// 		DEBUG_MSG("uri " << _locs[i].getUri() << " et i =" << i);
+// 		if (pathfile.rfind(uri, 0) == 0)
+// 		{
+// 			// DEBUG_MSG("uri " << _locs[i].getUri() << "P");
+// 			// DEBUG_MSG("arg[0].size() " << arg[0].size());
+// 			// DEBUG_MSG("(*size) " << size);
+// 			if (uri.size() > size)
+// 			// if (arg[0].size() > size)
+// 			{
+// 				// perror("omg");
+// 				size = arg[0].size();
+// 				_locationIndex = i;
+// 			}
+// 		}
+// 	}
+// 	DEBUG_MSG("_index final " << _locationIndex);
+// }
+
 void Request::getWriteLocation(std::string &pathfile)
 {
 	Directive	directive;
-	size_t		size;
-
 	std::vector<std::string> arg;
 	std::string uri;
-	size = 0;
+	size_t size = 0;
+	std::string pathBis;
+
+	if (pathfile[pathfile.size() - 1] != '/')
+		pathBis = pathfile + '/';
+	else
+		pathBis = pathfile;
 	DEBUG_MSG("Paht " << pathfile);
 	for (std::vector<LocationConfig>::size_type i = 0; i < _locs.size(); i++)
 	{
 		directive = getDirective("root", _locs[i].getDir());
 		arg = directive.getArg();
 		uri = _locs[i].getUri();
-		DEBUG_MSG("uri " << _locs[i].getUri() << " et i =" << i);
-		if (pathfile.rfind(uri, 0) == 0)
+		DEBUG_MSG("uri " << _locs[i].getUri()<< " et i =" << i);
+		if (pathBis.rfind(uri, 0) == 0)
 		{
-			DEBUG_MSG("uri " << _locs[i].getUri() << "P");
+			DEBUG_MSG("uri " << _locs[i].getUri()<< "P");
 			// DEBUG_MSG("arg[0].size() " << arg[0].size());
 			DEBUG_MSG("(*size) " << size);
 			if (uri.size() > size)
@@ -32,7 +67,7 @@ void Request::getWriteLocation(std::string &pathfile)
 			}
 		}
 	}
-	DEBUG_MSG("_index final " << _locationIndex);
+	DEBUG_MSG("j final " << _locationIndex);
 }
 
 void Request::checkRedirAndMethod()
@@ -47,7 +82,7 @@ void Request::checkRedirAndMethod()
 	std::vector<std::string> arg;
 	flag = 0;
 	getWriteLocation(_pathfile);
-	std::cout << "j = " << j << std::endl;
+	// std::cout << "j = " << j << std::endl;
 	if (j != -1)
 	{
 		for (std::vector<Directive>::size_type i = 0; i < _locs[j].getDir().size(); i++)
@@ -56,7 +91,7 @@ void Request::checkRedirAndMethod()
 			if (dir.getName() == "allow_methods")
 			{
 				flag = 1;
-				perror("exper");
+				// perror("exper");
 				arg = dir.getArg();
 				for (std::vector<std::string>::size_type k = 0; k < arg.size(); k++)
 				{
@@ -66,7 +101,7 @@ void Request::checkRedirAndMethod()
 			}
 			if (dir.getName() == "return")
 			{
-				perror("riment");
+				// perror("riment");
 				arg = dir.getArg();
 				code = std::atoi(arg[0].c_str());
 				_sCode = code;
@@ -97,7 +132,7 @@ void Request::getPath(std::string &pathfile)
 	arg = directive.getArg();
 	// if (pathfile[0] != '/') //inutile ??
 	// 	pathfile.insert(0, "/"); // inutile ??
-	std::cout << "codeeeeee =" << _sCode << std::endl;
+	// std::cout << "codeeeeee =" << _sCode << std::endl;
 	if (_sCode < 300)
 		pathfile.insert(0, arg[0]);
 	// DEBUG_MSG("400 = " << _errorPath[400]);
@@ -141,19 +176,28 @@ void Request::checkIndex()
 	std::string indexPath;
 	// struct stat	fileStat;
 
-	std::cout << "i index = " << _locationIndex << std::endl;
-	std::cout << "path = " << _pathfile << std::endl;
+	// std::cout << "i index = " << _locationIndex << std::endl;
+	// std::cout << "path = " << _pathfile << std::endl;
 	std::vector<Directive> dirs;
 	if (_locationIndex != -1)
 		dirs = _locs[_locationIndex].getDir();
 	// else
 		// dirs = _serv.getDir();
+	DEBUG_MSG("GAGA");
 	if (isDirectivePresent("index", dirs) == true)
 	{
+		DEBUG_MSG("LADY");
 		dir = getDirective("index", dirs);
 		dir1 = getDirective("root", dirs);
-
-		indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
+		DEBUG_MSG("URI =" << _locs[_locationIndex].getUri());
+		indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0];
+		// if (_locs[_locationIndex].getUri() == "/")
+			// indexPath = dir1.getArg()[0] + dir.getArg()[0];
+			// indexPath = dir1.getArg()[0] + dir.getArg()[0];
+		// else
+			// indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
+			indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0];
+		_pathfile = indexPath;
 		std::cout << "chemin index = " << indexPath << std::endl;
 	}
 	// on regarde s'il y a un index et qui fonctionne
@@ -178,9 +222,11 @@ void Request::checkPath(std::string pathfile, size_t &eCode)
 	}
 	if (S_ISREG(fileStat.st_mode)) // c'est un fichier
 	{
+		DEBUG_MSG("il s'agit d'un fichier");
 	}
 	else if (S_ISDIR(fileStat.st_mode)) // c'est un dossier
 	{
+		DEBUG_MSG("il s'agit d'un dossier");
 		// if ((pathfile.c_str(), F_OK) < 0) {
 		checkIndex();
 		// eCode = 404;
@@ -209,6 +255,7 @@ void Request::parseHttp(void)
 		_sCode = 405;
 	}
 	std::getline(_rawHttp, _pathfile, ' ');
+	DEBUG_MSG("pathfile brut = " << _pathfile);
 	remove_blank(_pathfile);
 	if (_pathfile.empty())
 		_sCode = 400; // ici plutot
@@ -240,7 +287,7 @@ void Request::fGet(void)
 {
 	DEBUG_MSG("GET request");
 	ifError(_pathfile, _connection, _sCode);
-	std::cerr << "code = " << _sCode << ";, path = " << _pathfile << std::endl;
+	// std::cerr << "code = " << _sCode << ";, path = " << _pathfile << std::endl;
 	_file = getFile(_pathfile, &_fileLength);
 	if (_file.empty())
 	{
@@ -248,7 +295,7 @@ void Request::fGet(void)
 		ifError(_pathfile, _connection, _sCode);
 		_file = getFile(_pathfile, &_fileLength);
 	}
-	std::cerr << "apres = code = " << _sCode << ";,path = " << _pathfile << std::endl;
+	// std::cerr << "apres = code = " << _sCode << ";,path = " << _pathfile << std::endl;
 }
 
 void Request::fPost(void)
@@ -280,8 +327,8 @@ void Request::handleAction(std::string action)
 	std::string check[3] = {"GET", "POST", "DELETE"};
 	void (Request::*f[3])(void) = {&Request::fGet, &Request::fPost,
 		&Request::fDelete};
-	DEBUG_MSG("CHOOSE Method " << _action);
-	DEBUG_MSG("path = " + _pathfile);
+	// DEBUG_MSG("CHOOSE Method " << _action);
+	// DEBUG_MSG("path = " + _pathfile);
 	std::cout << "codi = " << _sCode << std::endl;
 	if (_sCode == 200)
 	{

@@ -62,7 +62,11 @@ void Request::setErrorPath()
 			if (access(arg[1].c_str(), F_OK) < 0)
 			{
 				if (_locationIndex == -1)
+				{
+					perror("lady");
+					DEBUG_MSG(root.getArg()[0] << "| et |" <<arg[1]);
 					_errorPath[404] = root.getArg()[0] + arg[1];
+				}
 				else
 					_errorPath[404] = root.getArg()[0]
 						+ _locs[_locationIndex].getUri() + arg[1];
