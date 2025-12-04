@@ -21,6 +21,7 @@ private:
 	size_t		_sCode, _fileLength;
 	int 			_locationIndex;
 	std::vector<LocationConfig> _locs;
+	std::stringstream _htmlList;
 
 public:
 	Request( Client& );
@@ -38,6 +39,7 @@ public:
 
 	void parseHttp();
 
+	void generateHtlm();
 	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void getPath(std::string &pathfile);
 	void checkIndex();

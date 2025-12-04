@@ -169,6 +169,11 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 	return (res);
 }
 
+void Request::generateHtlm()
+{
+	_sCode = 403; // a enlever apres faire le
+}
+
 void Request::checkIndex()
 {
 	Directive	dir;
@@ -196,14 +201,24 @@ void Request::checkIndex()
 		// else
 		// 	indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
 		indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
-		if (stat(indexPath .c_str(), &fileStat) >= 0 && (S_ISREG(fileStat.st_mode))) // le fichier html est ok
+		if (stat(indexPath .c_str(), &fileStat) >= 0 && (S_ISREG(fileStat.st_mode))) // le fichier html est ok donc on sort
 		{
 			_pathfile = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
 			std::cout << "chemin index = " << indexPath << std::endl;
+			return;
 		}
 		// indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
-
 	}
+	if (isDirectivePresent("autoindex", dirs) == true)
+	{
+		dir = getDirective("autoindex", dirs);
+		if (dir.getArg()[0] == "off")
+			_sCode = 403;
+		else
+			generateHtlm();
+	}
+	else
+		_sCode = 403;
 	// on regarde s'il y a un index et qui fonctionne
 	// sinon on va activer autoindex:
 	// si on on genere un htlm
@@ -385,7 +400,10 @@ std::string Request::makeResponse(void)
 	else
 		mess << ENDLINE;
 	std::cerr << "message envopye = " << mess.str() << std::endl;
-	_cli.setSendBuff(mess.str());
+	if (_htmlList.str() == "")
+		_cli.setSendBuff(mess.str());
+	else
+		_cli.setSendBuff(_htmlList .str());
 	if (_connection == "keep-alive")
 		_cli.setCon(true);
 	else
