@@ -6,6 +6,7 @@
 
 class Client;
 class ServerConfig;
+class LocationConfig;
 
 class Request
 {
@@ -27,7 +28,7 @@ public:
 	Request& operator=( const Request& other );
 	~Request();
 
-	void getWriteLocation(int *j, std::string &pathfile);
+	void getWriteLocation(std::string &pathfile);
 	std::string getPathFile() const;
 	std::string getAction() const;
 	std::map<std::string, std::string> getSpec() const;
@@ -39,7 +40,7 @@ public:
 
 	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void getPath(std::string &pathfile);
-	void checkAutoindex();
+	void checkIndex();
 	void checkPath( std::string pathfile, size_t& eCode );
 	std::string ifError( std::string& path, std::string& con, int sCode );
 

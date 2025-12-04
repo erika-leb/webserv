@@ -21,6 +21,7 @@ class Directive {
 			void checkError();
 			void checkRedir();
 			void checkAutoindex();
+			void checkIndex();
 
             void print_directive();
 
