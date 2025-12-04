@@ -46,18 +46,18 @@ void Request::getWriteLocation(std::string &pathfile)
 		pathBis = pathfile + '/';
 	else
 		pathBis = pathfile;
-	DEBUG_MSG("Paht " << pathfile);
+	// DEBUG_MSG("Paht " << pathfile);
 	for (std::vector<LocationConfig>::size_type i = 0; i < _locs.size(); i++)
 	{
 		directive = getDirective("root", _locs[i].getDir());
 		arg = directive.getArg();
 		uri = _locs[i].getUri();
-		DEBUG_MSG("uri " << _locs[i].getUri()<< " et i =" << i);
+		// DEBUG_MSG("uri " << _locs[i].getUri()<< " et i =" << i);
 		if (pathBis.rfind(uri, 0) == 0)
 		{
-			DEBUG_MSG("uri " << _locs[i].getUri()<< "P");
+			// DEBUG_MSG("uri " << _locs[i].getUri()<< "P");
 			// DEBUG_MSG("arg[0].size() " << arg[0].size());
-			DEBUG_MSG("(*size) " << size);
+			// DEBUG_MSG("(*size) " << size);
 			if (uri.size() > size)
 			// if (arg[0].size() > size)
 			{
@@ -174,7 +174,7 @@ void Request::checkIndex()
 	Directive	dir;
 	Directive	dir1;
 	std::string indexPath;
-	// struct stat	fileStat;
+	struct stat	fileStat;
 
 	// std::cout << "i index = " << _locationIndex << std::endl;
 	// std::cout << "path = " << _pathfile << std::endl;
@@ -192,13 +192,17 @@ void Request::checkIndex()
 		DEBUG_MSG("URI =" << _locs[_locationIndex].getUri());
 		indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0];
 		// if (_locs[_locationIndex].getUri() == "/")
-			// indexPath = dir1.getArg()[0] + dir.getArg()[0];
-			// indexPath = dir1.getArg()[0] + dir.getArg()[0];
+		// 	indexPath = dir1.getArg()[0] + dir.getArg()[0];
 		// else
-			// indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
-			indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0];
-		_pathfile = indexPath;
-		std::cout << "chemin index = " << indexPath << std::endl;
+		// 	indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
+		indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
+		if (stat(indexPath .c_str(), &fileStat) >= 0 && (S_ISREG(fileStat.st_mode))) // le fichier html est ok
+		{
+			_pathfile = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
+			std::cout << "chemin index = " << indexPath << std::endl;
+		}
+		// indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
+
 	}
 	// on regarde s'il y a un index et qui fonctionne
 	// sinon on va activer autoindex:
