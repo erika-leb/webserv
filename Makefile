@@ -56,6 +56,8 @@ SRCS = ./sources/main.cpp \
 	./sources/utils.cpp \
 	./sources/Client.cpp \
 	./sources/Request/Request.cpp \
+	./sources/Request/Request_conf.cpp \
+	./sources/Request/Request_path.cpp \
 	./sources/Request/Request_init.cpp \
 	./sources/Request/Request_error.cpp \
 	./sources/GlobalConfig.cpp \
