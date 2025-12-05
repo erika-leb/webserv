@@ -39,7 +39,7 @@ public:
 
 	void parseHttp();
 
-	void generateHtlm();
+	void generateHtlm(std::string uri, std::string path);
 	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void getPath(std::string &pathfile);
 	void checkIndex();

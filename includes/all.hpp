@@ -38,6 +38,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <string>
+#include <dirent.h>
 // #include <stdio.h>
 
 // #include <errno

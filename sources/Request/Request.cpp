@@ -3,37 +3,6 @@
 
 // NB = pas trop de protection sur les getline
 
-// void Request::getWriteLocation(std::string &pathfile)
-// {
-// 	Directive	directive;
-// 	size_t		size;
-// 	std::vector<std::string> arg;
-// 	std::string uri;
-// 	size = 0;
-// 	DEBUG_MSG("Paht avant de chercher la loc " << pathfile);
-// 	for (std::vector<LocationConfig>::size_type i = 0; i < _locs.size(); i++)
-// 	{
-// 		directive = getDirective("root", _locs[i].getDir());
-// 		arg = directive.getArg();
-// 		uri = _locs[i].getUri();
-// 		DEBUG_MSG("uri " << _locs[i].getUri() << " et i =" << i);
-// 		if (pathfile.rfind(uri, 0) == 0)
-// 		{
-// 			// DEBUG_MSG("uri " << _locs[i].getUri() << "P");
-// 			// DEBUG_MSG("arg[0].size() " << arg[0].size());
-// 			// DEBUG_MSG("(*size) " << size);
-// 			if (uri.size() > size)
-// 			// if (arg[0].size() > size)
-// 			{
-// 				// perror("omg");
-// 				size = arg[0].size();
-// 				_locationIndex = i;
-// 			}
-// 		}
-// 	}
-// 	DEBUG_MSG("_index final " << _locationIndex);
-// }
-
 void Request::getWriteLocation(std::string &pathfile)
 {
 	Directive	directive;
@@ -72,22 +41,22 @@ void Request::getWriteLocation(std::string &pathfile)
 
 void Request::checkRedirAndMethod()
 {
-	int			j;
+	// int			j;
 	Directive	dir;
 	int			flag;
 	int			code;
 
 	// std::vector<LocationConfig> locs = _serv.getLocation();
-	j = -1;
+	// j = -1;
 	std::vector<std::string> arg;
 	flag = 0;
 	getWriteLocation(_pathfile);
 	// std::cout << "j = " << j << std::endl;
-	if (j != -1)
+	if (_locationIndex != -1)
 	{
-		for (std::vector<Directive>::size_type i = 0; i < _locs[j].getDir().size(); i++)
+		for (std::vector<Directive>::size_type i = 0; i < _locs[_locationIndex].getDir().size(); i++)
 		{
-			dir = _locs[j].getDir()[i];
+			dir = _locs[_locationIndex].getDir()[i];
 			if (dir.getName() == "allow_methods")
 			{
 				flag = 1;
@@ -117,16 +86,16 @@ void Request::checkRedirAndMethod()
 void Request::getPath(std::string &pathfile)
 {
 	Directive	directive;
-	int			j;
+	// int			j;
 
 	// std::vector<LocationConfig> locs = _serv.getLocation();
 	std::vector<std::string> arg;
-	j = -1;
+	// j = -1;
 	// std::cout << "coddddddddddeeeeee =" << _sCode << std::endl;
 	// std::cout << "pathfile = " << pathfile << std::endl;
 	getWriteLocation(pathfile);
-	if (j != -1)
-		directive = getDirective("root", _locs[j].getDir());
+	if (_locationIndex != -1)
+		directive = getDirective("root", _locs[_locationIndex].getDir());
 	else
 		directive = getDirective("root", _serv.getDir());
 	arg = directive.getArg();
@@ -169,9 +138,50 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 	return (res);
 }
 
-void Request::generateHtlm()
+void Request::generateHtlm(std::string uri, std::string path)
 {
-	_sCode = 403; // a enlever apres faire le
+	std::stringstream body, response;
+	std::string name;
+	struct dirent *entry;
+	std::cout << "PATH HTML = " << path << std::endl;
+	DIR *dir = opendir(path.c_str());
+	// _sCode = 403; // a enlever apres faire le
+	if (!dir)
+	{
+        body << "<li>Cannot open directory</li>\n";
+		return ;
+	}
+	else
+	{
+		body << "<!DOCTYPE html>\n<html>\n<head>\n";
+    	body << "<meta charset=\"UTF-8\">\n";
+		body << "<title>Index of " << uri << "</title>\n";
+    	body << "</head>\n<body>\n";
+    	body << "<h1>Index of " << uri << "</h1>\n";
+    	body << "<ul>\n";
+		while ((entry = readdir(dir)) != NULL)
+		{
+			name = entry->d_name;
+			if (name == "." || name == "..")
+				continue;
+			body << "<li><a href=\"" << name;
+			if (entry->d_type == DT_DIR)
+				body << "/";
+			body << "\">" << name;
+    	    if (entry->d_type == DT_DIR)
+				body << "/";
+			body << "</a></li>\n";
+		}
+		closedir(dir);
+	}
+	body << "</ul>\n</body>\n</html>\n";
+	response << "HTTP/1.1 200 OK\r\n";
+    response << "Content-Type: text/html\r\n";
+    response << "Content-Length: " << body.str().size() << "\r\n";
+    response << "Connection: close\r\n";
+    response << "\r\n";  // séparation entête / body
+    response << body.str();
+	_htmlList << response.str();
 }
 
 void Request::checkIndex()
@@ -189,11 +199,12 @@ void Request::checkIndex()
 	// else
 		// dirs = _serv.getDir();
 	DEBUG_MSG("GAGA");
+	dir1 = getDirective("root", dirs);
 	if (isDirectivePresent("index", dirs) == true)
 	{
 		DEBUG_MSG("LADY");
 		dir = getDirective("index", dirs);
-		dir1 = getDirective("root", dirs);
+		// dir1 = getDirective("root", dirs);
 		DEBUG_MSG("URI =" << _locs[_locationIndex].getUri());
 		indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0];
 		// if (_locs[_locationIndex].getUri() == "/")
@@ -215,7 +226,10 @@ void Request::checkIndex()
 		if (dir.getArg()[0] == "off")
 			_sCode = 403;
 		else
-			generateHtlm();
+		{
+			indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri();
+			generateHtlm(_locs[_locationIndex].getUri(), indexPath);
+		}
 	}
 	else
 		_sCode = 403;
@@ -261,7 +275,6 @@ void Request::checkPath(std::string pathfile, size_t &eCode)
 		eCode = 403;
 	}
 }
-
 
 
 void Request::parseHttp(void)
@@ -399,11 +412,16 @@ std::string Request::makeResponse(void)
 	}
 	else
 		mess << ENDLINE;
-	std::cerr << "message envopye = " << mess.str() << std::endl;
 	if (_htmlList.str() == "")
+	{
+		std::cerr << "message envopye = " << mess.str() << std::endl;
 		_cli.setSendBuff(mess.str());
+	}
 	else
-		_cli.setSendBuff(_htmlList .str());
+	{
+		std::cerr << "message envopye = " << _htmlList.str() << std::endl;
+		_cli.setSendBuff(_htmlList.str());
+	}
 	if (_connection == "keep-alive")
 		_cli.setCon(true);
 	else
