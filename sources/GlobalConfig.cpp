@@ -26,7 +26,20 @@ GlobalConfig::GlobalConfig(std::fstream &temp) : dir()
             throw std::runtime_error("error configuration file's syntaxe");
 	}
     if (serv == 0)
-        throw std::runtime_error("error configuration file should contain at least one server");
+		throw std::runtime_error("error configuration file should contain at least one server");
+	checkAllowedDirective();
+}
+
+void GlobalConfig::checkAllowedDirective()
+{
+    for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)
+	{
+		Directive &dir = *it;
+		if (dir.getName() == "allow_methods")
+    	    throw std::runtime_error("error in configuration file : allow_methods only auhtorized in locations");
+			if (dir.getName() == "return")
+    	    throw std::runtime_error("error in configuration file : redirection only auhtorized in locations");
+	}
 }
 
 std::vector<Directive>& GlobalConfig::getDir()

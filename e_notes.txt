@@ -13,6 +13,8 @@ a faire encore pour config :
 - mettre des securites par rapport a l'endroit un client peut recuperer/modif/suppr des fichiers   OK
 - root/location : mettre un root de base; verifier que dans root, location on a pas .., ni ~,  OK
 - root/location = prendre le + long location OK
+- proteger les fichiers d'erreur additionnel comme Thib a fait ou pas ?
+- reflechir a des protection si les fichiers d'erreur de base sont bouges, est-ce qu'on a le droit de faire ca en correction ? Dans tous les cas il faut proteger, pareil pour les 300 IMPORTANT
 
 a faire pour serveur:
 
@@ -39,8 +41,15 @@ La logique standard est :
 -match le plus long préfixe (ex : /images/hd/ avant /images/)
 -si aucun match : fallback au location /
 
+logique de request = - on verifie que le _pathfile (le fichier) existe (checkFile)
+- on met a jour le _pathfile si ce n'est pas le cas (ifError)
+- on reverifie que le pathfile existe (au cas ou le _pahtfile aurait ete change pour un chemin d'erreur) (checkFile encore)
+- on remet
 
-
+- root = pas de ? ni avant ni apres OK
+- location = / avant mais pas apres Ok
+- fichier = slash avant mais pas apres OK
+- cgi = slash avant mais pas apres
 
 
 

@@ -24,7 +24,7 @@ void LocationConfig::checkBasicDir()
 {
 	if (isDirectivePresent("root", dir) == false) //add a default root if necessary
 	{
-		std::string tmp = std::string("root ") + ROOT_DEFAULT;
+		std::string tmp = std::string("root ") + ROOT;
 		dir.push_back(Directive(tmp));
 	}
 	if (uri.find("..") != std::string::npos)
@@ -45,7 +45,7 @@ void LocationConfig::addOtherDir()
 		flag = 0;
 		for (std::vector<Directive>::iterator ite = dir.begin(); ite != dir.end(); ++ite)
 		{
-			if (it->getName() == ite->getName())
+			if (it->getName() == ite->getName() && it->getName() != "error_page")
 			{
 				flag = 1;
 				break;
@@ -91,7 +91,9 @@ void LocationConfig::get_uri(std::string &line)
 		    throw std::runtime_error("error in configuration file's syntax (location)");
     }
     if (uri == "" || uri[0] != '/')
-        throw std::runtime_error("error in configuration file's syntax (location)");
+		throw std::runtime_error("error in configuration file's syntax (location)");
+	if ((uri[uri.size() - 1]) != '/')
+		uri = uri + '/';
     for (size_t i = 0; i < uri.size(); i++)
     {
         if (uri[i] == '\\') // a verifier

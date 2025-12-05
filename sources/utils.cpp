@@ -96,7 +96,7 @@ bool isDirectivePresent(std::string name, std::vector<Directive> dir)
 	return (false);
 }
 
-Directive &getDirective(std::string name, std::vector<Directive> dir)
+Directive getDirective(std::string name, std::vector<Directive> dir)
 {
 	for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)
 	{

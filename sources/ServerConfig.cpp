@@ -28,13 +28,26 @@ ServerConfig::ServerConfig(std::fstream &temp, GlobalConfig *gconf) : dir(), loc
     }
 	checkListen();
 	addGlobalDir();
+	checkAllowedDirective();
 	checkBasicDir();
+}
+
+void ServerConfig::checkAllowedDirective()
+{
+    for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)
+	{
+		Directive &dir = *it;
+		if (dir.getName() == "allow_methods")
+    	    throw std::runtime_error("error in configuration file : allow_methods only auhtorized in locations");
+		if (dir.getName() == "return")
+    	    throw std::runtime_error("error in configuration file : redirection only auhtorized in locations");
+	}
 }
 
 void ServerConfig::checkBasicDir()
 {
 	if (isDirectivePresent("root", dir) == false)
-		dir.push_back(Directive("root " + std::string(ROOT_DEFAULT)));
+		dir.push_back(Directive("root " + std::string(ROOT)));
 }
 
 void ServerConfig::addGlobalDir()
@@ -48,7 +61,7 @@ void ServerConfig::addGlobalDir()
 		flag = 0;
 		for (std::vector<Directive>::iterator ite = dir.begin(); ite != dir.end(); ++ite)
 		{
-			if (it->getName() == ite->getName())
+			if (it->getName() == ite->getName() && it->getName() != "error_page")
 			{
 				flag = 1;
 				break ;
