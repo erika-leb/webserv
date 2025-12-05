@@ -289,6 +289,14 @@ void Request::parseHttp(void)
 	std::getline(_rawHttp, _pathfile, ' ');
 	DEBUG_MSG("pathfile brut = " << _pathfile);
 	remove_blank(_pathfile);
+
+		// Only for test purpose
+	std::string pathWithoutQuery(_pathfile);
+	size_t end;
+	if ( (end = _pathfile.find('?')) != std::string::npos )
+		pathWithoutQuery = _pathfile.substr(0, end);
+
+		
 	if (_pathfile.empty())
 		_sCode = 400; // ici plutot
 	// else if (IsRedir() == true)
