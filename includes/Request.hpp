@@ -6,6 +6,7 @@
 
 class Client;
 class ServerConfig;
+class LocationConfig;
 
 class Request
 {

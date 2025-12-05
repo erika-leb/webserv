@@ -24,7 +24,7 @@ void Request::getWriteLocation(int *j, std::string &pathfile)
 		directive = getDirective("root", _locs[i].getDir());
 		arg = directive.getArg();
 		uri = _locs[i].getUri();
-		DEBUG_MSG("uri " << locs[i].getUri()<< " et i =" << i);
+		DEBUG_MSG("uri " << _locs[i].getUri()<< " et i =" << i);
 		if (pathfile.rfind(uri, 0) == 0)
 		{
 			DEBUG_MSG("uri " << _locs[i].getUri()<< "P");
