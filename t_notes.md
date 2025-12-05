@@ -163,4 +163,5 @@ HTTP_ACCEPT=*/*
 - [i] Change the Client class to have a cgi per client
 - [ ] Fix the case where there is arbitrary spaces between value HTTP header
 - [ ] Exit program when crtl-C not just passing the flag to 1 (making `execve()` impossible to fail)
-- [ ] CGI Environment variable
+- [i] CGI Environment variable
+- [ ] problem send response

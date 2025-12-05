@@ -28,11 +28,13 @@ static std::string extractValue( std::string& line, std::string key ) {
 	if (pos == std::string::npos) return "";
 	
 	size_t end = pos + key.length();
-	while (line[end] != '\n' && line[end])
+	while (line[end] != '\n' && line[end]) {
 		end++;
-
+	}
+	
 	if (line[end - 1] == '\r')
 		end--;
+
 	return line.substr(pos + key.length(), end);
 }
 
@@ -40,6 +42,7 @@ static std::string parseHeader( std::string& rawHeader, size_t cLen ) {
 	std::stringstream ss;
 	std::string tmp(extractValue(rawHeader, "Status: "));
 
+	DEBUG_MSG("extracted value: " << tmp );
 	ss << "HTTP/1.1 ";
 	if (tmp.length() == 0)
 		ss << "200 Ok" << ENDLINE;
@@ -58,15 +61,18 @@ static std::string parseCgiOutput( std::stringstream& ss ) {
 	std::string header;
 	std::string tmp, content;
 
+
 	std::getline(ss, tmp);
 	while ( (tmp != "\n" || tmp != "\r\n") && (tmp.size() != 0)) {
-		header.append(tmp);
+		header.append(tmp + "\n");
 		std::getline(ss, tmp);
 	}
-	while (std::getline(ss, tmp)) {
-		content.append(tmp);	
-	}
 
+	DEBUG_MSG("header: " << header);
+
+	while (std::getline(ss, tmp)) {
+		content.append(tmp + "\n");	
+	}
 	header = parseHeader(header, content.size());
 	return header + content;
 }
@@ -188,6 +194,7 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 		ss << strbuff;
 		
 		strbuff = parseCgiOutput(ss);
+		DEBUG_MSG("Send: \n" << strbuff);
 		_cli.setSendBuff(strbuff);
 		close(pipefd);
 		return 0;
