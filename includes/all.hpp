@@ -26,6 +26,10 @@
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+#include <stdexcept>
+#include <limits>
+#include <cctype>
 
 /* C headers */
 #include <sys/socket.h>
@@ -55,7 +59,9 @@
 #define ERROR_403 "/errors/403.html"
 #define ERROR_404 "/errors/404.html"
 #define ERROR_405 "/errors/405.html"
+#define ERROR_411 "/errors/411.html"
 #define ERROR_500 "/errors/500.html"
+#define ERROR_501 "/errors/501.html"
 
 #define REDIR_301 "/redirections/301.html"
 #define REDIR_302 "/redirections/302.html"

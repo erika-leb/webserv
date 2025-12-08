@@ -171,7 +171,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	cli->addBuff(buff);
 	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
-	if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos) // Voir plus tard si on essaye de traiter la requete au fur et a mesure
+	if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos)
 	{
 		Request req(*cli);
 		req.parseHttp();
@@ -182,6 +182,10 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 			cli->setCgi(new Cgi(req.getPathFile(), req.getAction(), *cli));
 			cli->getCgi()->handleCGI_fork(_poll);
 		}
+		// else if (req.getsCode() == 200 && req.getAction() == "POST")
+		// {
+
+		// }
 		else {
 			req.handleAction(req.getAction());
 			tmp = req.makeResponse();
@@ -191,7 +195,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	}
 }
 
-int Server::reveiveRequest(int i, std::string& tmp)
+int Server::receiveRequest(int i, std::string& tmp)
 {
 	int client_fd;
 	char buff[MAXLINE];
@@ -323,7 +327,7 @@ void Server::launch()
 						break;
 					}
 					else {
-						if (reveiveRequest(i, tmp) == 1)
+						if (receiveRequest(i, tmp) == 1)
 							break;
 					}
 				}

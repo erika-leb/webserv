@@ -1,8 +1,14 @@
 #include "Request.hpp"
 #include "all.hpp"
 
-Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()),
-	_locationIndex(-1)
+std::string Request::toLower(std::string &str)
+{
+	for (std::string::size_type i = 0; i < str.size(); i++)
+		str[i] = std::tolower(str[i]);
+	return (str);
+}
+
+Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _contentLength(0), _locationIndex(-1)
 {
 	std::stringstream ss(cli.getBuff()), rawParam;
 	std::string key, value, tmp;
@@ -19,13 +25,13 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()),
 	while (std::getline(rawParam, key, ':') && rawParam >> value)
 	{
 		remove_blank(value);
-		_reqParam[key] = value;
+		_reqParam[toLower(key)] = value;
 	}
 	setErrorPath();
 }
 
 Request::Request(const Request &cpy) : _cli(cpy._cli), _serv(cpy._serv),
-	_locationIndex(cpy._locationIndex)
+	 _chunked(cpy._chunked), _contentLength(cpy._contentLength), _locationIndex(cpy._locationIndex)
 {
 	_reqParam = cpy._reqParam;
 	_errorPath = cpy._errorPath;
@@ -40,6 +46,8 @@ Request &Request::operator=(const Request &other)
 		_errorPath = other._errorPath;
 		_locationIndex = other._locationIndex;
 		_locs = other._locs;
+		_chunked = other._chunked;
+		_contentLength = other._contentLength;
 	}
 	return (*this);
 }

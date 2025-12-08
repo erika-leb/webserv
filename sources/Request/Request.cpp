@@ -3,7 +3,49 @@
 
 // NB = pas trop de protection sur les getline
 
+void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas content-encoding
+{
+	std::string value;
 
+	if (_reqParam.find("transfer-encoding") != _reqParam.end())
+	{
+		value = toLower(_reqParam["transfer-encoding"]);
+		if (value ==  "chunked")
+			_chunked = 1;
+		else
+		{
+			_sCode = 501;
+			return;
+		}
+	}
+
+	if (_reqParam.find("content-length") != _reqParam.end())
+	{
+		value = _reqParam["content-length"];
+		for (std::string::size_type i = 0; i < value.size(); i++)
+		{
+			if (value[i] < '0' || value[i] > '9')
+			{
+				_sCode = 400;
+				return ;
+			}
+		}
+	}
+	else
+	{
+		if (_action == "{POST")
+			_sCode = 411;
+	}
+
+	if (_reqParam.find("expect") != _reqParam.end())
+	{
+		value = toLower(_reqParam["expect"]);
+		if (value == "100-continue")
+			_sCode = 501;
+		else
+			_sCode = 400;
+	}
+}
 
 void Request::parseHttp(void)
 {
@@ -24,13 +66,8 @@ void Request::parseHttp(void)
 	if ( (end = _pathfile.find('?')) != std::string::npos )
 		pathWithoutQuery = _pathfile.substr(0, end);
 
-
 	if (_pathfile.empty())
-		_sCode = 400; // ici plutot
-	// else if (IsRedir() == true)
-	// { }
-	// else if (IsMethodAllowed() == false)
-	// 	_sCode = 405;
+		_sCode = 400;
 	else
 	{
 		checkRedirAndMethod();
@@ -48,7 +85,9 @@ void Request::parseHttp(void)
 	else
 		_sCode = 400;
 	DEBUG_MSG("path at end of parse = " + _pathfile);
-	std::cout << "ode =" << _sCode << std::endl;
+	// std::cout << "ode =" << _sCode << std::endl;
+	if (_sCode == 200)
+		parseParam();
 }
 
 void Request::fGet(void)
@@ -69,6 +108,9 @@ void Request::fGet(void)
 void Request::fPost(void)
 {
 	DEBUG_MSG("POST request");
+	// si il y a une erreur quelque part, changer le sCode et faire fGet
+	//ici ou avant on parse le body (specificite content lenght et chunked)
+	// processer l'info = cgi, uplaod si autoriser par la locaion
 	_sCode = 201;
 	fGet();
 }

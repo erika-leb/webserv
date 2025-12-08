@@ -26,7 +26,7 @@ class Server {
 		void deleteSocket(int client_fd);
 		bool is_listen_fd(int fd);
 		void NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_event &event);
-		int reveiveRequest(int i, std::string& tmp);
+		int receiveRequest(int i, std::string& tmp);
 		void prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli);
 		int sendRequest(int i, std::string tmp);
 		unsigned long getIPAddr(std::string &ip, struct addrinfo **res);

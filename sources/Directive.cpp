@@ -1,6 +1,6 @@
 #include "Directive.hpp"
 
-Directive::Directive(std::string line) : name(""), nbArg(0), arg() // verifier que la directive est correcte sinon trhow
+Directive::Directive(std::string line) : name(""), nbArg(0), arg(), sizeMax(-1) // verifier que la directive est correcte sinon trhow
 {
     size_t i = 0;
     std::string word;
@@ -120,6 +120,80 @@ void Directive::checkIndex()
 		arg[0] = '/' + arg[0];
 }
 
+void Directive::checkMaxBody()
+{
+	unsigned long long nb = 0;
+	size_t i = 0;
+	int digit;
+	char u;
+	unsigned long long multiplier = 1;
+
+	if (nbArg != 1 || arg[0] == "")
+		throw std::runtime_error("error in configuration file : Max Size directive should have one attribute");
+
+	while (i < arg[0].size() && std::isdigit(arg[0][i]))
+	{
+		digit = arg[0][i] - '0';
+		if (nb > ((std::numeric_limits<unsigned long long>::max() - digit) / 10))
+			throw std::runtime_error("error in configuration file : size overflow in Max Size directive");
+		nb = nb * 10 + digit;
+		i++;
+	}
+
+	if (i == 0)
+		throw std::runtime_error("error in configuration file : No numeric part in size");
+
+	if (i < arg[0].size())
+	{
+		u = arg[0][i];
+		if (i + 1 != arg[0].size())
+			throw std::runtime_error("error in configuration file : Invalid unit format in max size directive");
+		if (u == 'k' || u == 'K')
+			multiplier = 1024ULL;
+		else if (u == 'm' || u == 'M')
+			multiplier = 1024ULL * 1024ULL;
+		else if (u == 'g' || u == 'G')
+			multiplier = 1024ULL * 1024ULL * 1024ULL;
+		else
+			throw std::runtime_error("error in configuration file : Unknown size unit in max size directive");
+	}
+	if (nb > std::numeric_limits<unsigned long long>::max() / multiplier)
+		throw std::runtime_error("error in configuration file : size too large in max size directive");
+	sizeMax = nb * multiplier;
+}
+
+void Directive::checkCgi()
+{
+	char c;
+
+	if (nbArg != 2)
+		throw std::runtime_error("error in configuration file : cgi directive should have 2 attributes");
+	if (arg[0].size() < 2 || arg[0][0] != '.')
+		throw std::runtime_error("error in configuration file : Invalid cgi extension");
+	for (size_t i = 0; i < arg[0].size(); i++)
+	{
+		c = arg[0][i];
+		if (c == ';' || c == '/' || c == '\0' || c == '\n' || c == '\r' || c == ' ' || c == '\t')
+			throw std::runtime_error("error in configuration file : Invalid character in CGI extension");
+	}
+	if (arg[1].empty())
+		throw std::runtime_error("error in configuration file : Invalid cgi path");
+	for (size_t i = 0; i < arg[1].size(); i++)
+	{
+		c = arg[1][i];
+		if (c == ';' || c == '\0' || c == '\n' || c == '\r')
+			throw std::runtime_error("error in configuration file : Invalid character in CGI path");
+	}
+}
+
+// void Directive::checkUpload()
+// {
+// 	if (nbArg != 1 || arg[0] == "")
+// 		throw std::runtime_error("error in configuration file : upload directive should have one attribute");
+// 	if (arg[0][0] != '/')
+// 		arg[0] = '/' + arg[0];
+// }
+
 void Directive::checkBasicDir()
 {
 	if (nbArg == 0)
@@ -142,9 +216,16 @@ void Directive::checkBasicDir()
 		checkIndex();
 	else if (name == "autoindex")
 		checkAutoindex();
-
-	// else
-	// 	throw std::runtime_error("error in configuration file's directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?
+	else if (name == "client_max_body_size")
+		checkMaxBody();
+	else if (name == "cgi_handler")
+		checkCgi();
+	// else if (name == "upload_path")
+	// 	checkUpload();
+	// else if (name == "listen")
+	// {}
+	else if (name != "listen")
+		throw std::runtime_error("error in configuration file's directive : bad directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?
 }
 
 std::string &Directive::getName()
@@ -162,7 +243,12 @@ std::vector<std::string> &Directive::getArg()
 	return (arg);
 }
 
-Directive::Directive(const Directive &src) : name(src.name), nbArg(src.nbArg), arg(src.arg)
+unsigned long long Directive::getSizeMax()
+{
+	return sizeMax;
+}
+
+Directive::Directive(const Directive &src) : name(src.name), nbArg(src.nbArg), arg(src.arg), sizeMax(src.sizeMax )
 {
 }
 
@@ -178,6 +264,7 @@ Directive &Directive::operator=(const Directive &src)
         name = src.name;
         nbArg = src.nbArg;
         arg = src.arg;
+		sizeMax = src.sizeMax;
     }
     return (*this);
 }
@@ -203,6 +290,6 @@ void Directive::print_directive()
 	std::cout << std::endl;
 }
 
-Directive::Directive() : name(""), nbArg(0), arg()
+Directive::Directive() : name(""), nbArg(0), arg(), sizeMax(-1)
 {
 }

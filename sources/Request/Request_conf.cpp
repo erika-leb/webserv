@@ -1,12 +1,29 @@
 #include "Request.hpp"
 #include "all.hpp"
 
+
+static unsigned long long getNbMax(std::string &str)
+{
+	unsigned long long nb = 0;
+	size_t i = 0;
+	int digit;
+
+	while (i < str.size() && std::isdigit(str[i]))
+	{
+		digit = str[i] - '0';
+		nb = nb * 10 + digit;
+		i++;
+	}
+	return nb;
+}
+
 void Request::checkRedirAndMethod()
 {
 	// int			j;
-	Directive	dir;
-	int			flag;
-	int			code;
+	Directive			dir;
+	int					flag;
+	int					code;
+	// unsigned long long	nb;
 
 	// std::vector<LocationConfig> locs = _serv.getLocation();
 	// j = -1;
@@ -37,7 +54,12 @@ void Request::checkRedirAndMethod()
 				code = std::atoi(arg[0].c_str());
 				_sCode = code;
 				_location = arg[1];
-				return ;
+			}
+			if (dir.getName() == "client_max_body_size")
+			{
+				_contentLength = getNbMax(_reqParam["content-length"]);
+				if (dir.getSizeMax() > _contentLength)
+					_sCode = 400;
 			}
 		}
 	}
