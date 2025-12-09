@@ -34,7 +34,7 @@ void Request::getWriteLocation(std::string &pathfile)
 			}
 		}
 	}
-	DEBUG_MSG("j final " << _locationIndex);
+	// DEBUG_MSG("j final " << _locationIndex);
 }
 
 void Request::getPath(std::string &pathfile)
@@ -70,7 +70,7 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 {
 	std::fstream fs;
 	std::string tmp, res;
-	DEBUG_MSG("first path to get " << pathfile);
+	// DEBUG_MSG("first path to get " << pathfile);
 	getPath(pathfile);
 	fs.open(pathfile.c_str(), std::ios::in);
 	if (fs.is_open())
@@ -88,7 +88,7 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 		DEBUG_MSG("ERROR: Couldn't open file [" << pathfile << "]");
 		res.clear();
 	}
-	DEBUG_MSG("after first path to get " << pathfile);
+	// DEBUG_MSG("after first path to get " << pathfile);
 	return (res);
 }
 
@@ -99,7 +99,7 @@ void Request::checkPath(std::string pathfile, size_t &eCode)
 	struct stat	fileStat;
 
 	getPath(pathfile);
-	DEBUG_MSG("after first getPaht = " << pathfile);
+	// DEBUG_MSG("after first getPaht = " << pathfile);
 	if (_sCode != 200)
 		return ;
 	if (stat(pathfile.c_str(), &fileStat) < 0)

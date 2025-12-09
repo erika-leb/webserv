@@ -15,7 +15,7 @@ void Request::parseHttp(void)
 		_sCode = 405;
 	}
 	std::getline(_rawHttp, _pathfile, ' ');
-	DEBUG_MSG("pathfile brut = " << _pathfile);
+	// DEBUG_MSG("pathfile brut = " << _pathfile);
 	remove_blank(_pathfile);
 
 		// Only for test purpose
@@ -23,7 +23,6 @@ void Request::parseHttp(void)
 	size_t end;
 	if ( (end = _pathfile.find('?')) != std::string::npos )
 		pathWithoutQuery = _pathfile.substr(0, end);
-
 
 	if (_pathfile.empty())
 		_sCode = 400; // ici plutot
@@ -35,7 +34,10 @@ void Request::parseHttp(void)
 	{
 		checkRedirAndMethod();
 		checkPath(pathWithoutQuery, _sCode);
+		getPath(_pathfile);
+		DEBUG_MSG("getPath(): " << _pathfile);
 	}
+
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);
 	if (!tmp.empty())
@@ -47,7 +49,7 @@ void Request::parseHttp(void)
 	}
 	else
 		_sCode = 400;
-	DEBUG_MSG("path at end of parse = " + _pathfile);
+	// DEBUG_MSG("path at end of parse = " + _pathfile);
 	std::cout << "ode =" << _sCode << std::endl;
 }
 
@@ -76,8 +78,7 @@ void Request::fPost(void)
 void Request::fDelete(void)
 {
 	DEBUG_MSG("DELETE request");
-	getPath(_pathfile);
-	std::cout << "delete pathfile : " << _pathfile << std::endl;
+	// getPath(_pathfile);
 	if (access(_pathfile.c_str(), W_OK) == 0)
 	{
 		std::remove(_pathfile.c_str());
@@ -95,9 +96,6 @@ void Request::handleAction(std::string action)
 	std::string check[3] = {"GET", "POST", "DELETE"};
 	void (Request::*f[3])(void) = {&Request::fGet, &Request::fPost,
 		&Request::fDelete};
-	// DEBUG_MSG("CHOOSE Method " << _action);
-	// DEBUG_MSG("path = " + _pathfile);
-	std::cout << "codi = " << _sCode << std::endl;
 	if (_sCode == 200)
 	{
 		for (i = 0; i < 3; i++)
@@ -132,8 +130,6 @@ std::string Request::makeResponse(void)
 	mess << "Date: " << date(HTTP) << ENDLINE;
 	mess << "Server: " << _serv.getIp() << ":" << _serv.getPort() << ENDLINE;
 		// Modify according configuration file / fetch the host of the request
-	// mess << "Server: " << "localhost" << ENDLINE;
-		// Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE;
 		// Modify either the connection need to be maintained or not
 	if (_sCode > 300 && _sCode < 400)
@@ -148,6 +144,7 @@ std::string Request::makeResponse(void)
 	}
 	else
 		mess << ENDLINE;
+
 	if (_htmlList.str() == "")
 	{
 		std::cerr << "message envopye = " << mess.str() << std::endl;
@@ -158,6 +155,7 @@ std::string Request::makeResponse(void)
 		std::cerr << "message envopye = " << _htmlList.str() << std::endl;
 		_cli.setSendBuff(_htmlList.str());
 	}
+
 	if (_connection == "keep-alive")
 		_cli.setCon(true);
 	else

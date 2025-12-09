@@ -99,7 +99,6 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 
     
     envp.reserve(cgi.size() + 1);
-	_path = "./html/cgi/python.py";
     for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
         env_storage.push_back(it->first + "=" + it->second);
         envp.push_back(const_cast<char*>(env_storage.back().c_str()));
