@@ -21,6 +21,7 @@ private:
 	size_t		_sCode, _fileLength;
 	int 			_locationIndex;
 	std::vector<LocationConfig> _locs;
+	std::stringstream _htmlList;
 
 public:
 	Request( Client& );
@@ -28,7 +29,7 @@ public:
 	Request& operator=( const Request& other );
 	~Request();
 
-	void getWriteLocation(int *j, std::string &pathfile);
+	void getWriteLocation(std::string &pathfile);
 	std::string getPathFile() const;
 	std::string getAction() const;
 	std::map<std::string, std::string> getSpec() const;
@@ -38,8 +39,10 @@ public:
 
 	void parseHttp();
 
+	void generateHtlm(std::string uri, std::string path);
 	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void getPath(std::string &pathfile);
+	void checkIndex();
 	void checkPath( std::string pathfile, size_t& eCode );
 	std::string ifError( std::string& path, std::string& con, int sCode );
 

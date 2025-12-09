@@ -102,6 +102,24 @@ void Directive::checkRedir()
 		throw std::runtime_error("error in configuration file : redirection directive"); //usefull ?
 }
 
+void Directive::checkAutoindex()
+{
+	// std::cout << "arg[1] = " << arg[0] << std::endl;
+	if (nbArg != 1)
+		throw std::runtime_error("error in configuration file : autoindex directive should have one attribute");
+	if (arg[0] != "on" && arg[0] != "off")
+		throw std::runtime_error("error in configuration file : autoindex directive should have 'on' or 'off' as an attribute");
+}
+
+void Directive::checkIndex()
+{
+	// std::cout << "arg[1] = " << arg[0] << std::endl;
+	if (nbArg != 1)
+		throw std::runtime_error("error in configuration file : index directive should have one attribute");
+	if (arg[0][0] != '/')
+		arg[0] = '/' + arg[0];
+}
+
 void Directive::checkBasicDir()
 {
 	if (nbArg == 0)
@@ -120,6 +138,10 @@ void Directive::checkBasicDir()
 	}
 	else if (name == "return")
 		checkRedir();
+	else if (name == "index")
+		checkIndex();
+	else if (name == "autoindex")
+		checkAutoindex();
 
 	// else
 	// 	throw std::runtime_error("error in configuration file's directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?
