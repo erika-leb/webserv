@@ -15,8 +15,10 @@ private:
 	std::string	_path, _method;
 	int 		_pipeDes[2];
 	std::string _queryString;
+	std::string _serverName;
+	int			_port;
 public:
-	Cgi( std::string URI, std::string method, Client& cli );
+	Cgi( std::string, std::string, Client&, std::string, int );
 	Cgi( Cgi& cpy );
 	Cgi& operator=( Cgi& other );
 	~Cgi();
@@ -27,6 +29,9 @@ public:
 
 	void	handleCGI_fork( int );
 	int		handleCGI_pipe( int );
+
+	std::string parseHeader( std::string&, size_t );
+	std::string parseCgiOutput( std::stringstream& ss );
 
 	static void		sigchld_handler( int sig );
 };

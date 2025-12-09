@@ -68,6 +68,14 @@ int Request::getsCode(void) const
 	return (_sCode);
 }
 
+std::string Request::getServIp( void ) const {
+	return (_serv.getIp());
+}
+
+int	Request::getServPort( void ) const {
+	return (_serv.getPort());
+}
+
 bool Request::is_cgi(std::string cgiFolder)
 {
 	if (_pathfile.find(cgiFolder) != std::string::npos)

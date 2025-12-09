@@ -30,10 +30,13 @@ public:
 	~Request();
 
 	void getWriteLocation(std::string &pathfile);
-	std::string getPathFile() const;
-	std::string getAction() const;
-	std::map<std::string, std::string> getSpec() const;
-	int getsCode() const;
+
+	std::string							getPathFile() const;
+	std::string							getAction() const;
+	std::map<std::string, std::string>	getSpec() const;
+	int 								getsCode() const;
+	std::string 						getServIp() const;
+	int									getServPort() const;
 
 	bool is_cgi( std::string );
 

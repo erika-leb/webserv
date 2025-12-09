@@ -34,7 +34,7 @@ void Request::parseHttp(void)
 	else
 	{
 		checkRedirAndMethod();
-		checkPath(_pathfile, _sCode);
+		checkPath(pathWithoutQuery, _sCode);
 	}
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);

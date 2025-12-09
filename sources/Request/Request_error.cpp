@@ -94,11 +94,11 @@ void Request::setErrorPath()
 		_errorPath[404] = ROOT_STR + ERROR_404;
 	if (_locationIndex == -1 && _errorPath.find(500) == _errorPath.end())
 		_errorPath[500] = ROOT_STR + ERROR_500;
-	DEBUG_MSG("400 = " << _errorPath[400]);
-	DEBUG_MSG("403 = " << _errorPath[403]);
-	DEBUG_MSG("404 = " << _errorPath[404]);
-	DEBUG_MSG("405 = " << _errorPath[405]);
-	DEBUG_MSG("500 = " << _errorPath[500]);
+	// DEBUG_MSG("400 = " << _errorPath[400]);
+	// DEBUG_MSG("403 = " << _errorPath[403]);
+	// DEBUG_MSG("404 = " << _errorPath[404]);
+	// DEBUG_MSG("405 = " << _errorPath[405]);
+	// DEBUG_MSG("500 = " << _errorPath[500]);
 }
 
 

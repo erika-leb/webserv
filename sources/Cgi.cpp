@@ -27,57 +27,19 @@ static std::string extractValue( std::string& line, std::string key ) {
 
 	if (pos == std::string::npos) return "";
 	
-	size_t end = pos + key.length();
-	while (line[end] != '\n' && line[end]) {
-		end++;
-	}
+	pos += key.length();
+	size_t size = 0;
+	for (size_t i=pos; line[i] != '\n' && line[i]; i++)
+		size++;
 	
-	if (line[end - 1] == '\r')
-		end--;
+	if (line[size - 1] == '\r')
+		size--;
 
-	return line.substr(pos + key.length(), end);
+	return line.substr(pos, size);
 }
 
-static std::string parseHeader( std::string& rawHeader, size_t cLen ) {
-	std::stringstream ss;
-	std::string tmp(extractValue(rawHeader, "Status: "));
-
-	DEBUG_MSG("extracted value: " << tmp );
-	ss << "HTTP/1.1 ";
-	if (tmp.length() == 0)
-		ss << "200 Ok" << ENDLINE;
-	else if ( checkCode(tmp) == 0)
-		ss << tmp << ENDLINE;
-	ss << "Date: " << date(HTTP) << ENDLINE;
-	ss << "Server: " <<  "localhost" << ENDLINE; // bruh we gonna struggle to get the server name there
-	ss << "Content-Type: " << extractValue(rawHeader, "Content-Type: ") << ENDLINE;
-	ss << "Content-Length: " << cLen << ENDLINE;
-	ss << ENDLINE;
-
-	return ss.str();
-}
-
-static std::string parseCgiOutput( std::stringstream& ss ) {
-	std::string header;
-	std::string tmp, content;
-
-
-	std::getline(ss, tmp);
-	while ( (tmp != "\n" || tmp != "\r\n") && (tmp.size() != 0)) {
-		header.append(tmp + "\n");
-		std::getline(ss, tmp);
-	}
-
-	DEBUG_MSG("header: " << header);
-
-	while (std::getline(ss, tmp)) {
-		content.append(tmp + "\n");	
-	}
-	header = parseHeader(header, content.size());
-	return header + content;
-}
-
-Cgi::Cgi( std::string URI, std::string method, Client& cli ): _cli(cli), _path(URI), _method(method) {
+Cgi::Cgi( std::string URI, std::string method, Client& cli, std::string serverName, int port ):
+			_cli(cli), _path(URI), _method(method), _serverName(serverName), _port(port) {
 	// Parse URI with query and stuff
 	size_t pos = URI.find_first_of('?');
 	if (pos != std::string::npos) {
@@ -122,19 +84,22 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 
 	cgi["REQUEST_METHOD"]  = _method;
     cgi["QUERY_STRING"]    = _queryString;
-    cgi["SCRIPT_FILENAME"] = _path;
+
+	size_t found = _path.find_last_of('/');
+    cgi["SCRIPT_FILENAME"] = _path.substr(found+1);
+
     cgi["CONTENT_LENGTH"]  = "0";
     cgi["SERVER_PROTOCOL"] = "HTTP/1.1";
     cgi["GATEWAY_INTERFACE"] = "CGI/1.1";
     cgi["SERVER_SOFTWARE"] = "Webserv/1.0";
-    cgi["SERVER_NAME"]     = "localhost"; // modify this according to configuration file don't know how
-    cgi["SERVER_PORT"]     = "8080"; // Same as the other one
+    cgi["SERVER_NAME"]     = _serverName;
+    cgi["SERVER_PORT"]     = _port;
 
     env_storage.reserve(cgi.size());
 
     
     envp.reserve(cgi.size() + 1);
-
+	_path = "./html/cgi/python.py";
     for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
         env_storage.push_back(it->first + "=" + it->second);
         envp.push_back(const_cast<char*>(env_storage.back().c_str()));
@@ -158,7 +123,6 @@ void Cgi::handleCGI_fork( int pollfd) {
 		/* If POST request  or query dup2(STDIN, ?)*/
 		close(_pipeDes[READ]);
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
-		_path = "./html/cgi/script.php";
 		if ( (execve(_path.c_str(), args, &env[0])) == -1)
 			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
 		exit(1); // leak
@@ -198,6 +162,42 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 		_cli.setSendBuff(strbuff);
 		close(pipefd);
 		return 0;
+}
+
+std::string Cgi::parseHeader( std::string& rawHeader, size_t cLen ) {
+	std::stringstream ss;
+	std::string tmp(extractValue(rawHeader, "Status: "));
+
+	ss << "HTTP/1.1 ";
+	if (tmp.length() == 0)
+		ss << "200 Ok" << ENDLINE;
+	else if ( checkCode(tmp) == 0)
+		ss << tmp << ENDLINE;
+	ss << "Date: " << date(HTTP) << ENDLINE;
+	ss << "Server: " << _serverName + ":" << _port << ENDLINE; // bruh we gonna struggle to get the server name there
+	ss << "Content-Type: " << extractValue(rawHeader, "Content-Type: ") << ENDLINE;
+	ss << "Content-Length: " << cLen << ENDLINE;
+	ss << ENDLINE;
+
+	return ss.str();
+}
+
+std::string Cgi::parseCgiOutput( std::stringstream& ss ) {
+	std::string header;
+	std::string tmp, content;
+
+
+	std::getline(ss, tmp);
+	while ( (tmp != "\n" || tmp != "\r\n") && (tmp.size() != 0)) {
+		header.append(tmp + "\n");
+		std::getline(ss, tmp);
+	}
+
+	while (std::getline(ss, tmp)) {
+		content.append(tmp + "\n");	
+	}
+	header = parseHeader(header, content.size());
+	return header + content;
 }
 
 void Cgi::sigchld_handler( int sig ) {
