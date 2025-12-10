@@ -101,22 +101,7 @@ void Request::setErrorPath()
 
 		std::istringstream iss(arg[0]);
 		int code;
-
 		iss >> code;
-
-		// Modular statement of the painfull code under
-		/*
-		if (name == "error_page" && (code >= 400 && code <= 500)) {
-			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
-			{
-				if (_locationIndex == -1)
-					_errorPath[code] = root.getArg()[0] + arg[1];
-				else
-					_errorPath[code] = root.getArg()[0]
-						+ _locs[_locationIndex].getUri() + arg[1];
-			}
-		}
-		*/
 
 		if (name == "error_page" && (code >= 400 && code <= 500)) {
 			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
@@ -126,71 +111,9 @@ void Request::setErrorPath()
 				else
 					tmp.path = root.getArg()[0]
 						+ _locs[_locationIndex].getUri() + arg[1];
-				setStatusInfo(code, tmp);
-				_errorPath[code] = tmp;
+				_errorPath[code].path = tmp.path;
 			}
 		}
-
-		/*
-		if (name == "error_page" && arg[0] == "500")
-		{
-			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
-			{
-				if (_locationIndex == -1)
-					_errorPath[500] = root.getArg()[0] + arg[1];
-				else
-					_errorPath[500] = root.getArg()[0]
-						+ _locs[_locationIndex].getUri() + arg[1];
-			}
-		}
-		if (name == "error_page" && arg[0] == "400")
-		{
-			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
-			{
-				if (_locationIndex == -1)
-					_errorPath[400] = root.getArg()[0] + arg[1];
-				else
-					_errorPath[400] = root.getArg()[0]
-						+ _locs[_locationIndex].getUri() + arg[1];
-			}
-		}
-		if (name == "error_page" && arg[0] == "403")
-		{
-			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
-			{
-				if (_locationIndex == -1)
-					_errorPath[403] = root.getArg()[0] + arg[1];
-				else
-					_errorPath[403] = root.getArg()[0]
-						+ _locs[_locationIndex].getUri() + arg[1];
-			}
-		}
-		if (name == "error_page" && arg[0] == "404")
-		{
-			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
-			{
-				if (_locationIndex == -1)
-				{
-					DEBUG_MSG(root.getArg()[0] << "| et |" <<arg[1]);
-					_errorPath[404] = root.getArg()[0] + arg[1];
-				}
-				else
-					_errorPath[404] = root.getArg()[0]
-						+ _locs[_locationIndex].getUri() + arg[1];
-			}
-		}
-		if (name == "error_page" && arg[0] == "405")
-		{
-			if (access(arg[1].c_str(), F_OK) < 0)
-			{
-				if (_locationIndex == -1)
-					_errorPath[405] = root.getArg()[0] + arg[1];
-				else
-					_errorPath[405] = root.getArg()[0]
-						+ _locs[_locationIndex].getUri() + arg[1];
-			}
-		}
-		*/
 	}
 }
 
@@ -200,6 +123,8 @@ std::string Request::ifError(std::string &path, std::string &con, int sCode)
 {
 	StatusInfo tmp = _errorPath[sCode];
 	con = tmp.conn;
-	path = tmp.path;
+
+	if (!tmp.path.empty())
+		path = tmp.path;
 	return (tmp.message);
 }

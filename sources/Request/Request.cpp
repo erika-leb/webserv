@@ -48,7 +48,6 @@ void Request::parseHttp(void)
 	}
 	else
 		_sCode = 400;
-	std::cout << "ode =" << _sCode << std::endl;
 }
 
 void Request::fGet(void) {
