@@ -160,8 +160,6 @@ HTTP_ACCEPT=*/*
 ```
 
 ## / To do
-- [i] Change the Client class to have a cgi per client
-- [ ] Fix the case where there is arbitrary spaces between value HTTP header
-- [ ] Exit program when crtl-C not just passing the flag to 1 (making `execve()` impossible to fail)
-- [i] CGI Environment variable
-- [ ] problem send response
+- Fix the case where there is arbitrary spaces between value HTTP header
+- Exit program when crtl-C not just passing the flag to 1 (making `execve()` impossible to fail) ? still necessary ?
+- See with partner about the 301 code and the html auto-generated file

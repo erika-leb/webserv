@@ -15,7 +15,6 @@ void Request::parseHttp(void)
 		_sCode = 405;
 	}
 	std::getline(_rawHttp, _pathfile, ' ');
-	// DEBUG_MSG("pathfile brut = " << _pathfile);
 	remove_blank(_pathfile);
 
 		// Only for test purpose
@@ -49,15 +48,12 @@ void Request::parseHttp(void)
 	}
 	else
 		_sCode = 400;
-	// DEBUG_MSG("path at end of parse = " + _pathfile);
 	std::cout << "ode =" << _sCode << std::endl;
 }
 
-void Request::fGet(void)
-{
+void Request::fGet(void) {
 	DEBUG_MSG("GET request");
 	ifError(_pathfile, _connection, _sCode);
-	// std::cerr << "code = " << _sCode << ";, path = " << _pathfile << std::endl;
 	_file = getFile(_pathfile, &_fileLength);
 	if (_file.empty())
 	{
@@ -65,22 +61,18 @@ void Request::fGet(void)
 		ifError(_pathfile, _connection, _sCode);
 		_file = getFile(_pathfile, &_fileLength);
 	}
-	// std::cerr << "apres = code = " << _sCode << ";,path = " << _pathfile << std::endl;
 }
 
-void Request::fPost(void)
-{
+void Request::fPost(void) {
 	DEBUG_MSG("POST request");
 	_sCode = 201;
 	fGet();
 }
 
-void Request::fDelete(void)
-{
+void Request::fDelete(void) {
 	DEBUG_MSG("DELETE request");
 	// getPath(_pathfile);
-	if (access(_pathfile.c_str(), W_OK) == 0)
-	{
+	if (access(_pathfile.c_str(), W_OK) == 0) {
 		std::remove(_pathfile.c_str());
 		_sCode = 204;
 		return ;

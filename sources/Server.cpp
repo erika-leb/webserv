@@ -98,7 +98,6 @@ Server::Server(GlobalConfig *config) : config(config)
 		// _fdListen[fd] = info;
 		// _fdListen.push_back(socket(AF_INET, SOCK_STREAM, 0));
 		initFdListen(fd, servs[i].getPort(), servs[i].getIp());
-		// std::cout << "fd d'ecoute = " << fd << std::endl;
 		// initFdListen(_fdListen[i], servs[i].getPort(), servs[i].getIp());
 	}
 }
@@ -158,7 +157,6 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 	{
-		// std::cout << "it->first = " << it->first << "; client fd = " << client_fd << std::endl;
 		if (it->first == fd)
 			_clients.push_back(new Client(client_fd, it->second));
 	}
@@ -176,8 +174,6 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		Request req(*cli);
 		req.parseHttp();
 		std::string cgiFolder(".py"); // erase this line and replace the argument of the function with the actual folder from configuration file
-		// std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-		// std::cout << "cooddee = " << req.getsCode() << std::endl;
 		if (req.is_cgi(cgiFolder) && (req.getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
 			cli->setCgi(new Cgi(req.getPathFile(), req.getAction(), *cli, req.getServIp(), req.getServPort()));
 			cli->getCgi()->handleCGI_fork(_poll);
@@ -270,10 +266,8 @@ void Server::checkTimeOut()
 {
 	time_t now = std::time(NULL);
 
-	// perror("ici");
 	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
 	{
-		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
 		if (now - _clients[i]->getlastConn() > TIMEOUT_SECONDS)
 		{
 			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (TIMEOUT)" << std::endl;
@@ -290,7 +284,6 @@ int Server::timeOut()
 
 	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
 	{
-		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
 		elapsed = now - _clients[i]->getlastConn();
 		if (TIMEOUT_SECONDS - elapsed > 0 && TIMEOUT_SECONDS - elapsed < res)
 			res = TIMEOUT_SECONDS - elapsed;
@@ -317,7 +310,6 @@ void Server::launch()
 					NewIncomingConnection(_events[i].data.fd, cli, event);
 				else
 				{
-					// get the valid cgi and store it in a variable to reuse in ne next statement
 					if (is_pipe_fd(_events[i].data.fd) == true) {
 						receiveCgi(i, tmp);
 						break;

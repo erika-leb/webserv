@@ -8,6 +8,12 @@ class Client;
 class ServerConfig;
 class LocationConfig;
 
+struct StatusInfo {
+	std::string path;
+	std::string message;
+	std::string conn;
+};
+
 class Request
 {
 private:
@@ -16,7 +22,7 @@ private:
 
 	std::map<std::string, std::string>	_reqParam, _params;
 	std::stringstream	_rawHttp;
-	std::map<int, std::string> _errorPath;
+	std::map<int, StatusInfo> _errorPath;
 	std::string	_action, _pathfile, _file, _fileType, _connection, _statusMess, _location;
 	size_t		_sCode, _fileLength;
 	int 			_locationIndex;
@@ -42,7 +48,7 @@ public:
 
 	void parseHttp();
 
-	void generateHtlm(std::string uri, std::string path);
+	void generateHtml(std::string uri, std::string path);
 	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void getPath(std::string &pathfile);
 	void checkIndex();

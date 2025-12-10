@@ -3,17 +3,14 @@
 
 void Request::checkRedirAndMethod()
 {
-	// int			j;
 	Directive	dir;
 	int			flag;
 	int			code;
 
 	// std::vector<LocationConfig> locs = _serv.getLocation();
-	// j = -1;
 	std::vector<std::string> arg;
 	flag = 0;
 	getWriteLocation(_pathfile);
-	// std::cout << "j = " << j << std::endl;
 	if (_locationIndex != -1)
 	{
 		for (std::vector<Directive>::size_type i = 0; i < _locs[_locationIndex].getDir().size(); i++)
@@ -22,7 +19,6 @@ void Request::checkRedirAndMethod()
 			if (dir.getName() == "allow_methods")
 			{
 				flag = 1;
-				// perror("exper");
 				arg = dir.getArg();
 				for (std::vector<std::string>::size_type k = 0; k < arg.size(); k++)
 				{
@@ -32,7 +28,6 @@ void Request::checkRedirAndMethod()
 			}
 			if (dir.getName() == "return")
 			{
-				// perror("riment");
 				arg = dir.getArg();
 				code = std::atoi(arg[0].c_str());
 				_sCode = code;
@@ -45,7 +40,7 @@ void Request::checkRedirAndMethod()
 		_sCode = 405;
 }
 
-void Request::generateHtlm(std::string uri, std::string path)
+void Request::generateHtml(std::string uri, std::string path)
 {
 	std::stringstream body, response;
 	std::string name;
@@ -105,21 +100,16 @@ void Request::checkIndex()
 	std::string indexPath;
 	struct stat	fileStat;
 
-	// std::cout << "i index = " << _locationIndex << std::endl;
-	// std::cout << "path = " << _pathfile << std::endl;
 	std::vector<Directive> dirs;
 	if (_locationIndex != -1)
 		dirs = _locs[_locationIndex].getDir();
 	// else
 		// dirs = _serv.getDir();
-	// DEBUG_MSG("GAGA");
 	dir1 = getDirective("root", dirs);
 	if (isDirectivePresent("index", dirs) == true)
 	{
-		// DEBUG_MSG("LADY");
 		dir = getDirective("index", dirs);
 		// dir1 = getDirective("root", dirs);
-		// DEBUG_MSG("URI =" << _locs[_locationIndex].getUri());
 		indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0];
 		// if (_locs[_locationIndex].getUri() == "/")
 		// 	indexPath = dir1.getArg()[0] + dir.getArg()[0];
@@ -129,7 +119,6 @@ void Request::checkIndex()
 		if (stat(indexPath .c_str(), &fileStat) >= 0 && (S_ISREG(fileStat.st_mode))) // le fichier html est ok donc on sort
 		{
 			_pathfile = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
-			// std::cout << "chemin index = " << indexPath << std::endl;
 			return;
 		}
 		// indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
@@ -142,7 +131,7 @@ void Request::checkIndex()
 		else
 		{
 			indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri();
-			generateHtlm(_locs[_locationIndex].getUri(), indexPath);
+			generateHtml(_locs[_locationIndex].getUri(), indexPath);
 		}
 	}
 	else

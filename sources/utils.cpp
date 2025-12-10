@@ -120,12 +120,10 @@ int is_fd_open(int fd) {
     int flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
         if (errno == EBADF) {
-			perror("fd ferme");
             // fd n'est pas ouvert
             return 0;
         }
     }
-	perror("fd ouvert");
     // fd est ouvert
     return 1;
 }

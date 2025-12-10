@@ -26,6 +26,7 @@
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
+#include <iterator>
 
 /* C headers */
 #include <sys/socket.h>

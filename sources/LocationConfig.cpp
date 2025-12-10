@@ -84,7 +84,6 @@ void LocationConfig::get_uri(std::string &line)
     uri = line.substr(0, i);
     line = line.substr(i);
     trim_line(line);
-    // std::cout << "location uri = " << uri << "s" << std::endl;
     for (size_t j = 0; j < line.size(); j++)
     {
         if (!std::isspace(line[j]))

@@ -35,8 +35,6 @@ Directive::Directive(std::string line) : name(""), nbArg(0), arg() // verifier q
 
 void Directive::checkRoot()
 {
-	// std::cout << "deb - " << arg[0] <<std::endl;
-	// std::cout << "arg[0][arg[0].size()] - " << arg[0][arg[0].size() - 1] <<std::endl;
 	if (arg[0].empty())
 		throw std::runtime_error("error configuration file's root directive");
 	if (arg[0].find("..") != std::string::npos)
@@ -45,14 +43,10 @@ void Directive::checkRoot()
 		throw std::runtime_error("error configuration file's root directive");
 	if (arg[0][arg[0].size() - 1] == '/')
 	{
-		// perror("I");
 		arg[0] = arg[0].substr(0, arg[0].size() - 1);
-		// std::cout << "arg - " << arg[0] <<std::endl;
 	}
 	if (arg[0][0] == '/')
 		arg[0] = arg[0].substr(1, arg[0].size());
-	// std::cout << "fin - " << arg[0] <<std::endl;
-	// perror("It");
 }
 
 void Directive::checkError()
@@ -74,12 +68,10 @@ void Directive::checkError()
 	if (arg[1].empty())
 		throw std::runtime_error("error in configuration file : error_page directive"); //usefull ?
 
-	// std::cout << "arg av = " << arg[1] << std::endl;
 	if (arg[1][0] != '/')
 		arg[1] = '/' + arg[1];
 	if (arg[1][arg[1].size() - 1] == '/')
 		arg[1] = arg[1].substr(0, arg[1].size() - 2);
-	// std::cout << "arg ap = " << arg[1] << std::endl;
 }
 
 void Directive::checkRedir()
@@ -104,7 +96,6 @@ void Directive::checkRedir()
 
 void Directive::checkAutoindex()
 {
-	// std::cout << "arg[1] = " << arg[0] << std::endl;
 	if (nbArg != 1)
 		throw std::runtime_error("error in configuration file : autoindex directive should have one attribute");
 	if (arg[0] != "on" && arg[0] != "off")
@@ -113,7 +104,6 @@ void Directive::checkAutoindex()
 
 void Directive::checkIndex()
 {
-	// std::cout << "arg[1] = " << arg[0] << std::endl;
 	if (nbArg != 1)
 		throw std::runtime_error("error in configuration file : index directive should have one attribute");
 	if (arg[0][0] != '/')

@@ -85,8 +85,11 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 	cgi["REQUEST_METHOD"]  = _method;
     cgi["QUERY_STRING"]    = _queryString;
 
-	size_t found = _path.find_last_of('/');
-    cgi["SCRIPT_FILENAME"] = _path.substr(found+1);
+	// to get only the filenam and not the full path
+	// size_t found = _path.find_last_of('/');
+    // cgi["SCRIPT_FILENAME"] = _path.substr(found+1);
+
+    cgi["SCRIPT_FILENAME"] = _path;
 
     cgi["CONTENT_LENGTH"]  = "0";
     cgi["SERVER_PROTOCOL"] = "HTTP/1.1";

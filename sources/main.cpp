@@ -64,7 +64,6 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string &line)
 		}
 		else // directive apres le serveur
 			throw std::runtime_error("" + static_cast<std::string>(strerror(errno)));
-		// std::cout << "bem" << line << std::endl; // pour enlever le ; à la fin
 		// temp << "bem" << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 	}
 }
@@ -108,10 +107,8 @@ GlobalConfig parseConfig(std::string config_path)
 	if (!file)
 		throw std::runtime_error("could not open configuration file: " + static_cast<std::string>(strerror(errno)));
 	first_parse(file, temp);
-    // perror("no");
 	temp.close();
     temp.open("temp.txt", std::ios::in);
-	// perror("trait");
 	GlobalConfig config(temp);
 	// config.print_config();
 	temp.close();
@@ -130,7 +127,7 @@ int main(int ac, char **av)
 		GlobalConfig config = parseConfig(config_path);
 		Server serv(&config);
 		signal(SIGINT, Server::handleSigint);
-		// signal(SIGCHLD, Cgi::sigchld_handler);
+		signal(SIGCHLD, Cgi::sigchld_handler);
 		serv.launch();
 	}
 	catch(const std::exception& e)
