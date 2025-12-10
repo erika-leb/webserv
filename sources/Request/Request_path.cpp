@@ -98,6 +98,8 @@ void Request::checkPath(std::string pathfile, size_t &eCode)
 {
 	struct stat	fileStat;
 
+	if (_action == "POST")
+		return;
 	getPath(pathfile);
 	DEBUG_MSG("after first getPaht = " << pathfile);
 	if (_sCode != 200)

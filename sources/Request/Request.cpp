@@ -90,6 +90,19 @@ void Request::parseHttp(void)
 		parseParam();
 }
 
+void Request::parseBody()
+{
+	std::string::size_type pos;
+	Client& cli = _cli;
+
+	pos = cli.getBuff().find("\r\n\r\n");
+	if (pos + 4 < cli.getBuff().size())
+		_body << cli.getBuff().substr(pos + 4);
+	else
+		_body << "";  // body vide
+	// _body << cli.getBuff().substr(pos + 4);
+}
+
 void Request::fGet(void)
 {
 	DEBUG_MSG("GET request");
@@ -105,14 +118,61 @@ void Request::fGet(void)
 	// std::cerr << "apres = code = " << _sCode << ";,path = " << _pathfile << std::endl;
 }
 
+
+
+
+
 void Request::fPost(void)
 {
 	DEBUG_MSG("POST request");
+	struct stat st;
+	std::fstream upload;
 	// si il y a une erreur quelque part, changer le sCode et faire fGet
 	//ici ou avant on parse le body (specificite content lenght et chunked)
 	// processer l'info = cgi, uplaod si autoriser par la locaion
+
+	if (stat(_pathfile.c_str(), &st) == -1)
+	{
+		if (errno != ENOENT)
+		{
+			_sCode = 403;
+			fGet();
+			return ;
+		}
+		std::string::size_type pos = _pathfile.find_last_of('/');
+		if (pos == std::string::npos)
+		{
+			_sCode = 403;
+			return;
+		}
+
+		std::string parent = _pathfile.substr(0, pos);
+
+		if (access(parent.c_str(), W_OK) != 0)
+		{
+			_sCode = 403;
+			return;
+		}
+	}
+	else
+	{
+		if (access(_pathfile.c_str(), W_OK) != 0)
+		{
+			_sCode = 403;
+			fGet();
+			return ;
+		}
+	}
+	upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
+	if (!upload.is_open())
+	{
+		_sCode = 500;
+		fGet();
+		return;
+	}
+	upload << _body.str();
 	_sCode = 201;
-	fGet();
+	// fGet(); // pourquoi il y a un fGet ? il faut l'enlever je crois
 }
 
 void Request::fDelete(void)

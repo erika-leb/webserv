@@ -10,12 +10,18 @@ std::string Request::toLower(std::string &str)
 
 Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _contentLength(0), _locationIndex(-1)
 {
-	std::stringstream ss(cli.getBuff()), rawParam;
-	std::string key, value, tmp;
+	std::stringstream ss(""), rawParam;
+	// std::stringstream ss(cli.getBuff()), rawParam;
+	std::string key, value, tmp, rawHeader;
+	std::string::size_type pos;
+
 	_locs = _serv.getLocation();
 	_sCode = 200;
 	_connection = "keep-alive";
 	cli.setCon(true);
+	pos = cli.getBuff().find("\r\n\r\n");
+	rawHeader = cli.getBuff().substr(0, pos);
+	ss << rawHeader;
 	std::getline(ss, tmp);
 	_rawHttp << tmp;
 	while (std::getline(ss, tmp))
@@ -27,6 +33,11 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 		remove_blank(value);
 		_reqParam[toLower(key)] = value;
 	}
+	// if (pos + 4 < cli.getBuff().size())
+	// 	_body << cli.getBuff().substr(pos + 4);
+	// else
+	// 	_body << "";  // body vide
+	// _body << cli.getBuff().substr(pos + 4);
 	setErrorPath();
 }
 

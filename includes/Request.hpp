@@ -19,10 +19,11 @@ private:
 	std::map<int, std::string>			_errorPath;
 	std::string							_action, _pathfile, _file, _fileType, _connection, _statusMess, _location;
 	size_t								_sCode, _fileLength, _chunked; //3 derniers = 1 si chunked, uplaod renseigne et contentleingt active
-	unsigned long long					_contentLength, ;
+	unsigned long long					_contentLength;
 	int 								_locationIndex;
 	std::vector<LocationConfig>			_locs;
 	std::stringstream					_htmlList;
+	std::stringstream					_body;
 
 public:
 	Request( Client& );
@@ -59,6 +60,8 @@ public:
 	void fGet();
 	void fPost();
 	void fDelete();
+
+	void parseBody();
 
 	void handleAction( std::string );
 	std::string makeResponse();

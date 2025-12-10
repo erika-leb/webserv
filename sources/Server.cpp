@@ -185,6 +185,8 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 			if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
 				cli->setCgi(new Cgi(req->getPathFile(), req->getAction(), *cli));
 				cli->getCgi()->handleCGI_fork(_poll);
+				delete req;
+				cli->setRequest(NULL);
 				cli->clearRequestBuff();
 			}
 			else {
@@ -192,14 +194,17 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 				tmp = req->makeResponse();
 				modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 			}
-			if (req->getAction() != "POST" || req->getsCode() != 200)
+			// if (req->getAction() != "POST" || req->getsCode() != 200)
+			if (req->getLenght() == 0) // plus rien a lire
 			{
 				cli->clearRequestBuff(); // erase the processed request
+				cli->setRequest(NULL);
 				delete req;
 			}
 			else
 			{
 				endPos = cli->getBuff().find("\r\n\r\n") + 4;
+				cli->setBodyRead(cli->getBuff().size() - endPos); // on indique le nombre d'octet lus apres le header
 				cli->setRequest(req);
 			}
 		}
@@ -209,13 +214,21 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		Request &req = *(cli->getRequest());
 
 		cli->setBodyRead(cli->getBodyRead() + n);
-		if (req.getLenght() == cli->getBodyRead()) //body complet on peut traiter
+		if (req.getAction() == "POST" && req.getsCode() == 200 && req.getLenght() == cli->getBodyRead()) //body complet on peut traiter
 		{
-			//ici on parse et on traite
+			//ici on parse et on traite, on preprare la reponse et on modifie les events
+			req.parseBody();
+			req.handleAction(req.getAction());
 			cli->clearRequestBuff(); // erase the processed request
 			cli->deleteRequest();
+			cli->setRequest(NULL);
 		}
-		// if (reqCompleted == true)
+		else if (req.getLenght() == cli->getBodyRead())
+		{
+			cli->clearRequestBuff(); // erase the processed request
+			cli->deleteRequest();
+			cli->setRequest(NULL);
+		}
 	}
 }
 
