@@ -15,6 +15,7 @@ a faire encore pour config :
 - root/location = prendre le + long location OK
 - proteger les fichiers d'erreur additionnel comme Thib a fait ou pas ?
 - reflechir a des protection si les fichiers d'erreur de base sont bouges, est-ce qu'on a le droit de faire ca en correction ? Dans tous les cas il faut proteger, pareil pour les 300 IMPORTANT
+- directive retrun -> renvoyer le fichier (http://localhost:8081/Makefile doit renvoyer le Makefile de kiki)
 
 a faire pour serveur:
 
@@ -24,7 +25,7 @@ a faire pour requete:
 - protection si chemin avec .. ou ~
 - verifier si il y a des parametres non supportes -> erreur 501
 
-
+DEMAIN == calculer le nombre d'octet, faire post, changer les dossier sources
 
 Rappel fichier config :
 un serveur nginx = suite de directives

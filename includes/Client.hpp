@@ -9,6 +9,8 @@ class Cgi;
 
 class ServerConfig;
 
+class Request;
+
 class Client {
 
 	public:
@@ -39,15 +41,21 @@ class Client {
 		void setCgi( Cgi* newCgi );
 		void deleteCgi(); // is this function really needed ?
 		Cgi* getCgi();
+		Request* getRequest() const;
+		void setRequest(Request *req);
+		void deleteRequest();
 
 		void setlastConn(time_t);
 		time_t getlastConn();
 		ServerConfig &getServ();
+		void setBodyRead(unsigned long long);
+		unsigned long long	getBodyRead();
 		// std::string &getIp();
 		// int getPort();
 
 	private:
 		Cgi* _cgi;
+		Request *_req;
 
 		int _fd;
 		std::string _buff;
@@ -55,6 +63,7 @@ class Client {
 		bool _con;
 		time_t _lastConn;
 		ServerConfig &_conf;
+		unsigned long long _bodyRead;
 		// std::string _ip;
 		// int 		_port;
 

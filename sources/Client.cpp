@@ -1,11 +1,11 @@
 #include "Client.hpp"
 
 // Client::Client(int fd, ListenInfo info) : _fd(fd), _buff(""), _sendBuff(""), _lastConn(std::time(NULL)), _ip(info.ip), _port(info.port)
-Client::Client(int fd, ServerConfig &conf) : _cgi(NULL), _fd(fd), _buff(""), _sendBuff(""), _lastConn(std::time(NULL)), _conf(conf)
+Client::Client(int fd, ServerConfig &conf) : _cgi(NULL), _req(NULL), _fd(fd), _buff(""), _sendBuff(""), _lastConn(std::time(NULL)), _conf(conf), _bodyRead(0)
 {
 }
 
-Client::Client(const Client &src): _cgi(src._cgi),_fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff), _lastConn(src._lastConn), _conf(src._conf)
+Client::Client(const Client &src): _cgi(src._cgi), _req(src._req), _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff), _lastConn(src._lastConn), _conf(src._conf), _bodyRead(src._bodyRead)
 // Client::Client(const Client &src): _fd(src._fd), _buff(src._buff), _sendBuff(src._sendBuff), _lastConn(src._lastConn), _ip(src._ip), _port(src._port)
 {
 }
@@ -25,6 +25,8 @@ Client &Client::operator=(const Client &src)
 		_buff = src._buff;
 		_sendBuff = src._sendBuff;
 		_lastConn = src._lastConn;
+		_req = src._req;
+		_bodyRead = src._bodyRead;
 		// _ip = src._ip;
 		// _port = src._port;
 	}
@@ -127,6 +129,30 @@ time_t Client::getlastConn()
 ServerConfig &Client::getServ()
 {
 	return (_conf);
+}
+
+Request* Client::getRequest() const
+{
+	return _req;
+}
+
+void Client::setRequest(Request *req)
+{
+	_req = req;
+}
+void Client::deleteRequest()
+{
+	delete _req;
+}
+
+unsigned long long	Client::getBodyRead()
+{
+	return _bodyRead;
+}
+
+void Client::setBodyRead(unsigned long long nb)
+{
+	_bodyRead = nb;
 }
 
 // std::string &Client::getIp()

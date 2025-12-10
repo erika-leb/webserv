@@ -48,6 +48,7 @@ Request &Request::operator=(const Request &other)
 		_locs = other._locs;
 		_chunked = other._chunked;
 		_contentLength = other._contentLength;
+		// _bodyRead = other._bodyRead;
 	}
 	return (*this);
 }
@@ -75,6 +76,12 @@ int Request::getsCode(void) const
 {
 	return (_sCode);
 }
+
+unsigned long long	Request::getLenght()
+{
+	return _contentLength;
+}
+
 
 bool Request::is_cgi(std::string cgiFolder)
 {

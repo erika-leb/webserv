@@ -166,32 +166,56 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
-void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli)
+void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli, int n)
 {
+	size_t endPos;
+
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	cli->addBuff(buff);
 	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
-	if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos)
+	if (cli->getRequest() == NULL)
 	{
-		Request req(*cli);
-		req.parseHttp();
-		std::string cgiFolder(".php"); // erase this line and replace the argument of the function with the actual folder from configuration file
-		// std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-		// std::cout << "cooddee = " << req.getsCode() << std::endl;
-		if (req.is_cgi(cgiFolder) && (req.getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
-			cli->setCgi(new Cgi(req.getPathFile(), req.getAction(), *cli));
-			cli->getCgi()->handleCGI_fork(_poll);
+		if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos)
+		{
+			Request *req = new Request(*cli);
+			req->parseHttp();
+			std::string cgiFolder(".php"); // erase this line and replace the argument of the function with the actual folder from configuration file
+			// std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
+			// std::cout << "cooddee = " << req.getsCode() << std::endl;
+			if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
+				cli->setCgi(new Cgi(req->getPathFile(), req->getAction(), *cli));
+				cli->getCgi()->handleCGI_fork(_poll);
+				cli->clearRequestBuff();
+			}
+			else {
+				req->handleAction(req->getAction());
+				tmp = req->makeResponse();
+				modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
+			}
+			if (req->getAction() != "POST" || req->getsCode() != 200)
+			{
+				cli->clearRequestBuff(); // erase the processed request
+				delete req;
+			}
+			else
+			{
+				endPos = cli->getBuff().find("\r\n\r\n") + 4;
+				cli->setRequest(req);
+			}
 		}
-		// else if (req.getsCode() == 200 && req.getAction() == "POST")
-		// {
+	}
+	else // on a deja une req donc le header a deja ete parsee, il faut parse le reste, le code est diff de 200 et la requete est POST
+	{
+		Request &req = *(cli->getRequest());
 
-		// }
-		else {
-			req.handleAction(req.getAction());
-			tmp = req.makeResponse();
-			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
+		cli->setBodyRead(cli->getBodyRead() + n);
+		if (req.getLenght() == cli->getBodyRead()) //body complet on peut traiter
+		{
+			//ici on parse et on traite
+			cli->clearRequestBuff(); // erase the processed request
+			cli->deleteRequest();
 		}
-		cli->clearRequestBuff(); // erase the processed request
+		// if (reqCompleted == true)
 	}
 }
 
@@ -223,7 +247,7 @@ int Server::receiveRequest(int i, std::string& tmp)
 			if (client_fd == (*it)->getFd())
 			{
 				(*it)->setlastConn(std::time(NULL));
-				prepareResponse(buff, tmp, client_fd, (*it));
+				prepareResponse(buff, tmp, client_fd, (*it), n);
 				return (1);
 			}
 		}
