@@ -163,3 +163,4 @@ HTTP_ACCEPT=*/*
 - Fix the case where there is arbitrary spaces between value HTTP header
 - Exit program when crtl-C not just passing the flag to 1 (making `execve()` impossible to fail) ? still necessary ?
 - See with partner about the 301 code and the html auto-generated file
+- Cgi exec with php/py/.. executable with args = pathfile
