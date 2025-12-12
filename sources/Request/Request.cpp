@@ -6,12 +6,7 @@
 void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas content-encoding
 {
 	std::string value;
-	perror("KATY");
-	for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); it++)
-	{
-		DEBUG_MSG("cle = " << it->first);
-		DEBUG_MSG("valeur = " << it->second);
-	}
+	// perror("KATY");
 	if (_reqParam.find("transfer-encoding") != _reqParam.end())
 	{
 		value = toLower(_reqParam["transfer-encoding"]);
@@ -105,7 +100,7 @@ void Request::parseBody()
 	std::string::size_type pos;
 	Client& cli = _cli;
 
-	perror("PErryr");
+	// perror("PErryr");
 	pos = cli.getBuff().find("\r\n\r\n");
 	if (pos + 4 < cli.getBuff().size())
 		_body << cli.getBuff().substr(pos + 4);

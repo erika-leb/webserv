@@ -167,6 +167,20 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
+void Server::clearRequest(Client *cli, Request *req)
+{
+  // 0
+	(void) flag;
+  	delete req;
+
+//1
+			// erase the processed request
+			// cli->deleteRequest();
+
+	cli->clearRequestBuff();
+	cli->setRequest(NULL);
+}
+
 void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli, int n)
 {
 	size_t endPos;
@@ -182,45 +196,38 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 			req->parseHttp();
 			std::string cgiFolder(".php"); // erase this line and replace the argument of the function with the actual folder from configuration file
 			// std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-			// std::cout << "cooddee = " << req.getsCode() << std::endl;
 			if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
 				cli->setCgi(new Cgi(req->getPathFile(), req->getAction(), *cli));
 				cli->getCgi()->handleCGI_fork(_poll);
-				delete req;
-				cli->setRequest(NULL);
-				cli->clearRequestBuff();
+				clearRequest(cli, req);
 			}
 			else if (req->getAction() != "POST" || req->getsCode() != 200)
 			{
-				perror("si");
+				// perror("si");
 				req->handleAction(req->getAction());
 				tmp = req->makeResponse();
 				modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 			}
-			DEBUG_MSG("LENGHT = " << req-> getLenght());
+			// DEBUG_MSG("LENGHT = " << req-> getLenght());
 
 			// if (req->getAction() != "POST" || req->getsCode() != 200)
 			if (req->getLenght() == 0) // plus rien a lire
 			{
-				perror("style");
-				cli->clearRequestBuff(); // erase the processed request
-				cli->setRequest(NULL);
-				delete req;
+				// perror("style");
+				clearRequest(cli, req);
 			}
 			else
 			{
-				perror("la");
+				// perror("la");
 				endPos = cli->getBuff().find("\r\n\r\n") + 4;
 				cli->setBodyRead(cli->getBuff().size() - endPos); // on indique le nombre d'octet lus apres le header
 				if (req->getAction() == "POST" && req->getsCode() == 200 && req->getLenght() == cli->getBodyRead())
 				{
-					perror("era");
 					req->parseBody();
 					req->handleAction(req->getAction());
 					tmp = req->makeResponse();
 					modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
-					cli->clearRequestBuff(); // erase the processed request
-					delete req;
+					clearRequest(cli, req);
 				}
 				else
 					cli->setRequest(req);
@@ -229,27 +236,18 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	}
 	else // on a deja une req donc le header a deja ete parsee, il faut parse le reste, le code est diff de 200 et la requete est POST
 	{
-		Request &req = *(cli->getRequest());
-		perror("ERA");
+		Request *req = (cli->getRequest());
 		cli->setBodyRead(cli->getBodyRead() + n);
-		if (req.getAction() == "POST" && req.getsCode() == 200 && req.getLenght() == cli->getBodyRead()) //body complet on peut traiter
+		if (req->getAction() == "POST" && req->getsCode() == 200 && req->getLenght() == cli->getBodyRead()) // body is complete and can be procesed
 		{
-			//ici on parse et on traite, on preprare la reponse et on modifie les events
-			perror("ere");
-			req.parseBody();
-			req.handleAction(req.getAction());
-			tmp = req.makeResponse();
+			req->parseBody();
+			req->handleAction(req->getAction());
+			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
-			cli->clearRequestBuff(); // erase the processed request
-			cli->deleteRequest();
-			cli->setRequest(NULL);
+			clearRequest(cli, req);
 		}
-		else if (req.getLenght() == cli->getBodyRead()) //body complet, on peut effacer
-		{
-			cli->clearRequestBuff(); // erase the processed request
-			cli->deleteRequest();
-			cli->setRequest(NULL);
-		}
+		else if (req->getLenght() == cli->getBodyRead()) // body is complete and can be erased
+			clearRequest(cli, req);
 	}
 }
 
