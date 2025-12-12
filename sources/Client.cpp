@@ -77,10 +77,11 @@ std::string Client::getToSend()
 
 void Client::clearRequestBuff()
 {
-	size_t n;
+	// size_t n;
 
-	n = _buff.find("\r\n\r\n");
-	_buff.erase(0, n + 4);
+	// n = _buff.find("\r\n\r\n");
+	// _buff.erase(0, n + 4);
+	_buff.erase();
 }
 
 void Client::addToSend()
