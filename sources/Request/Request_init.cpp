@@ -30,15 +30,24 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	}
 	while (std::getline(rawParam, key, ':') && rawParam >> value)
 	{
-		remove_blank(value);
+		trim_line(key);
+		trim_line(value);
+		// remove_blank(value);
+		// _reqParam[key] = value;
 		_reqParam[toLower(key)] = value;
 	}
+	// for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); it++)
+	// {
+	// 	std::cout << "cle = " << it->first << " | valeur = " << it->second << std::endl;
+	// 	// DEBUG_MSG("cle = " << it->first << " | valeur = " << it->second);
+	// }
 	// if (pos + 4 < cli.getBuff().size())
 	// 	_body << cli.getBuff().substr(pos + 4);
 	// else
 	// 	_body << "";  // body vide
 	// _body << cli.getBuff().substr(pos + 4);
 	setErrorPath();
+	DEBUG_MSG("	code fin init = " << _sCode);
 }
 
 Request::Request(const Request &cpy) : _cli(cpy._cli), _serv(cpy._serv),

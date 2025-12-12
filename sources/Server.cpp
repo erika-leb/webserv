@@ -153,7 +153,8 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 		return ;
 	}
 	event.data.fd = client_fd;
-	event.events = EPOLLIN | EPOLLET;
+	event.events = EPOLLIN;
+	// event.events = EPOLLIN | EPOLLET;
 	epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
 	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
@@ -173,9 +174,9 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	cli->addBuff(buff);
 	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
-	if (cli->getRequest() == NULL)
+	if (cli->getRequest() == NULL) //on a pas de request malloquee
 	{
-		if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos)
+		if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos) //on capte le header entier donc on malloque une requete
 		{
 			Request *req = new Request(*cli);
 			req->parseHttp();
@@ -189,41 +190,61 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 				cli->setRequest(NULL);
 				cli->clearRequestBuff();
 			}
-			else {
+			else if (req->getAction() != "POST" || req->getsCode() != 200)
+			{
+				perror("si");
 				req->handleAction(req->getAction());
 				tmp = req->makeResponse();
 				modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 			}
+			DEBUG_MSG("LENGHT = " << req-> getLenght());
+
 			// if (req->getAction() != "POST" || req->getsCode() != 200)
 			if (req->getLenght() == 0) // plus rien a lire
 			{
+				perror("style");
 				cli->clearRequestBuff(); // erase the processed request
 				cli->setRequest(NULL);
 				delete req;
 			}
 			else
 			{
+				perror("la");
 				endPos = cli->getBuff().find("\r\n\r\n") + 4;
 				cli->setBodyRead(cli->getBuff().size() - endPos); // on indique le nombre d'octet lus apres le header
-				cli->setRequest(req);
+				if (req->getAction() == "POST" && req->getsCode() == 200 && req->getLenght() == cli->getBodyRead())
+				{
+					perror("era");
+					req->parseBody();
+					req->handleAction(req->getAction());
+					tmp = req->makeResponse();
+					modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
+					cli->clearRequestBuff(); // erase the processed request
+					delete req;
+				}
+				else
+					cli->setRequest(req);
 			}
 		}
 	}
 	else // on a deja une req donc le header a deja ete parsee, il faut parse le reste, le code est diff de 200 et la requete est POST
 	{
 		Request &req = *(cli->getRequest());
-
+		perror("ERA");
 		cli->setBodyRead(cli->getBodyRead() + n);
 		if (req.getAction() == "POST" && req.getsCode() == 200 && req.getLenght() == cli->getBodyRead()) //body complet on peut traiter
 		{
 			//ici on parse et on traite, on preprare la reponse et on modifie les events
+			perror("ere");
 			req.parseBody();
 			req.handleAction(req.getAction());
+			tmp = req.makeResponse();
+			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 			cli->clearRequestBuff(); // erase the processed request
 			cli->deleteRequest();
 			cli->setRequest(NULL);
 		}
-		else if (req.getLenght() == cli->getBodyRead())
+		else if (req.getLenght() == cli->getBodyRead()) //body complet, on peut effacer
 		{
 			cli->clearRequestBuff(); // erase the processed request
 			cli->deleteRequest();

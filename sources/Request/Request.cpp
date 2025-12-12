@@ -6,7 +6,12 @@
 void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas content-encoding
 {
 	std::string value;
-
+	perror("KATY");
+	for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); it++)
+	{
+		DEBUG_MSG("cle = " << it->first);
+		DEBUG_MSG("valeur = " << it->second);
+	}
 	if (_reqParam.find("transfer-encoding") != _reqParam.end())
 	{
 		value = toLower(_reqParam["transfer-encoding"]);
@@ -21,6 +26,7 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 
 	if (_reqParam.find("content-length") != _reqParam.end())
 	{
+		perror("chien");
 		value = _reqParam["content-length"];
 		for (std::string::size_type i = 0; i < value.size(); i++)
 		{
@@ -30,10 +36,12 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 				return ;
 			}
 		}
+		_contentLength = std::atoi(value.c_str());
+		// DEBUG_MSG("LENGHT = " << _fileLength);
 	}
 	else
 	{
-		if (_action == "{POST")
+		if (_action == "POST")
 			_sCode = 411;
 	}
 
@@ -54,6 +62,7 @@ void Request::parseHttp(void)
 	remove_blank(_action);
 	if (_action != "GET" && _action != "POST" && _action != "DELETE")
 	{
+		DEBUG_MSG("action not allowed = " << _action);
 		_sCode = 405;
 	}
 	std::getline(_rawHttp, _pathfile, ' ');
@@ -85,6 +94,7 @@ void Request::parseHttp(void)
 	else
 		_sCode = 400;
 	DEBUG_MSG("path at end of parse = " + _pathfile);
+	DEBUG_MSG("code fin de parse https = " << _sCode);
 	// std::cout << "ode =" << _sCode << std::endl;
 	if (_sCode == 200)
 		parseParam();
@@ -95,11 +105,13 @@ void Request::parseBody()
 	std::string::size_type pos;
 	Client& cli = _cli;
 
+	perror("PErryr");
 	pos = cli.getBuff().find("\r\n\r\n");
 	if (pos + 4 < cli.getBuff().size())
 		_body << cli.getBuff().substr(pos + 4);
 	else
 		_body << "";  // body vide
+	DEBUG_MSG("body = " << _body.str());
 	// _body << cli.getBuff().substr(pos + 4);
 }
 
@@ -119,22 +131,26 @@ void Request::fGet(void)
 }
 
 
-
-
-
 void Request::fPost(void)
 {
 	DEBUG_MSG("POST request");
 	struct stat st;
 	std::fstream upload;
+	Directive directive;
 	// si il y a une erreur quelque part, changer le sCode et faire fGet
 	//ici ou avant on parse le body (specificite content lenght et chunked)
 	// processer l'info = cgi, uplaod si autoriser par la locaion
+
+	if (_locationIndex != -1)
+		directive = getDirective("root", _locs[_locationIndex].getDir());
+	else
+		directive = getDirective("root", _serv.getDir());
 
 	if (stat(_pathfile.c_str(), &st) == -1)
 	{
 		if (errno != ENOENT)
 		{
+			perror("cors");
 			_sCode = 403;
 			fGet();
 			return ;
@@ -142,15 +158,20 @@ void Request::fPost(void)
 		std::string::size_type pos = _pathfile.find_last_of('/');
 		if (pos == std::string::npos)
 		{
+			perror("brule");
 			_sCode = 403;
 			return;
 		}
 
-		std::string parent = _pathfile.substr(0, pos);
 
+		std::string parent = _pathfile.substr(0, pos);
+		parent.insert(0, directive.getArg()[0]);
+		DEBUG_MSG("parent = " << parent);
 		if (access(parent.c_str(), W_OK) != 0)
 		{
+			perror("au");
 			_sCode = 403;
+			fGet();
 			return;
 		}
 	}
@@ -158,20 +179,28 @@ void Request::fPost(void)
 	{
 		if (access(_pathfile.c_str(), W_OK) != 0)
 		{
+			perror("sang");
 			_sCode = 403;
 			fGet();
 			return ;
 		}
 	}
+	_pathfile.insert(0, directive.getArg()[0]);
+	DEBUG_MSG("path avantcreation fichier post = " << _pathfile );
 	upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
+	// upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
 	if (!upload.is_open())
 	{
+		perror("conemara");
 		_sCode = 500;
 		fGet();
 		return;
 	}
+	DEBUG_MSG("body = " << _body.str());
 	upload << _body.str();
 	_sCode = 201;
+	upload.close();
+	DEBUG_MSG("code sans return fin post = " << _sCode);
 	// fGet(); // pourquoi il y a un fGet ? il faut l'enlever je crois
 }
 
@@ -226,6 +255,7 @@ void Request::handleAction(std::string action)
 
 std::string Request::makeResponse(void)
 {
+	DEBUG_MSG("code final =" << _sCode);
 	std::ostringstream mess;
 	// ServerConfig conf = _cli.getServ();
 	mess << "HTTP/1.1"
@@ -240,7 +270,7 @@ std::string Request::makeResponse(void)
 		// Modify either the connection need to be maintained or not
 	if (_sCode > 300 && _sCode < 400)
 		mess << "Location: " << _location << ENDLINE;
-	if (_sCode != 204)
+	if (_sCode != 204 && _sCode != 201)
 	{
 		mess << "Content-Type: "
 				<< "text/html" << ENDLINE; // Modify according to file
@@ -249,20 +279,26 @@ std::string Request::makeResponse(void)
 		mess << _file;
 	}
 	else
+	{
+		mess << "Content-Type: "
+				<< "text/html" << ENDLINE; // Modify according to file
+		mess << "Content-Length: " << 0 << ENDLINE;
 		mess << ENDLINE;
+	}
 	if (_htmlList.str() == "")
 	{
-		std::cerr << "message envopye = " << mess.str() << std::endl;
+		std::cerr << "message envoye = " << mess.str() << std::endl;
 		_cli.setSendBuff(mess.str());
 	}
 	else
 	{
-		std::cerr << "message envopye = " << _htmlList.str() << std::endl;
+		std::cerr << "message envoye = " << _htmlList.str() << std::endl;
 		_cli.setSendBuff(_htmlList.str());
 	}
 	if (_connection == "keep-alive")
 		_cli.setCon(true);
 	else
 		_cli.setCon(false);
+	DEBUG_MSG("path a fin de message = " << _pathfile);
 	return (_pathfile);
 }
