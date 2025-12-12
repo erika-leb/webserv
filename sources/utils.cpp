@@ -85,6 +85,12 @@ std::string date(int format) {
 	return std::string(buff);
 }
 
+void Server::clearRequest(Client *cli, Request *req)
+{
+  	delete req;
+	cli->clearRequestBuff();
+	cli->setRequest(NULL);
+}
 
 bool isDirectivePresent(std::string name, std::vector<Directive> dir)
 {

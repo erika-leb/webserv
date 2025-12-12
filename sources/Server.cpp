@@ -167,78 +167,44 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
-void Server::clearRequest(Client *cli, Request *req)
-{
-  // 0
-	(void) flag;
-  	delete req;
-
-//1
-			// erase the processed request
-			// cli->deleteRequest();
-
-	cli->clearRequestBuff();
-	cli->setRequest(NULL);
-}
 
 void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli, int n)
 {
 	size_t endPos;
+	Request *req;
 
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	cli->addBuff(buff);
 	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
-	if (cli->getRequest() == NULL) //on a pas de request malloquee
-	{
-		if ((cli->getBuff()).find("\r\n\r\n") != std::string::npos) //on capte le header entier donc on malloque une requete
-		{
-			Request *req = new Request(*cli);
-			req->parseHttp();
-			std::string cgiFolder(".php"); // erase this line and replace the argument of the function with the actual folder from configuration file
-			// std::string cgiFolder("/cgi"); // erase this line and replace the argument of the function with the actual folder from configuration file
-			if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // check if we are in the cgi folder and that there are no problem
-				cli->setCgi(new Cgi(req->getPathFile(), req->getAction(), *cli));
-				cli->getCgi()->handleCGI_fork(_poll);
-				clearRequest(cli, req);
-			}
-			else if (req->getAction() != "POST" || req->getsCode() != 200)
-			{
-				// perror("si");
-				req->handleAction(req->getAction());
-				tmp = req->makeResponse();
-				modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
-			}
-			// DEBUG_MSG("LENGHT = " << req-> getLenght());
 
-			// if (req->getAction() != "POST" || req->getsCode() != 200)
-			if (req->getLenght() == 0) // plus rien a lire
-			{
-				// perror("style");
-				clearRequest(cli, req);
-			}
-			else
-			{
-				// perror("la");
-				endPos = cli->getBuff().find("\r\n\r\n") + 4;
-				cli->setBodyRead(cli->getBuff().size() - endPos); // on indique le nombre d'octet lus apres le header
-				if (req->getAction() == "POST" && req->getsCode() == 200 && req->getLenght() == cli->getBodyRead())
-				{
-					req->parseBody();
-					req->handleAction(req->getAction());
-					tmp = req->makeResponse();
-					modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
-					clearRequest(cli, req);
-				}
-				else
-					cli->setRequest(req);
-			}
-		}
-	}
-	else // on a deja une req donc le header a deja ete parsee, il faut parse le reste, le code est diff de 200 et la requete est POST
+	if (cli->getRequest() == NULL && (cli->getBuff()).find("\r\n\r\n") != std::string::npos) // header complete so we create a new request
 	{
-		Request *req = (cli->getRequest());
-		cli->setBodyRead(cli->getBodyRead() + n);
-		if (req->getAction() == "POST" && req->getsCode() == 200 && req->getLenght() == cli->getBodyRead()) // body is complete and can be procesed
+		req = new Request(*cli); // new request
+		cli->setRequest(req); // we save the request in client
+		req->parseHttp();
+		endPos = cli->getBuff().find("\r\n\r\n") + 4; // we save the number of octet read after the header
+		cli->setBodyRead(cli->getBuff().size() - endPos);
+	}
+	else if (cli->getRequest() != NULL)
+		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
+
+	req = (cli->getRequest());
+	if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
+	{
+		std::string cgiFolder(".php");
+		if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // CGI cases
+			cli->setCgi(new Cgi(req->getPathFile(), req->getAction(), *cli));
+			cli->getCgi()->handleCGI_fork(_poll);
+			clearRequest(cli, req);
+		}
+		else if (req->getAction() != "POST" || req->getsCode() != 200) //GET, DELETE, ERROR cases
+		{
+			req->handleAction(req->getAction());
+			tmp = req->makeResponse();
+			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
+			clearRequest(cli, req);
+		}
+		else // POST with no error case
 		{
 			req->parseBody();
 			req->handleAction(req->getAction());
@@ -246,8 +212,6 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 			clearRequest(cli, req);
 		}
-		else if (req->getLenght() == cli->getBodyRead()) // body is complete and can be erased
-			clearRequest(cli, req);
 	}
 }
 
