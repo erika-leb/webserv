@@ -1,11 +1,6 @@
 
 valgrind --trace-children=yes --track-fds=yes --leak-check=full --show-leak-kinds=all ./webserv
 
-TO DO:
-- terminer de traiter le fichier de config
-- faire la requete post
-- faire des tests pour fichier conf a l'aide des fichier de Kim et Allan
-
 a faire encore pour config :
 - voir quelles directives on accepte (accepte-on les meme a chaque niveau ?) voir sujet
 - decider quelles ou si des directives peuvent se trouver en doubon
@@ -24,15 +19,19 @@ a faire pour requete:
 - post
 - protection si chemin avec .. ou ~
 - verifier si il y a des parametres non supportes -> erreur 501
+- voir si cette ligne est a modifier		mess << "Content-Type: "
+				<< "text/html" << ENDLINE; // Modify according to file
 
-DEMAIN == - reduire la fonction post, prepare response
-- diviser le fichier request
-- regler le probleme de redirection (ca a l'air ok)
-- faire parsing post ou chunked
-- lire le code cgi de thibault
+RESTE A FAIRE == - faire parsing post
+- faire chunked
+- lire le code cgi de thibault (erika)
+- gerer la directive cgi (Thibault)
+- ajouter le cas POST CGI
 
-Rappel fichier config :
-un serveur nginx = suite de directives
+
+
+
+
 
 - si deeux serveurs avec memes adresse que fait-on ? ie comment gerer le virtual hosting ?
 - si le fichier de conf ne termine pas par .conf c'est grave ?
@@ -56,8 +55,6 @@ logique de request = - on verifie que le _pathfile (le fichier) existe (checkFil
 - location = / a la fin oui mais apres normalement meme si on dirait que non   ex : /test
 - fichier = slash au debut mais pas a la fin OK ex : /04.html
 - cgi = slash avant mais pas apres
-
-
 
 
 
