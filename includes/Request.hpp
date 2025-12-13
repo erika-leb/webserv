@@ -57,6 +57,8 @@ public:
 	void parseParam(void);
 	void parseHttp();
 
+	int checkPostPath(Directive &directive);
+
 	void fGet();
 	void fPost();
 	void fDelete();

@@ -15,7 +15,6 @@ class Client {
 
 	public:
 		Client(int fd, ServerConfig &conf);
-		// Client(int fd, ListenInfo info);
 		Client(const Client &src);
 		Client &operator=(const Client &src);
 		~Client();
@@ -50,8 +49,6 @@ class Client {
 		ServerConfig &getServ();
 		void setBodyRead(unsigned long long);
 		unsigned long long	getBodyRead();
-		// std::string &getIp();
-		// int getPort();
 
 	private:
 		Cgi* _cgi;
@@ -64,8 +61,6 @@ class Client {
 		time_t _lastConn;
 		ServerConfig &_conf;
 		unsigned long long _bodyRead;
-		// std::string _ip;
-		// int 		_port;
 
 } ;
 

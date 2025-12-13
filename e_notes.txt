@@ -25,7 +25,11 @@ a faire pour requete:
 - protection si chemin avec .. ou ~
 - verifier si il y a des parametres non supportes -> erreur 501
 
-DEMAIN == calculer le nombre d'octet, faire post, changer les dossier sources
+DEMAIN == - reduire la fonction post, prepare response
+- diviser le fichier request
+- regler le probleme de redirection (ca a l'air ok)
+- faire parsing post ou chunked
+- lire le code cgi de thibault
 
 Rappel fichier config :
 un serveur nginx = suite de directives

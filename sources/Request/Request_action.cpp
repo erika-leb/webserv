@@ -3,113 +3,6 @@
 
 // NB = pas trop de protection sur les getline
 
-void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas content-encoding
-{
-	std::string value;
-	// perror("KATY");
-	if (_reqParam.find("transfer-encoding") != _reqParam.end())
-	{
-		value = toLower(_reqParam["transfer-encoding"]);
-		if (value ==  "chunked")
-			_chunked = 1;
-		else
-		{
-			_sCode = 501;
-			return;
-		}
-	}
-
-	if (_reqParam.find("content-length") != _reqParam.end())
-	{
-		perror("chien");
-		value = _reqParam["content-length"];
-		for (std::string::size_type i = 0; i < value.size(); i++)
-		{
-			if (value[i] < '0' || value[i] > '9')
-			{
-				_sCode = 400;
-				return ;
-			}
-		}
-		_contentLength = std::atoi(value.c_str());
-		// DEBUG_MSG("LENGHT = " << _fileLength);
-	}
-	else
-	{
-		if (_action == "POST")
-			_sCode = 411;
-	}
-
-	if (_reqParam.find("expect") != _reqParam.end())
-	{
-		value = toLower(_reqParam["expect"]);
-		if (value == "100-continue")
-			_sCode = 501;
-		else
-			_sCode = 400;
-	}
-}
-
-void Request::parseHttp(void)
-{
-	std::string tmp;
-	std::getline(_rawHttp, _action, ' ');
-	remove_blank(_action);
-	if (_action != "GET" && _action != "POST" && _action != "DELETE")
-	{
-		DEBUG_MSG("action not allowed = " << _action);
-		_sCode = 405;
-	}
-	std::getline(_rawHttp, _pathfile, ' ');
-	DEBUG_MSG("pathfile brut = " << _pathfile);
-	remove_blank(_pathfile);
-
-		// Only for test purpose
-	std::string pathWithoutQuery(_pathfile);
-	size_t end;
-	if ( (end = _pathfile.find('?')) != std::string::npos )
-		pathWithoutQuery = _pathfile.substr(0, end);
-
-	if (_pathfile.empty())
-		_sCode = 400;
-	else
-	{
-		checkRedirAndMethod();
-		checkPath(_pathfile, _sCode);
-	}
-	std::getline(_rawHttp, tmp);
-	remove_blank(tmp);
-	if (!tmp.empty())
-	{
-		if (tmp != "HTTP/1.1")
-		{
-			_sCode = 400;
-		}
-	}
-	else
-		_sCode = 400;
-	DEBUG_MSG("path at end of parse = " + _pathfile);
-	DEBUG_MSG("code fin de parse https = " << _sCode);
-	// std::cout << "ode =" << _sCode << std::endl;
-	if (_sCode == 200)
-		parseParam();
-}
-
-void Request::parseBody()
-{
-	std::string::size_type pos;
-	Client& cli = _cli;
-
-	// perror("PErryr");
-	pos = cli.getBuff().find("\r\n\r\n");
-	if (pos + 4 < cli.getBuff().size())
-		_body << cli.getBuff().substr(pos + 4);
-	else
-		_body << "";  // body vide
-	DEBUG_MSG("body = " << _body.str());
-	// _body << cli.getBuff().substr(pos + 4);
-}
-
 void Request::fGet(void)
 {
 	DEBUG_MSG("GET request");
@@ -125,80 +18,6 @@ void Request::fGet(void)
 	// std::cerr << "apres = code = " << _sCode << ";,path = " << _pathfile << std::endl;
 }
 
-
-void Request::fPost(void)
-{
-	DEBUG_MSG("POST request");
-	struct stat st;
-	std::fstream upload;
-	Directive directive;
-	// si il y a une erreur quelque part, changer le sCode et faire fGet
-	//ici ou avant on parse le body (specificite content lenght et chunked)
-	// processer l'info = cgi, uplaod si autoriser par la locaion
-
-	if (_locationIndex != -1)
-		directive = getDirective("root", _locs[_locationIndex].getDir());
-	else
-		directive = getDirective("root", _serv.getDir());
-
-	if (stat(_pathfile.c_str(), &st) == -1)
-	{
-		if (errno != ENOENT)
-		{
-			perror("cors");
-			_sCode = 403;
-			fGet();
-			return ;
-		}
-		std::string::size_type pos = _pathfile.find_last_of('/');
-		if (pos == std::string::npos)
-		{
-			perror("brule");
-			_sCode = 403;
-			return;
-		}
-
-
-		std::string parent = _pathfile.substr(0, pos);
-		parent.insert(0, directive.getArg()[0]);
-		DEBUG_MSG("parent = " << parent);
-		if (access(parent.c_str(), W_OK) != 0)
-		{
-			perror("au");
-			_sCode = 403;
-			fGet();
-			return;
-		}
-	}
-	else
-	{
-		if (access(_pathfile.c_str(), W_OK) != 0)
-		{
-			perror("sang");
-			_sCode = 403;
-			fGet();
-			return ;
-		}
-	}
-	_pathfile.insert(0, directive.getArg()[0]);
-	DEBUG_MSG("path avantcreation fichier post = " << _pathfile );
-	upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
-	// upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
-	if (!upload.is_open())
-	{
-		perror("conemara");
-		_sCode = 500;
-		fGet();
-		return;
-	}
-	DEBUG_MSG("body = " << _body.str());
-	upload << _body.str();
-	_sCode = 201;
-	upload.close();
-	DEBUG_MSG("code sans return fin post = " << _sCode);
-	// fGet(); // pourquoi il y a un fGet ? il faut l'enlever je crois
-}
-
 void Request::fDelete(void)
 {
 	DEBUG_MSG("DELETE request");
@@ -212,6 +31,87 @@ void Request::fDelete(void)
 	}
 	_sCode = 403;
 	fGet();
+}
+
+int Request::checkPostPath(Directive &directive)
+{
+	struct stat st;
+
+	if (stat(_pathfile.c_str(), &st) == -1)
+	{
+		if (errno != ENOENT)
+		{
+			// perror("cors");
+			_sCode = 403;
+			fGet();
+			return (1);
+		}
+		std::string::size_type pos = _pathfile.find_last_of('/');
+		if (pos == std::string::npos)
+		{
+			// perror("brule");
+			_sCode = 403;
+			return (1);
+		}
+
+		std::string parent = _pathfile.substr(0, pos);
+		parent.insert(0, directive.getArg()[0]);
+		DEBUG_MSG("parent = " << parent);
+		if (access(parent.c_str(), W_OK) != 0)
+		{
+			// perror("au");
+			_sCode = 403;
+			fGet();
+			return (1);
+		}
+	}
+	else
+	{
+		if (access(_pathfile.c_str(), W_OK) != 0)
+		{
+			// perror("sang");
+			_sCode = 403;
+			fGet();
+			return (1);
+		}
+	}
+	return (0);
+}
+
+
+void Request::fPost(void)
+{
+	DEBUG_MSG("POST request");
+	std::fstream upload;
+	Directive directive;
+
+	// processer l'info = cgi, uplaod si autoriser par la locaion
+
+	if (_locationIndex != -1)
+		directive = getDirective("root", _locs[_locationIndex].getDir());
+	else
+		directive = getDirective("root", _serv.getDir());
+
+	if (checkPostPath(directive) == 1)
+		return ;
+
+	_pathfile.insert(0, directive.getArg()[0]);
+	DEBUG_MSG("path avantcreation fichier post = " << _pathfile );
+	upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
+	// upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
+	if (!upload.is_open())
+	{
+		// perror("conemara");
+		_sCode = 500;
+		fGet();
+		return;
+	}
+	DEBUG_MSG("body = " << _body.str());
+	upload << _body.str();
+	_sCode = 201;
+	upload.close();
+	DEBUG_MSG("code sans return fin post = " << _sCode);
+	// fGet(); // pourquoi il y a un fGet ? il faut l'enlever je crois
 }
 
 void Request::handleAction(std::string action)
@@ -258,9 +158,6 @@ std::string Request::makeResponse(void)
 				_sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
 	mess << "Server: " << _serv.getIp() << ":" << _serv.getPort() << ENDLINE;
-		// Modify according configuration file / fetch the host of the request
-	// mess << "Server: " << "localhost" << ENDLINE;
-		// Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE;
 		// Modify either the connection need to be maintained or not
 	if (_sCode > 300 && _sCode < 400)
