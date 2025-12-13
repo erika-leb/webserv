@@ -65,7 +65,7 @@ void Request::checkRedirAndMethod()
 		_sCode = 405;
 }
 
-void Request::generateHtlm(std::string uri, std::string path)
+void Request::generateHtml(std::string uri, std::string path)
 {
 	std::stringstream body, response;
 	std::string name;
@@ -162,7 +162,7 @@ void Request::checkIndex()
 		else
 		{
 			indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri();
-			generateHtlm(_locs[_locationIndex].getUri(), indexPath);
+			generateHtml(_locs[_locationIndex].getUri(), indexPath);
 		}
 	}
 	else

@@ -16,7 +16,8 @@ private:
 
 	std::map<std::string, std::string>	_reqParam, _params;
 	std::stringstream					_rawHttp;
-	std::map<int, std::string>			_errorPath;
+	// std::map<int, std::string>			_errorPath;
+	std::map<int, StatusInfo> _errorPath;
 	std::string							_action, _pathfile, _file, _fileType, _connection, _statusMess, _location;
 	size_t								_sCode, _fileLength, _chunked; //3 derniers = 1 si chunked, uplaod renseigne et contentleingt active
 	unsigned long long					_contentLength;
@@ -36,11 +37,13 @@ public:
 
 	std::string toLower(std::string &str);
 
-	std::string getPathFile() const;
-	std::string getAction() const;
-	std::map<std::string, std::string> getSpec() const;
-	int getsCode() const;
-	unsigned long long	getLenght();
+	std::string							getPathFile() const;
+	std::string							getAction() const;
+	std::map<std::string, std::string>	getSpec() const;
+	int 								getsCode() const;
+	std::string 						getServIp() const;
+	int									getServPort() const;
+	unsigned long long					getLenght() const;
 	// unsigned long long	getBodyRead();
 
 	bool is_cgi( std::string );
@@ -48,7 +51,7 @@ public:
 	// configuration implementation (Request_conf.cpp)
 
 	void checkRedirAndMethod();
-	void generateHtlm(std::string uri, std::string path);
+	void generateHtml(std::string uri, std::string path);
 	void checkIndex();
 
 	// function to get path (Request_path.cpp)

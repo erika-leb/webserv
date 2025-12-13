@@ -97,7 +97,7 @@ int Request::getsCode(void) const
 	return (_sCode);
 }
 
-unsigned long long	Request::getLenght()
+unsigned long long	Request::getLenght() const
 {
 	return _contentLength;
 }
