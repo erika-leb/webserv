@@ -85,7 +85,6 @@ std::string date(int format) {
 	return std::string(buff);
 }
 
-
 bool isDirectivePresent(std::string name, std::vector<Directive> dir)
 {
 	for (std::vector<Directive>::iterator it = dir.begin(); it != dir.end(); ++it)

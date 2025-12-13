@@ -26,6 +26,10 @@
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+#include <stdexcept>
+#include <limits>
+#include <cctype>
 #include <iterator>
 
 /* C headers */
@@ -56,7 +60,9 @@
 #define ERROR_403 "/errors/403.html"
 #define ERROR_404 "/errors/404.html"
 #define ERROR_405 "/errors/405.html"
+#define ERROR_411 "/errors/411.html"
 #define ERROR_500 "/errors/500.html"
+#define ERROR_501 "/errors/501.html"
 
 #define REDIR_301 "/redirections/301.html"
 #define REDIR_302 "/redirections/302.html"
@@ -72,12 +78,6 @@ enum dcode {
 	LOG
 };
 
-// struct ListenInfo {
-// 	// int fd;
-// 	std::string ip;
-// 	int port;
-// };
-
 class Directive;
 
 void		*ft_memset(void *b, int c, size_t len);
@@ -85,11 +85,12 @@ size_t		ft_strlen(const char *str);
 int			make_non_blocking(int sockfd);
 std::string date( int format );
 void 		trim_line(std::string &line);
-bool		isDirectivePresent(std::string name, std::vector<Directive> dir);
-Directive 	getDirective(std::string name, std::vector<Directive> dir);
 
 bool		isBlank( char c );
 void		remove_blank( std::string& str );
+
+bool		isDirectivePresent(std::string name, std::vector<Directive> dir);
+Directive 	getDirective(std::string name, std::vector<Directive> dir);
 
 int			is_fd_open(int fd); // a supprimer plus tard
 

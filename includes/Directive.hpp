@@ -15,6 +15,7 @@ class Directive {
 			std::string &getName();
 			int getNbArg() const;
 			std::vector<std::string> &getArg();
+			unsigned long long getSizeMax();
 
 			void checkBasicDir();
 			void checkRoot();
@@ -22,6 +23,9 @@ class Directive {
 			void checkRedir();
 			void checkAutoindex();
 			void checkIndex();
+			void checkMaxBody();
+			void checkCgi();
+			// void checkUpload();
 
             void print_directive();
 
@@ -29,6 +33,7 @@ class Directive {
             std::string name;
             int nbArg;
             std::vector<std::string> arg;
+			unsigned long long sizeMax;
 
             // Directive();
 

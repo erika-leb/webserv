@@ -43,7 +43,11 @@ void ServerConfig::checkAllowedDirective()
     	    throw std::runtime_error("error in configuration file : redirection only auhtorized in locations");
 		if (dir.getName() == "index")
     	    throw std::runtime_error("error in configuration file : index only auhtorized in locations");
-	}
+		if (dir.getName() == "upload_path")
+    	    throw std::runtime_error("error in configuration file : upload_path directive only auhtorized in locations");
+		if (dir.getName() == "cgi_extention")
+    	    throw std::runtime_error("error in configuration file : cgi directive only auhtorized in locations");
+}
 }
 
 void ServerConfig::checkBasicDir()

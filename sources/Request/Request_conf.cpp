@@ -1,11 +1,27 @@
 #include "Request.hpp"
 #include "all.hpp"
 
+
+static unsigned long long getNbMax(std::string &str)
+{
+	unsigned long long nb = 0;
+	size_t i = 0;
+	int digit;
+
+	while (i < str.size() && std::isdigit(str[i]))
+	{
+		digit = str[i] - '0';
+		nb = nb * 10 + digit;
+		i++;
+	}
+	return nb;
+}
+
 void Request::checkRedirAndMethod()
 {
-	Directive	dir;
-	int			flag;
-	int			code;
+	Directive			dir;
+	int					flag;
+	int					code;
 
 	// std::vector<LocationConfig> locs = _serv.getLocation();
 	std::vector<std::string> arg;
@@ -32,7 +48,12 @@ void Request::checkRedirAndMethod()
 				code = std::atoi(arg[0].c_str());
 				_sCode = code;
 				_location = arg[1];
-				return ;
+			}
+			if (dir.getName() == "client_max_body_size")
+			{
+				_contentLength = getNbMax(_reqParam["content-length"]);
+				if (dir.getSizeMax() > _contentLength)
+					_sCode = 400;
 			}
 		}
 	}
@@ -40,6 +61,7 @@ void Request::checkRedirAndMethod()
 		_sCode = 405;
 }
 
+void Request::generateHtml(std::string uri, std::string path)
 void Request::generateHtml(std::string uri, std::string path)
 {
 	std::stringstream body, response;
@@ -131,6 +153,7 @@ void Request::checkIndex()
 		else
 		{
 			indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri();
+			generateHtml(_locs[_locationIndex].getUri(), indexPath);
 			generateHtml(_locs[_locationIndex].getUri(), indexPath);
 		}
 	}
