@@ -5,50 +5,51 @@
 
 
 
-void Request::parseHttp(void)
-{
-	std::string tmp;
-	std::getline(_rawHttp, _action, ' ');
-	remove_blank(_action);
-	if (_action != "GET" && _action != "POST" && _action != "DELETE")
-	{
-		_sCode = 405;
-	}
-	std::getline(_rawHttp, _pathfile, ' ');
-	remove_blank(_pathfile);
 
-		// Only for test purpose
-	std::string pathWithoutQuery(_pathfile);
-	size_t end;
-	if ( (end = _pathfile.find('?')) != std::string::npos )
-		pathWithoutQuery = _pathfile.substr(0, end);
+// void Request::parseHttp(void)
+// {
+// 	std::string tmp;
+// 	std::getline(_rawHttp, _action, ' ');
+// 	remove_blank(_action);
+// 	if (_action != "GET" && _action != "POST" && _action != "DELETE")
+// 	{
+// 		_sCode = 405;
+// 	}
+// 	std::getline(_rawHttp, _pathfile, ' ');
+// 	remove_blank(_pathfile);
 
-	if (_pathfile.empty())
-		_sCode = 400; // ici plutot
-	// else if (IsRedir() == true)
-	// { }
-	// else if (IsMethodAllowed() == false)
-	// 	_sCode = 405;
-	else
-	{
-		checkRedirAndMethod();
-		checkPath(pathWithoutQuery, _sCode);
-		getPath(_pathfile);
-		DEBUG_MSG("getPath(): " << _pathfile);
-	}
+// 		// Only for test purpose
+// 	std::string pathWithoutQuery(_pathfile);
+// 	size_t end;
+// 	if ( (end = _pathfile.find('?')) != std::string::npos )
+// 		pathWithoutQuery = _pathfile.substr(0, end);
 
-	std::getline(_rawHttp, tmp);
-	remove_blank(tmp);
-	if (!tmp.empty())
-	{
-		if (tmp != "HTTP/1.1")
-		{
-			_sCode = 400;
-		}
-	}
-	else
-		_sCode = 400;
-}
+// 	if (_pathfile.empty())
+// 		_sCode = 400; // ici plutot
+// 	// else if (IsRedir() == true)
+// 	// { }
+// 	// else if (IsMethodAllowed() == false)
+// 	// 	_sCode = 405;
+// 	else
+// 	{
+// 		checkRedirAndMethod();
+// 		checkPath(pathWithoutQuery, _sCode);
+// 		getPath(_pathfile);
+// 		DEBUG_MSG("getPath(): " << _pathfile);
+// 	}
+
+// 	std::getline(_rawHttp, tmp);
+// 	remove_blank(tmp);
+// 	if (!tmp.empty())
+// 	{
+// 		if (tmp != "HTTP/1.1")
+// 		{
+// 			_sCode = 400;
+// 		}
+// 	}
+// 	else
+// 		_sCode = 400;
+// }
 
 void Request::fGet(void) {
 	DEBUG_MSG("GET request");
@@ -62,12 +63,12 @@ void Request::fGet(void) {
 	}
 }
 
-void Request::fPost(void)
-{
-	DEBUG_MSG("POST request");
-	_sCode = 201;
-	fGet();
-}
+// void Request::fPost(void)
+// {
+// 	DEBUG_MSG("POST request");
+// 	_sCode = 201;
+// 	fGet();
+// }
 
 void Request::fDelete(void) {
 	DEBUG_MSG("DELETE request");
@@ -143,7 +144,7 @@ void Request::fPost(void)
 	if (checkPostPath(directive) == 1)
 		return ;
 
-	_pathfile.insert(0, directive.getArg()[0]);
+	// _pathfile.insert(0, directive.getArg()[0]);
 	DEBUG_MSG("path avantcreation fichier post = " << _pathfile );
 	upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
 	// upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);

@@ -71,7 +71,10 @@ void Request::parseHttp(void)
 	else
 	{
 		checkRedirAndMethod();
-		checkPath(_pathfile, _sCode);
+		checkPath(pathWithoutQuery, _sCode);
+		// checkPath(_pathfile, _sCode);
+			getPath(_pathfile);
+		DEBUG_MSG("getPath(): " << _pathfile);
 	}
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);
@@ -90,6 +93,7 @@ void Request::parseHttp(void)
 	if (_sCode == 200)
 		parseParam();
 }
+
 
 void Request::parseBody()
 {

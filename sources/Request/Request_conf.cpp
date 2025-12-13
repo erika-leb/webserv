@@ -62,7 +62,6 @@ void Request::checkRedirAndMethod()
 }
 
 void Request::generateHtml(std::string uri, std::string path)
-void Request::generateHtml(std::string uri, std::string path)
 {
 	std::stringstream body, response;
 	std::string name;

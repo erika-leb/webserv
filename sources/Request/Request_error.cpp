@@ -1,74 +1,74 @@
 #include "Request.hpp"
 #include "all.hpp"
 
-static void setStatusInfo( int code, StatusInfo& tmp) {
-	std::string str, con("");
-	std::string defaultPath(ROOT_STR);
+// static void setStatusInfo( int code, StatusInfo& tmp) {
+// 	std::string str, con("");
+// 	std::string defaultPath(ROOT_STR);
 
-	switch (code)
-	{
-	case 200:
-		str = " Ok";
-		con = "keep-alive";
-		break;
-	case 201:
-		// path = newly created ressource
-		str = " Created";
-		break ;
-	case 204:
-		// no path
-		str = " No content";
-		break ;
-	case 301:
-		defaultPath += REDIR_301;
-		str = " Moved Permanently";
-		break ;
-	case 302:
-		defaultPath += REDIR_302;
-		str = " Found";
-		break ;
-	case 307:
-		defaultPath += REDIR_307;
-		str = " Temporary Redirect";
-		break ;
-	case 308:
-		defaultPath += REDIR_308;
-		str = " Permanent Redirect";
-		break ;
-	case 400:
-		defaultPath += ERROR_400;
-		str = " Bad request";
-		con = "close";
-		break ;
-	case 403:
-		defaultPath += ERROR_403;
-		str = " Forbidden";
-		break ;
-	case 404:
-		defaultPath += ERROR_404;
-		str = " Not found";
-		break ;
-	case 405:
-		defaultPath += ERROR_405;
-		str = " Method not allowed";
-		break ; // Connection normally keep-alive
-	case 500:
-		defaultPath += ERROR_500;
-		str = " Internal server error";
-		con = "close";
-		break ;
-	default:
-		str = "";
-		con = "";
-		break ;
-	}
+// 	switch (code)
+// 	{
+// 	case 200:
+// 		str = " Ok";
+// 		con = "keep-alive";
+// 		break;
+// 	case 201:
+// 		// path = newly created ressource
+// 		str = " Created";
+// 		break ;
+// 	case 204:
+// 		// no path
+// 		str = " No content";
+// 		break ;
+// 	case 301:
+// 		defaultPath += REDIR_301;
+// 		str = " Moved Permanently";
+// 		break ;
+// 	case 302:
+// 		defaultPath += REDIR_302;
+// 		str = " Found";
+// 		break ;
+// 	case 307:
+// 		defaultPath += REDIR_307;
+// 		str = " Temporary Redirect";
+// 		break ;
+// 	case 308:
+// 		defaultPath += REDIR_308;
+// 		str = " Permanent Redirect";
+// 		break ;
+// 	case 400:
+// 		defaultPath += ERROR_400;
+// 		str = " Bad request";
+// 		con = "close";
+// 		break ;
+// 	case 403:
+// 		defaultPath += ERROR_403;
+// 		str = " Forbidden";
+// 		break ;
+// 	case 404:
+// 		defaultPath += ERROR_404;
+// 		str = " Not found";
+// 		break ;
+// 	case 405:
+// 		defaultPath += ERROR_405;
+// 		str = " Method not allowed";
+// 		break ; // Connection normally keep-alive
+// 	case 500:
+// 		defaultPath += ERROR_500;
+// 		str = " Internal server error";
+// 		con = "close";
+// 		break ;
+// 	default:
+// 		str = "";
+// 		con = "";
+// 		break ;
+// 	}
 
-	tmp.message = str; tmp.conn = con;
-	if (defaultPath != ROOT_STR)
-		tmp.path = defaultPath;
-	else
-		tmp.path = "";
-}
+// 	tmp.message = str; tmp.conn = con;
+// 	if (defaultPath != ROOT_STR)
+// 		tmp.path = defaultPath;
+// 	else
+// 		tmp.path = "";
+// }
 
 static void setStatusInfo( int code, StatusInfo& tmp) {
 	std::string str, con("");
