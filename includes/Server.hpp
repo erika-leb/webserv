@@ -15,22 +15,32 @@ class ServerConfig;
 class Server {
 
 	public:
+
+		//init functions (server_init.cpp)
+
 		Server(GlobalConfig *config);
 		~Server();
 
-		static void handleSigint(int sig);
+		void initFdListen(int fd, int port, std::string &ip);
+
+		// main functions (server.cpp)
+
+		void NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_event &event);
+		void prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli, int n);
+		int receiveRequest(int i, std::string& tmp);
+		int sendRequest(int i, std::string tmp);
 
 		void launch();
-		void initFdListen(int fd, int port, std::string &ip);
+
+		// utils functions (server_utils.cpp)
+
+		void cleanClose();
+
+		unsigned long getIPAddr(std::string &ip, struct addrinfo **res);
 		void modifyEvent(int fd, uint32_t events);
 		void deleteSocket(int client_fd);
 		bool is_listen_fd(int fd);
-		void NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_event &event);
-		int receiveRequest(int i, std::string& tmp);
-		void prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd, Client *cli, int n);
-		int sendRequest(int i, std::string tmp);
-		unsigned long getIPAddr(std::string &ip, struct addrinfo **res);
-		void cleanClose();
+
 		void checkTimeOut();
 		int timeOut();
 
@@ -40,6 +50,8 @@ class Server {
 		bool is_pipe_fd( int );
 		void receiveCgi( int , std::string );
 
+		static void handleSigint(int sig);
+
 	private:
 
 		GlobalConfig 			*config;
@@ -47,7 +59,6 @@ class Server {
 		static volatile sig_atomic_t flag;
 
 		int 						_poll;
-		// std::map<int, ListenInfo>	_fdListen;
 		std::map<int, ServerConfig>	_fdListen;
 		struct epoll_event			_events[SOMAXCONN];
 		std::vector< Client *>		_clients;

@@ -19,11 +19,9 @@ static unsigned long long getNbMax(std::string &str)
 
 void Request::checkRedirAndMethod()
 {
-	// int			j;
 	Directive			dir;
 	int					flag;
 	int					code;
-	// unsigned long long	nb;
 
 	// std::vector<LocationConfig> locs = _serv.getLocation();
 	// j = -1;

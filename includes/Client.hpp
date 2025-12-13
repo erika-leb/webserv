@@ -24,13 +24,12 @@ class Client {
 		void addBuff(char *str);
 		std::string getBuff(void) const;
 		const char *getSendBuffer();
+		void sendBuffErase(int n);
+		void setSendBuff(std::string str);
+		void clearRequestBuff(void);
 
 		std::string getToSend();
-		void sendBuffErase(int n);
 		size_t setSendSize();
-		void setSendBuff(std::string str);
-
-		void clearRequestBuff(void);
 
 		void addToSend();//temporaire
 
@@ -40,13 +39,16 @@ class Client {
 		void setCgi( Cgi* newCgi );
 		void deleteCgi(); // is this function really needed ?
 		Cgi* getCgi();
+
 		Request* getRequest() const;
 		void setRequest(Request *req);
 		void deleteRequest();
 
 		void setlastConn(time_t);
 		time_t getlastConn();
+
 		ServerConfig &getServ();
+
 		void setBodyRead(unsigned long long);
 		unsigned long long	getBodyRead();
 

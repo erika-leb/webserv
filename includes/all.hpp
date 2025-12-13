@@ -77,12 +77,6 @@ enum dcode {
 	LOG
 };
 
-// struct ListenInfo {
-// 	// int fd;
-// 	std::string ip;
-// 	int port;
-// };
-
 class Directive;
 
 void		*ft_memset(void *b, int c, size_t len);
@@ -90,11 +84,12 @@ size_t		ft_strlen(const char *str);
 int			make_non_blocking(int sockfd);
 std::string date( int format );
 void 		trim_line(std::string &line);
-bool		isDirectivePresent(std::string name, std::vector<Directive> dir);
-Directive 	getDirective(std::string name, std::vector<Directive> dir);
 
 bool		isBlank( char c );
 void		remove_blank( std::string& str );
+
+bool		isDirectivePresent(std::string name, std::vector<Directive> dir);
+Directive 	getDirective(std::string name, std::vector<Directive> dir);
 
 int			is_fd_open(int fd); // a supprimer plus tard
 

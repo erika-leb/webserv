@@ -1,7 +1,6 @@
 #include "Request.hpp"
 #include "all.hpp"
 
-
 void Request::setErrorPath()
 {
 	std::vector<Directive> dirs;

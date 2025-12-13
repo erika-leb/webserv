@@ -53,6 +53,8 @@ NAME = webserv
 
 SRCS = ./sources/main.cpp \
 	./sources/Core/Server.cpp \
+	./sources/Core/Server_init.cpp \
+	./sources/Core/Server_utils.cpp \
 	./sources/utils.cpp \
 	./sources/Core/Client.cpp \
 	./sources/Request/Request_action.cpp \

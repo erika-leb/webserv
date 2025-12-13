@@ -26,6 +26,9 @@ private:
 	std::stringstream					_body;
 
 public:
+
+	// init functions (Request_init.cpp)
+
 	Request( Client& );
 	Request( const Request& );
 	Request& operator=( const Request& other );
@@ -38,32 +41,42 @@ public:
 	std::map<std::string, std::string> getSpec() const;
 	int getsCode() const;
 	unsigned long long	getLenght();
-	unsigned long long	getBodyRead();
+	// unsigned long long	getBodyRead();
 
 	bool is_cgi( std::string );
+
+	// configuration implementation (Request_conf.cpp)
 
 	void checkRedirAndMethod();
 	void generateHtlm(std::string uri, std::string path);
 	void checkIndex();
 
+	// function to get path (Request_path.cpp)
+
 	void getWriteLocation(std::string &pathfile);
-	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void getPath(std::string &pathfile);
+	std::string getFile( std::string &pathfile, size_t* fileLength );
 	void checkPath( std::string pathfile, size_t& eCode );
 
+
+	// error functions (Request_error.cpp)
 	void setErrorPath();
 	std::string ifError( std::string& path, std::string& con, int sCode );
 
+	// parse functions (Request_parse.cpp)
+
 	void parseParam(void);
 	void parseHttp();
+	void parseBody();
+
+
+	// actions functions (request_action.cpp)
 
 	int checkPostPath(Directive &directive);
 
 	void fGet();
 	void fPost();
 	void fDelete();
-
-	void parseBody();
 
 	void handleAction( std::string );
 	std::string makeResponse();

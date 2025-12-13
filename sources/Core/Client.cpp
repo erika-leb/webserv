@@ -29,10 +29,12 @@ Client &Client::operator=(const Client &src)
 	return (*this);
 }
 
+
 int Client::getFd() const
 {
 	return (_fd);
 }
+
 
 void Client::addBuff(char *str)
 {
@@ -57,18 +59,8 @@ void Client::sendBuffErase(int n)
 		_sendBuff.erase(0, n);
 }
 
-size_t Client::setSendSize()
-{
-	return (_sendBuff.size());
-}
-
 void Client::setSendBuff( std::string str ) {
 	_sendBuff = str;
-}
-
-std::string Client::getToSend()
-{
-	return (_sendBuff);
 }
 
 void Client::clearRequestBuff()
@@ -79,6 +71,19 @@ void Client::clearRequestBuff()
 	// _buff.erase(0, n + 4);
 	_buff.erase();
 }
+
+
+size_t Client::setSendSize()
+{
+	return (_sendBuff.size());
+}
+
+
+std::string Client::getToSend()
+{
+	return (_sendBuff);
+}
+
 
 void Client::addToSend()
 {
@@ -91,6 +96,7 @@ void Client::addToSend()
 	_sendBuff.append(static_cast<std::string>(resp));
 }
 
+
 void Client::setCon( bool set ) {
 	_con = set;
 }
@@ -98,6 +104,7 @@ void Client::setCon( bool set ) {
 bool Client::isCon() {
 	return _con;
 }
+
 
 void Client::setCgi( Cgi* newCgi ) {
 	if (_cgi)
@@ -113,20 +120,7 @@ void Client::deleteCgi() {
 Cgi* Client::getCgi() {
 	return (_cgi);
 }
-void Client::setlastConn(time_t t)
-{
-	_lastConn = t;
-}
 
-time_t Client::getlastConn()
-{
-	return (_lastConn);
-}
-
-ServerConfig &Client::getServ()
-{
-	return (_conf);
-}
 
 Request* Client::getRequest() const
 {
@@ -142,23 +136,31 @@ void Client::deleteRequest()
 	delete _req;
 }
 
+
+void Client::setlastConn(time_t t)
+{
+	_lastConn = t;
+}
+
+time_t Client::getlastConn()
+{
+	return (_lastConn);
+}
+
+
+ServerConfig &Client::getServ()
+{
+	return (_conf);
+}
+
+
 unsigned long long	Client::getBodyRead()
 {
 	return _bodyRead;
 }
 
+
 void Client::setBodyRead(unsigned long long nb)
 {
 	_bodyRead = nb;
 }
-
-// std::string &Client::getIp()
-// {
-// 	return (_ip);
-// }
-
-// int Client::getPort()
-// {
-// 	return (_port);
-// }
-
