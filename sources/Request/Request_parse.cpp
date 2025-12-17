@@ -36,8 +36,10 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 			_sCode = 411;
 	}
 
+	perror("ici");
 	if (_reqParam.find("expect") != _reqParam.end())
 	{
+		perror("la");
 		value = toLower(_reqParam["expect"]);
 		if (value == "100-continue")
 			_sCode = 501;
@@ -94,18 +96,119 @@ void Request::parseHttp(void)
 		parseParam();
 }
 
+void Request::parseChunkedBody(std::string::size_type pos, Client& cli)
+{
+	std::string::size_type end;
+	std::string size_str;
+	std::stringstream ss;
+	size_t size = 0;
+
+	while (1)
+		{
+			end = cli.getBuff().find("\r\n", pos);
+			if (end == std::string::npos)
+			{
+				_sCode = 400;
+				return ;
+			}
+			size_str = cli.getBuff().substr(pos, end - pos);
+			ss << std::hex << size_str;
+			ss >> size;
+			if (ss.fail())
+			{
+				_sCode = 400;
+				return ;
+			}
+			ss.clear();
+			ss.str("");
+			pos = end + 2;
+			if (size == 0)
+			{
+				if (cli.getBuff().substr(pos, 2) != "\r\n")
+				{
+					_sCode = 400;
+					return;
+				}
+				break;
+			}
+			if (pos + size + 2 > cli.getBuff().size())
+			{
+				_sCode = 400;
+				return;
+			}
+			_body << cli.getBuff().substr(pos, size);
+			if (cli.getBuff().substr(pos + size, 2) != "\r\n")
+			{
+				_sCode = 400;
+				return ;
+			}
+			pos += size + 2;
+		}
+}
+
 
 void Request::parseBody()
 {
 	std::string::size_type pos;
+	// std::string::size_type end;
 	Client& cli = _cli;
-
+	// size_t size = 0;
+	// std::string size_str;
+	// std::stringstream ss;
 	// perror("PErryr");
 	pos = cli.getBuff().find("\r\n\r\n");
-	if (pos + 4 < cli.getBuff().size())
-		_body << cli.getBuff().substr(pos + 4);
-	else
-		_body << "";  // body vide
+	if (_chunked != 1) // content-lenght body
+	{
+		if (pos + 4 < cli.getBuff().size())
+			_body << cli.getBuff().substr(pos + 4);
+	}
+	else //chunked body
+	{
+		parseChunkedBody(pos + 4, cli);
+		// pos += 4;
+		// while (1)
+		// {
+		// 	end = cli.getBuff().find("\r\n", pos);
+		// 	if (end == std::string::npos)
+		// 	{
+		// 		_sCode = 400;
+		// 		return ;
+		// 	}
+		// 	size_str = cli.getBuff().substr(pos, end - pos);
+		// 	ss << std::hex << size_str;
+		// 	ss >> size;
+		// 	if (ss.fail())
+		// 	{
+		// 		_sCode = 400;
+		// 		return ;
+		// 	}
+		// 	ss.clear();
+		// 	ss.str("");
+		// 	pos = end + 2;
+		// 	if (size == 0)
+		// 	{
+		// 		if (cli.getBuff().substr(pos, 2) != "\r\n")
+		// 		{
+		// 			_sCode = 400;
+		// 			return;
+		// 		}
+		// 		break;
+		// 	}
+		// 	if (pos + size + 2 > cli.getBuff().size())
+		// 	{
+		// 		_sCode = 400;
+		// 		return;
+		// 	}
+		// 	_body << cli.getBuff().substr(pos, size);
+		// 	if (cli.getBuff().substr(pos + size, 2) != "\r\n")
+		// 	{
+		// 		_sCode = 400;
+		// 		return ;
+		// 	}
+		// 	pos += size + 2;
+		// }
+	}
+
 	DEBUG_MSG("body = " << _body.str());
 	// _body << cli.getBuff().substr(pos + 4);
 }

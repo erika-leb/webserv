@@ -97,7 +97,7 @@ int Server::timeOut()
 void Server::clearRequest(Client *cli, Request *req)
 {
   	delete req;
-	cli->clearRequestBuff();
+	cli->clearRequestBuff(); // ici changer pour s'arreter a la fin de la requete au cas ou on a deux requetes a la suite ???
 	cli->setRequest(NULL);
 }
 
@@ -130,6 +130,28 @@ void Server::receiveCgi( int i, std::string tmp ) {
 	return ;
 }
 
+bool Server::is_body_complete( Client *cli )
+{
+	Request *req;
+	// std::string::size_type pos;
+
+	if (cli->getRequest() == NULL)
+		return (false);
+	req = (cli->getRequest());
+	if (req->getChunked() != 1  && req->getLenght() <= cli->getBodyRead()) // content-lenght body
+		return (true);
+	if (req->getChunked() == 1) // chunked body
+	{
+		// pos = cli->getBuff().find("\r\n\r\n");
+		perror("rompiste");
+		if  ((cli->getBuff()).find("0\r\n\r\n") != std::string::npos)
+		{
+			perror("corazon");
+			return (true);
+		}
+	}
+	return (false);
+}
 
 void Server::handleSigint(int sig)
 {

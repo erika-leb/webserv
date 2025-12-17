@@ -118,3 +118,8 @@ bool Request::is_cgi(std::string cgiFolder)
 	else
 		return (false);
 }
+
+size_t Request::getChunked() const
+{
+	return (_chunked);
+}

@@ -36,9 +36,9 @@ int Client::getFd() const
 }
 
 
-void Client::addBuff(char *str)
+void Client::addBuff(char *str, size_t len)
 {
-	_buff.append(str);
+	_buff.append(str, len);
 }
 
 std::string Client::getBuff(void) const

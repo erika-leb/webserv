@@ -31,11 +31,12 @@ int Request::checkPostPath(Directive &directive)
 {
 	struct stat st;
 
+	(void) directive;
 	if (stat(_pathfile.c_str(), &st) == -1)
 	{
 		if (errno != ENOENT)
 		{
-			// perror("cors");
+			perror("cors");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -43,17 +44,17 @@ int Request::checkPostPath(Directive &directive)
 		std::string::size_type pos = _pathfile.find_last_of('/');
 		if (pos == std::string::npos)
 		{
-			// perror("brule");
+			perror("brule");
 			_sCode = 403;
 			return (1);
 		}
 
 		std::string parent = _pathfile.substr(0, pos);
-		parent.insert(0, directive.getArg()[0]);
+		// parent.insert(0, directive.getArg()[0]);
 		DEBUG_MSG("parent = " << parent);
 		if (access(parent.c_str(), W_OK) != 0)
 		{
-			// perror("au");
+			perror("au");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -63,7 +64,7 @@ int Request::checkPostPath(Directive &directive)
 	{
 		if (access(_pathfile.c_str(), W_OK) != 0)
 		{
-			// perror("sang");
+			perror("sang");
 			_sCode = 403;
 			fGet();
 			return (1);

@@ -40,11 +40,13 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	Request *req;
 
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
-	cli->addBuff(buff);
+	// cli->addBuff(buff);
+	cli->addBuff(buff, n);
 	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
 
 	if (cli->getRequest() == NULL && (cli->getBuff()).find("\r\n\r\n") != std::string::npos) // header complete so we create a new request
 	{
+		perror("angelito");
 		req = new Request(*cli); // new request
 		cli->setRequest(req); // we save the request in client
 		req->parseHttp();
@@ -53,10 +55,12 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	}
 	else if (cli->getRequest() != NULL)
 		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
-
+	
 	req = (cli->getRequest());
-	if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
+	if (is_body_complete(cli) == true)
+	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
 	{
+		perror("angel");
 		std::string cgiFolder(".py");
 		if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // CGI cases
 			cli->setCgi(new Cgi(req->getPathFile(), req->getAction(), *cli, req->getServIp(), req->getServPort()));
@@ -65,6 +69,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		}
 		else if (req->getAction() != "POST" || req->getsCode() != 200) //GET, DELETE, ERROR cases
 		{
+			perror("sonar");
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
@@ -72,7 +77,8 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		}
 		else // POST with no error case
 		{
-			req->parseBody();
+			perror("contigo");
+			req->parseBody(); 
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);

@@ -50,6 +50,7 @@ public:
 	std::string 						getServIp() const;
 	int									getServPort() const;
 	unsigned long long					getLenght() const;
+	size_t								getChunked() const;
 	// unsigned long long	getBodyRead();
 
 	bool is_cgi( std::string );
@@ -76,6 +77,7 @@ public:
 
 	void parseParam(void);
 	void parseHttp();
+	void parseChunkedBody(std::string::size_type pos, Client& cli);
 	void parseBody();
 
 
