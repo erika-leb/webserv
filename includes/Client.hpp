@@ -9,11 +9,12 @@ class Cgi;
 
 class ServerConfig;
 
+class Request;
+
 class Client {
 
 	public:
 		Client(int fd, ServerConfig &conf);
-		// Client(int fd, ListenInfo info);
 		Client(const Client &src);
 		Client &operator=(const Client &src);
 		~Client();
@@ -23,13 +24,12 @@ class Client {
 		void addBuff(char *str);
 		std::string getBuff(void) const;
 		const char *getSendBuffer();
+		void sendBuffErase(int n);
+		void setSendBuff(std::string str);
+		void clearRequestBuff(void);
 
 		std::string getToSend();
-		void sendBuffErase(int n);
 		size_t setSendSize();
-		void setSendBuff(std::string str);
-
-		void clearRequestBuff(void);
 
 		void addToSend();//temporaire
 
@@ -40,14 +40,21 @@ class Client {
 		void deleteCgi(); // is this function really needed ?
 		Cgi* getCgi();
 
+		Request* getRequest() const;
+		void setRequest(Request *req);
+		void deleteRequest();
+
 		void setlastConn(time_t);
 		time_t getlastConn();
+
 		ServerConfig &getServ();
-		// std::string &getIp();
-		// int getPort();
+
+		void setBodyRead(unsigned long long);
+		unsigned long long	getBodyRead();
 
 	private:
 		Cgi* _cgi;
+		Request *_req;
 
 		int _fd;
 		std::string _buff;
@@ -55,8 +62,7 @@ class Client {
 		bool _con;
 		time_t _lastConn;
 		ServerConfig &_conf;
-		// std::string _ip;
-		// int 		_port;
+		unsigned long long _bodyRead;
 
 } ;
 

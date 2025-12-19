@@ -52,19 +52,22 @@
 NAME = webserv
 
 SRCS = ./sources/main.cpp \
-	./sources/Server.cpp \
+	./sources/Core/Server.cpp \
+	./sources/Core/Server_init.cpp \
+	./sources/Core/Server_utils.cpp \
 	./sources/utils.cpp \
-	./sources/Client.cpp \
-	./sources/Request/Request.cpp \
+	./sources/Core/Client.cpp \
+	./sources/Request/Request_action.cpp \
 	./sources/Request/Request_conf.cpp \
 	./sources/Request/Request_path.cpp \
 	./sources/Request/Request_init.cpp \
+	./sources/Request/Request_parse.cpp \
 	./sources/Request/Request_error.cpp \
-	./sources/GlobalConfig.cpp \
-	./sources/Directive.cpp \
-	./sources/ServerConfig.cpp \
-	./sources/LocationConfig.cpp \
-	./sources/Cgi.cpp
+	./sources/Configuration/GlobalConfig.cpp \
+	./sources/Configuration/Directive.cpp \
+	./sources/Configuration/ServerConfig.cpp \
+	./sources/Configuration/LocationConfig.cpp \
+	./sources/Core/Cgi.cpp
 
 INC_DIR = includes
 
