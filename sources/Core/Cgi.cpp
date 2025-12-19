@@ -38,19 +38,30 @@ static std::string extractValue( std::string& line, std::string key ) {
 	return line.substr(pos, size);
 }
 
-Cgi::Cgi( std::string URI, std::string method, Client& cli, std::string serverName, int port ):
-			_cli(cli), _path(URI), _method(method), _serverName(serverName), _port(port) {
+Cgi::Cgi( Request& req, Client& cli ): _cli(cli) {
+
 	// Parse URI with query and stuff
+	std::string URI(req.getPathFile());
+
+	this->_path = URI;
+	this->_method = req.getAction();
+	this->_serverName = req.getServIp(); _port = req.getServPort();
+
 	size_t pos = URI.find_first_of('?');
 	if (pos != std::string::npos) {
-		_path = URI.substr(0, pos);
-		_queryString = URI.substr(pos + 1);
+		this->_path = URI.substr(0, pos);
+		this->_queryString = URI.substr(pos + 1);
 	}
 	else
-		_queryString = "";
+		this->_queryString = "";
+
+	this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
+	DEBUG_MSG("cgiHandler: " << _cgiHandler);
 }
 
-Cgi::Cgi( Cgi& cpy ): _cli(cpy._cli),  _path(cpy._path) {
+Cgi::Cgi( Cgi& cpy ):
+	_cli(cpy._cli),  _path(cpy._path), _method(cpy._method),
+		_queryString(cpy._queryString), _serverName(cpy._serverName), _port(cpy._port) {
 	this->_pipeDes[0] = cpy._pipeDes[0];
 	this->_pipeDes[1] = cpy._pipeDes[1];
 }
@@ -59,6 +70,10 @@ Cgi& Cgi::operator=( Cgi& other ) {
 	if (this != &other) {
 		this->_cli = other._cli;
 		this->_path = other._path;
+		this->_method = other._method;
+		this->_queryString = other._queryString;
+		this->_serverName = other._serverName;
+		this->_port = other._port;
 		this->_pipeDes[0] = other._pipeDes[0];
 		this->_pipeDes[1] = other._pipeDes[1];;
 	}
@@ -111,7 +126,7 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 }
 
 void Cgi::handleCGI_fork( int pollfd) {
-	char * const args[] = {(char *)_path.c_str(), NULL};
+	char * const args[] = {(char *)_cgiHandler.c_str(), (char *)_path.c_str(), NULL};
 
 	std::vector<std::string> tmp;
 	std::vector<char *> env;
@@ -125,7 +140,7 @@ void Cgi::handleCGI_fork( int pollfd) {
 		/* If POST request  or query dup2(STDIN, ?)*/
 		close(_pipeDes[READ]);
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
-		if ( (execve(_path.c_str(), args, &env[0])) == -1)
+		if ( (execve(_cgiHandler.c_str(), args, &env[0])) == -1)
 			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
 		exit(1); // leak
 	}
@@ -188,7 +203,6 @@ std::string Cgi::parseCgiOutput( std::stringstream& ss ) {
 	std::string header;
 	std::string tmp, content;
 
-
 	std::getline(ss, tmp);
 	while ( (tmp != "\n" || tmp != "\r\n") && (tmp.size() != 0)) {
 		header.append(tmp + "\n");
@@ -196,10 +210,27 @@ std::string Cgi::parseCgiOutput( std::stringstream& ss ) {
 	}
 
 	while (std::getline(ss, tmp)) {
-		content.append(tmp + "\n");	
+		content.append(tmp);	
 	}
+
+	/*
+	std::istreambuf_iterator<char> iit(ss); std::istreambuf_iterator<char> eos;
+	char prev;
+
+	for (; iit != eos; ++iit) {
+		if (*iit == '\n')
+			break;
+		header += *iit;
+	}
+
+	for (; iit != eos; ++iit) {
+		content += *iit;
+	}
+	*/
+
 	header = parseHeader(header, content.size());
 	return header + content;
+
 }
 
 void Cgi::sigchld_handler( int sig ) {

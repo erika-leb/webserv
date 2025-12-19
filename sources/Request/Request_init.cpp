@@ -118,3 +118,19 @@ bool Request::is_cgi(std::string cgiFolder)
 	else
 		return (false);
 }
+
+std::string Request::getCgiHandler( std::string extension) {
+	std::vector<Directive> dirs;
+	if (_locationIndex != -1)
+		dirs = _locs[_locationIndex].getDir();
+	else
+		dirs = _serv.getDir();
+	
+	for (std::vector<Directive>::size_type i = 0; i < dirs.size(); i++) {
+		if (dirs[i].getName() == "cgi_handler") {
+			if (dirs[i].getArg()[0] == extension)
+				return dirs[i].getArg()[1];
+		}
+	}
+	return "";
+}

@@ -59,7 +59,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	{
 		std::string cgiFolder(".py");
 		if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // CGI cases
-			cli->setCgi(new Cgi(req->getPathFile(), req->getAction(), *cli, req->getServIp(), req->getServPort()));
+			cli->setCgi(new Cgi(*req, *cli));
 			cli->getCgi()->handleCGI_fork(_poll);
 			clearRequest(cli, req);
 		}

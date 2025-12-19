@@ -67,16 +67,6 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 		res.clear();
 	}
 
-	/* This method extract exactly the file byte per byte
-	std::string res;
-	std::istreambuf_iterator<char> iit (fs); std::istreambuf_iterator<char> eos;
-	for (std::istreambuf_iterator<char> iit(fs); iit != std::istreambuf_iterator<char>(); ++iit)
-		res += *iit;
-	fs.close();
-	*fileLength = res.size();
-	return (res);
-	*/
-
 	return (res);
 }
 

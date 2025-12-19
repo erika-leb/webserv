@@ -89,6 +89,9 @@ public:
 
 	void handleAction( std::string );
 	std::string makeResponse();
+
+	// cgi helper function
+	std::string	getCgiHandler( std::string );
 };
 
 #endif
