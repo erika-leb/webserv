@@ -96,8 +96,58 @@ int Server::timeOut()
 
 void Server::clearRequest(Client *cli, Request *req)
 {
-  	delete req;
-	cli->clearRequestBuff(); // ici changer pour s'arreter a la fin de la requete au cas ou on a deux requetes a la suite ???
+	// std::string::size_type end, pos = 0;
+	// std::string size_str;
+	// std::stringstream ss;
+	// size_t size = 0;
+
+  	// if (req->getChunked() != 1) //content-lenght
+	// {
+	// 	if (req->getLenght() <= cli->getBuff().size())
+	// 		cli->clearRequestBuff(1, req->getLenght());
+	// 	else
+	// 		DEBUG_MSG("PROBLEM");
+	// }
+	// else // chunked
+	// {
+	// 	// while (1)
+	// 	// {
+	// 	// 	end = cli->getBuff().find("\r\n", pos);
+	// 	// 	if (end == std::string::npos)
+	// 	// 		DEBUG_MSG("PROBLEM");
+	// 	// 	size_str = cli.getBuff().substr(pos, end - pos);
+	// 	// 	ss << std::hex << size_str;
+	// 	// 	ss >> size;
+	// 	// 	if (ss.fail())
+	// 	// 	{
+	// 	// 		return ;
+	// 	// 	}
+	// 	// 	ss.clear();
+	// 	// 	ss.str("");
+	// 	// 	pos = end + 2;
+	// 	// 	if (size == 0)
+	// 	// 	{
+	// 	// 		if (cli.getBuff().substr(pos, 2) != "\r\n")
+	// 	// 		{
+	// 	// 			return;
+	// 	// 		}
+	// 	// 		break;
+	// 	// 	}
+	// 	// 	if (pos + size + 2 > cli.getBuff().size())
+	// 	// 	{
+	// 	// 		return;
+	// 	// 	}
+	// 	// 	_body << cli.getBuff().substr(pos, size);
+	// 	// 	if (cli.getBuff().substr(pos + size, 2) != "\r\n")
+	// 	// 	{
+	// 	// 		return ;
+	// 	// 	}
+	// 	// 	pos += size + 2;
+	// 	// }
+	// }
+	
+	delete req;
+	// cli->clearRequestBuff(1); // ici changer pour s'arreter a la fin de la requete au cas ou on a deux requetes a la suite ???
 	cli->setRequest(NULL);
 }
 
@@ -130,25 +180,179 @@ void Server::receiveCgi( int i, std::string tmp ) {
 	return ;
 }
 
+// bool Server::is_chunk_complete(Client *cli) {
+//     const std::string& buffer = cli->getBuff();
+//     size_t next_line, pos = 0;
+// 	std::string size_str;
+// 	char* endPtr;
+// 	long size;
+
+//     if (buffer.find("0\r\n\r\n") == std::string::npos)
+//         return false;
+
+//     while (pos < buffer.size()) 
+// 	{
+//         next_line = buffer.find("\r\n", pos);
+//         if (next_line == std::string::npos) 
+// 			return false;
+
+//         size_str = buffer.substr(pos, next_line - pos);
+        
+//         size = strtol(size_str.c_str(), &endPtr, 16);
+
+//         if (*endPtr != '\0' && *endPtr != '\r')
+// 			return false; 
+
+//         if (size == 0) 
+// 			return true;
+
+//         // On avance : taille\r\n (2) + le contenu (size) + le \r\n de fin (2)
+//         pos = next_line + 2 + size + 2;
+
+//         // Si on dépasse la taille actuelle du buffer, c'est que le chunk est incomplet
+//         if (pos > buffer.size())
+// 			return false;
+//     }
+//     return false;
+// }
+
+// bool Server::is_chunk_complete(Client *cli) {
+//     const std::string& b = cli->getBuff();
+//     if (b.empty()) return false;
+
+//     size_t pos = 0;
+//     while (pos < b.size()) {
+
+
+//         size_t eol = b.find("\r\n", pos);
+//         if (eol == std::string::npos) return false; // Ligne de taille pas encore complète
+
+//         // On lit la taille. strtoul est parfait pour le C++98
+//         char* endptr;
+//         unsigned long size = strtoul(b.c_str() + pos, &endptr, 16);
+
+//         // --- VERIFICATION CRUCIALE ---
+//         if (endptr == b.c_str() + pos) {
+//             std::cerr << "[Erreur] Pas d'hexa a l'index " << pos 
+//                       << " (Char: " << (int)b[pos] << ")" << std::endl;
+//             return false; 
+//         }
+
+//         if (size == 0) {
+//             // On vérifie si on a bien le \r\n\r\n final
+//             if (b.find("\r\n\r\n", pos) != std::string::npos) {
+//                 std::cerr << "[Succès] FIN DU CHUNKED TROUVEE !" << std::endl;
+//                 return true;
+//             }
+//             return false;
+//         }
+
+//         // Est-ce qu'on a le chunk entier ? (taille + \r\n + data + \r\n)
+//         size_t next_chunk_pos = eol + 2 + size + 2;
+//         if (next_chunk_pos > b.size()) {
+//             // C'est ici que ton code s'arrête en attendant le prochain recv
+//             return false; 
+//         }
+
+//         // Vérification de sécurité : est-ce qu'il y a bien \r\n à la fin du chunk ?
+//         if (b.substr(eol + 2 + size, 2) != "\r\n") {
+//             std::cerr << "[Erreur] Format corrompu a pos " << eol + 2 + size << std::endl;
+//             return false;
+//         }
+
+//         pos = next_chunk_pos;
+//     }
+//     return false;
+// }
+
+
+
+
+
+
+bool Server::is_chunk_complete( Client *cli )
+{
+	std::string::size_type end, pos;
+	std::string size_str;
+	std::stringstream ss;
+	size_t size = 0;
+
+	pos = 1;
+	while (1)
+	{
+		// if (cli->getRequest()->getChunked() < 10)
+		// 	std::cout << cli->getBuff() << std::endl;
+		// cli->getRequest()->setChunked(cli->getRequest()->getChunked() + 1);
+		end = cli->getBuff().find("\r\n", pos);
+		if (end == std::string::npos)
+		{
+			DEBUG_MSG("ERROR3 = ");				
+			return (false);
+		}
+
+			// return (false);
+		size_str = cli->getBuff().substr(pos, end - pos);
+		ss << std::hex << size_str;
+		ss >> size;
+		if (ss.fail())
+		{
+			cli->getRequest()->setCode(400);
+			return (true); // ici on fait quoi ?
+		}
+		ss.clear();
+		ss.str("");
+		pos = end + 2;
+		// DEBUG_MSG("size" << size);
+		if (size == 0)
+		{
+			if (pos + 2 > cli->getBuff().size() || cli->getBuff().substr(pos, 2) != "\r\n")
+			{
+				DEBUG_MSG("ERROR2 = ");
+				return (false);
+			}
+			break;
+		}
+		if (pos + size + 2 > cli->getBuff().size())
+		{
+			DEBUG_MSG("ERROR1 = " << pos + size + 2);
+			return (false);
+		}
+		// _body << cli.getBuff().substr(pos, size);
+		if (cli->getBuff().substr(pos + size, 2) != "\r\n")
+		{
+			DEBUG_MSG("ERROR = " << cli->getBuff().substr(pos + size, 2));
+			return (false);
+		}
+		pos += size + 2;
+	}
+	cli->getRequest()->checkLenght(pos + 2);
+	return (true);
+}
+
 bool Server::is_body_complete( Client *cli )
 {
 	Request *req;
 	// std::string::size_type pos;
 
+	// std::cout << "flag =" << cli->getRequest()->getExpect() << std::endl;
 	if (cli->getRequest() == NULL)
 		return (false);
+	if (cli->getRequest()->getExpect() == 1) // si on a eu expect, il faut enter dans la boucle
+		return (true);
+
 	req = (cli->getRequest());
 	if (req->getChunked() != 1  && req->getLenght() <= cli->getBodyRead()) // content-lenght body
 		return (true);
-	if (req->getChunked() == 1) // chunked body
+	// if (req->getChunked() == 1) // chunked body
+	// {
+	// 	perror("rompiste");
+	// 	return (is_chunk_complete(cli));
+	// }
+	if (req->getChunked() == 1)
 	{
-		// pos = cli->getBuff().find("\r\n\r\n");
-		perror("rompiste");
-		if  ((cli->getBuff()).find("0\r\n\r\n") != std::string::npos)
-		{
-			perror("corazon");
-			return (true);
-		}
+	    bool complete = is_chunk_complete(cli);
+	    std::cout << "Chunked check: " << cli->getBuff().size() << " bytes in buffer, Complete: " << complete << std::endl;
+	    return complete;
 	}
 	return (false);
 }

@@ -42,7 +42,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	// cli->addBuff(buff);
 	cli->addBuff(buff, n);
-	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
+	// DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
 
 	if (cli->getRequest() == NULL && (cli->getBuff()).find("\r\n\r\n") != std::string::npos) // header complete so we create a new request
 	{
@@ -52,6 +52,8 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		req->parseHttp();
 		endPos = cli->getBuff().find("\r\n\r\n") + 4; // we save the number of octet read after the header
 		cli->setBodyRead(cli->getBuff().size() - endPos);
+		cli->clearRequestBuff(0, 0);
+		// cli->clearHeader(endPos);
 	}
 	else if (cli->getRequest() != NULL)
 		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
@@ -174,7 +176,9 @@ void Server::launch()
 	while(flag == 0)
 	{
 		d = epoll_wait(_poll, _events, SOMAXCONN, timeOut());
-		// d = epoll_wait(_poll, _events, SOMAXCONN, -1);
+		// std::cout << "DEBUG: Waiting for events..." << std::endl;
+		// d = epoll_wait(_poll, _events, SOMAXCONN, 1000); // 1 seconde fixe pour tester
+		// std::cout << "DEBUG: Events received: " << d << std::endl;
 		for (int i = 0; i < d; i++)
 		{
 			if (_events[i].events & EPOLLIN)

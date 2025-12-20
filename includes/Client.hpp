@@ -26,7 +26,7 @@ class Client {
 		const char *getSendBuffer();
 		void sendBuffErase(int n);
 		void setSendBuff(std::string str);
-		void clearRequestBuff(void);
+		void clearRequestBuff(int f, unsigned long long nb);
 
 		std::string getToSend();
 		size_t setSendSize();

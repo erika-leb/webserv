@@ -32,7 +32,8 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 	}
 	else
 	{
-		if (_action == "POST")
+		DEBUG_MSG("_chunked = " << _chunked);
+		if (_action == "POST" && _chunked == 0)
 			_sCode = 411;
 	}
 
@@ -40,6 +41,7 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 	if (_reqParam.find("expect") != _reqParam.end())
 	{
 		perror("la");
+		_expect = 1;
 		value = toLower(_reqParam["expect"]);
 		if (value == "100-continue")
 			_sCode = 501;
@@ -51,6 +53,7 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 void Request::parseHttp(void)
 {
 	std::string tmp;
+	DEBUG_MSG("rawhttp = " << _rawHttp.str());
 	std::getline(_rawHttp, _action, ' ');
 	remove_blank(_action);
 	if (_action != "GET" && _action != "POST" && _action != "DELETE")
@@ -68,16 +71,19 @@ void Request::parseHttp(void)
 	if ( (end = _pathfile.find('?')) != std::string::npos )
 		pathWithoutQuery = _pathfile.substr(0, end);
 
+	DEBUG_MSG("code 1 = " << _sCode);
 	if (_pathfile.empty())
 		_sCode = 400;
 	else
 	{
 		checkRedirAndMethod();
+		DEBUG_MSG("code 3 = " << _sCode);
 		checkPath(pathWithoutQuery, _sCode);
 		// checkPath(_pathfile, _sCode);
-			getPath(_pathfile);
+		getPath(_pathfile);
 		DEBUG_MSG("getPath(): " << _pathfile);
 	}
+	DEBUG_MSG("code 2 = " << _sCode);
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);
 	if (!tmp.empty())
@@ -96,7 +102,7 @@ void Request::parseHttp(void)
 		parseParam();
 }
 
-void Request::parseChunkedBody(std::string::size_type pos, Client& cli)
+size_t Request::parseChunkedBody(size_t pos, Client& cli)
 {
 	std::string::size_type end;
 	std::string size_str;
@@ -104,111 +110,89 @@ void Request::parseChunkedBody(std::string::size_type pos, Client& cli)
 	size_t size = 0;
 
 	while (1)
+	{
+		end = cli.getBuff().find("\r\n", pos);
+		if (end == std::string::npos)
 		{
-			end = cli.getBuff().find("\r\n", pos);
-			if (end == std::string::npos)
-			{
-				_sCode = 400;
-				return ;
-			}
-			size_str = cli.getBuff().substr(pos, end - pos);
-			ss << std::hex << size_str;
-			ss >> size;
-			if (ss.fail())
-			{
-				_sCode = 400;
-				return ;
-			}
-			ss.clear();
-			ss.str("");
-			pos = end + 2;
-			if (size == 0)
-			{
-				if (cli.getBuff().substr(pos, 2) != "\r\n")
-				{
-					_sCode = 400;
-					return;
-				}
-				break;
-			}
-			if (pos + size + 2 > cli.getBuff().size())
-			{
-				_sCode = 400;
-				return;
-			}
-			_body << cli.getBuff().substr(pos, size);
-			if (cli.getBuff().substr(pos + size, 2) != "\r\n")
-			{
-				_sCode = 400;
-				return ;
-			}
-			pos += size + 2;
+			_sCode = 400;
+			// return (-1);
+			return (false);
 		}
+		size_str = cli.getBuff().substr(pos, end - pos);
+		ss << std::hex << size_str;
+		ss >> size;
+		if (ss.fail())
+		{
+			_sCode = 400;
+			// return (-1);
+			return (false);
+		}
+		ss.clear();
+		ss.str("");
+		pos = end + 2;
+		if (size == 0)
+		{
+			if (cli.getBuff().substr(pos, 2) != "\r\n")
+			{
+				_sCode = 400;
+				// return (-1);
+				return (std::string::npos);
+			}
+			break;
+		}
+		if (pos + size + 2 > cli.getBuff().size())
+		{
+			_sCode = 400;
+			return (std::string::npos);
+			// return (-1);
+			// return (false);
+		}
+		_body << cli.getBuff().substr(pos, size);
+		if (cli.getBuff().substr(pos + size, 2) != "\r\n")
+		{
+			_sCode = 400;
+			// return (-1);
+			return (std::string::npos);
+		}
+		pos += size + 2;
+	}
+	return (pos);
 }
 
 
 void Request::parseBody()
 {
-	std::string::size_type pos;
+	// std::string::size_type pos;
 	// std::string::size_type end;
 	Client& cli = _cli;
-	// size_t size = 0;
-	// std::string size_str;
-	// std::stringstream ss;
-	// perror("PErryr");
-	pos = cli.getBuff().find("\r\n\r\n");
+	size_t consumed;
+
+	DEBUG_MSG("chunk = " << _chunked);
 	if (_chunked != 1) // content-lenght body
 	{
-		if (pos + 4 < cli.getBuff().size())
-			_body << cli.getBuff().substr(pos + 4);
+		// if (pos + 4 < cli.getBuff().size())
+		// 	_body << cli.getBuff().substr(pos + 4);
+		DEBUG_MSG("you");
+		if (_contentLength <= cli.getBuff().size())
+		{
+			_body << cli.getBuff().substr(0, _contentLength);
+			cli.clearRequestBuff(1, _contentLength);
+		}
+		else
+			DEBUG_MSG("PROBLEM");
 	}
 	else //chunked body
 	{
-		parseChunkedBody(pos + 4, cli);
-		// pos += 4;
-		// while (1)
-		// {
-		// 	end = cli.getBuff().find("\r\n", pos);
-		// 	if (end == std::string::npos)
-		// 	{
-		// 		_sCode = 400;
-		// 		return ;
-		// 	}
-		// 	size_str = cli.getBuff().substr(pos, end - pos);
-		// 	ss << std::hex << size_str;
-		// 	ss >> size;
-		// 	if (ss.fail())
-		// 	{
-		// 		_sCode = 400;
-		// 		return ;
-		// 	}
-		// 	ss.clear();
-		// 	ss.str("");
-		// 	pos = end + 2;
-		// 	if (size == 0)
-		// 	{
-		// 		if (cli.getBuff().substr(pos, 2) != "\r\n")
-		// 		{
-		// 			_sCode = 400;
-		// 			return;
-		// 		}
-		// 		break;
-		// 	}
-		// 	if (pos + size + 2 > cli.getBuff().size())
-		// 	{
-		// 		_sCode = 400;
-		// 		return;
-		// 	}
-		// 	_body << cli.getBuff().substr(pos, size);
-		// 	if (cli.getBuff().substr(pos + size, 2) != "\r\n")
-		// 	{
-		// 		_sCode = 400;
-		// 		return ;
-		// 	}
-		// 	pos += size + 2;
-		// }
+		// parseChunkedBody(pos + 4, cli);
+		DEBUG_MSG("do");
+		consumed = parseChunkedBody(0, cli);
+		if (consumed == std::string::npos)
+			cli.clearRequestBuff(1, cli.getBuff().size());
+		else
+			cli.clearRequestBuff(1, consumed);
+
 	}
 
-	DEBUG_MSG("body = " << _body.str());
+	// DEBUG_MSG("body = " << _body.str());
 	// _body << cli.getBuff().substr(pos + 4);
 }

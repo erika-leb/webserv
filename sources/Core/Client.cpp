@@ -63,13 +63,17 @@ void Client::setSendBuff( std::string str ) {
 	_sendBuff = str;
 }
 
-void Client::clearRequestBuff()
+void Client::clearRequestBuff(int f, unsigned long long nb)
 {
-	// size_t n;
+	size_t n;
 
-	// n = _buff.find("\r\n\r\n");
-	// _buff.erase(0, n + 4);
-	_buff.erase();
+	if (f == 0)
+	{
+		n = _buff.find("\r\n\r\n");
+		_buff.erase(0, n + 4);
+	}
+	else
+		_buff.erase(0, nb);
 }
 
 
