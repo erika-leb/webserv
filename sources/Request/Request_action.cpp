@@ -3,54 +3,6 @@
 
 // NB = pas trop de protection sur les getline
 
-
-
-
-// void Request::parseHttp(void)
-// {
-// 	std::string tmp;
-// 	std::getline(_rawHttp, _action, ' ');
-// 	remove_blank(_action);
-// 	if (_action != "GET" && _action != "POST" && _action != "DELETE")
-// 	{
-// 		_sCode = 405;
-// 	}
-// 	std::getline(_rawHttp, _pathfile, ' ');
-// 	remove_blank(_pathfile);
-
-// 		// Only for test purpose
-// 	std::string pathWithoutQuery(_pathfile);
-// 	size_t end;
-// 	if ( (end = _pathfile.find('?')) != std::string::npos )
-// 		pathWithoutQuery = _pathfile.substr(0, end);
-
-// 	if (_pathfile.empty())
-// 		_sCode = 400; // ici plutot
-// 	// else if (IsRedir() == true)
-// 	// { }
-// 	// else if (IsMethodAllowed() == false)
-// 	// 	_sCode = 405;
-// 	else
-// 	{
-// 		checkRedirAndMethod();
-// 		checkPath(pathWithoutQuery, _sCode);
-// 		getPath(_pathfile);
-// 		DEBUG_MSG("getPath(): " << _pathfile);
-// 	}
-
-// 	std::getline(_rawHttp, tmp);
-// 	remove_blank(tmp);
-// 	if (!tmp.empty())
-// 	{
-// 		if (tmp != "HTTP/1.1")
-// 		{
-// 			_sCode = 400;
-// 		}
-// 	}
-// 	else
-// 		_sCode = 400;
-// }
-
 void Request::fGet(void) {
 	DEBUG_MSG("GET request");
 	ifError(_pathfile, _connection, _sCode);
@@ -62,13 +14,6 @@ void Request::fGet(void) {
 		_file = getFile(_pathfile, &_fileLength);
 	}
 }
-
-// void Request::fPost(void)
-// {
-// 	DEBUG_MSG("POST request");
-// 	_sCode = 201;
-// 	fGet();
-// }
 
 void Request::fDelete(void) {
 	DEBUG_MSG("DELETE request");
@@ -86,43 +31,54 @@ int Request::checkPostPath(Directive &directive)
 {
 	struct stat st;
 
-	if (stat(_pathfile.c_str(), &st) == -1)
+	(void) directive;
+	if (stat(_pathfile.c_str(), &st) == -1) // the file does not exist
 	{
-		if (errno != ENOENT)
+		perror("sdanse");
+		if (errno != ENOENT) // file not found
 		{
-			// perror("cors");
+			perror("cors");
 			_sCode = 403;
 			fGet();
 			return (1);
 		}
-		std::string::size_type pos = _pathfile.find_last_of('/');
+		std::string::size_type pos = _pathfile.find_last_of('/'); // check if the parent exist
 		if (pos == std::string::npos)
 		{
-			// perror("brule");
+			perror("brule");
 			_sCode = 403;
 			return (1);
 		}
 
 		std::string parent = _pathfile.substr(0, pos);
-		parent.insert(0, directive.getArg()[0]);
+		// parent.insert(0, directive.getArg()[0]);
 		DEBUG_MSG("parent = " << parent);
-		if (access(parent.c_str(), W_OK) != 0)
+		if (access(parent.c_str(), W_OK) != 0) // check the right of writing in the parent
 		{
-			// perror("au");
+			perror("au");
 			_sCode = 403;
 			fGet();
 			return (1);
 		}
 	}
-	else
+	else // file does exist
 	{
-		if (access(_pathfile.c_str(), W_OK) != 0)
+		perror("singe");
+		if (S_ISDIR(st.st_mode)) // the file is a directory
 		{
-			// perror("sang");
+			DEBUG_MSG("Path is a directory, cannot POST");
+            _sCode = 403; // Ou 409 Conflict, mais 403 est standard ici
+            fGet();
+            return (1);
+		}
+		if (access(_pathfile.c_str(), W_OK) != 0) // we cannot write in the file
+		{
+			perror("sang");
 			_sCode = 403;
 			fGet();
 			return (1);
 		}
+
 	}
 	return (0);
 }
@@ -141,6 +97,8 @@ void Request::fPost(void)
 	else
 		directive = getDirective("root", _serv.getDir());
 
+	DEBUG_MSG("path avant check = " << _pathfile );
+
 	if (checkPostPath(directive) == 1)
 		return ;
 
@@ -150,12 +108,12 @@ void Request::fPost(void)
 	// upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
 	if (!upload.is_open())
 	{
-		// perror("conemara");
+		perror("conemara");
 		_sCode = 500;
 		fGet();
 		return;
 	}
-	DEBUG_MSG("body = " << _body.str());
+	// DEBUG_MSG("body = " << _body.str());
 	upload << _body.str();
 	_sCode = 201;
 	upload.close();

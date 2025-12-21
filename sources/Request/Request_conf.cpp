@@ -17,11 +17,36 @@ static unsigned long long getNbMax(std::string &str)
 	return nb;
 }
 
+void Request::checkLenght(std::string::size_type pos)
+{
+	Directive			dir;
+	// std::map<std::string, std::string>::iterator it;
+
+	(void) pos;
+	std::vector<std::string> arg;
+	if (_locationIndex != -1)
+	{
+		for (std::vector<Directive>::size_type i = 0; i < _locs[_locationIndex].getDir().size(); i++)
+		{
+			dir = _locs[_locationIndex].getDir()[i];
+			if (dir.getName() == "client_max_body_size")
+			{
+        		if (dir.getSizeMax() < _body.str().size())
+				{
+            		_sCode = 413;
+					return ;
+				}
+			}
+		}
+	}	
+}
+
 void Request::checkRedirAndMethod()
 {
 	Directive			dir;
 	int					flag;
 	int					code;
+	std::map<std::string, std::string>::iterator it;
 
 	// std::vector<LocationConfig> locs = _serv.getLocation();
 	std::vector<std::string> arg;
@@ -34,6 +59,8 @@ void Request::checkRedirAndMethod()
 			dir = _locs[_locationIndex].getDir()[i];
 			if (dir.getName() == "allow_methods")
 			{
+				// DEBUG_MSG("code 4 = " << _sCode);
+
 				flag = 1;
 				arg = dir.getArg();
 				for (std::vector<std::string>::size_type k = 0; k < arg.size(); k++)
@@ -41,19 +68,34 @@ void Request::checkRedirAndMethod()
 					if (arg[k] == _action)
 						flag = 0;
 				}
+				// DEBUG_MSG("code 5 = " << _sCode);
+
 			}
 			if (dir.getName() == "return")
 			{
+				// DEBUG_MSG("code 6 = " << _sCode);
 				arg = dir.getArg();
 				code = std::atoi(arg[0].c_str());
 				_sCode = code;
 				_location = arg[1];
+				// DEBUG_MSG("code 7 = " << _sCode);
 			}
 			if (dir.getName() == "client_max_body_size")
 			{
-				_contentLength = getNbMax(_reqParam["content-length"]);
-				if (dir.getSizeMax() > _contentLength)
-					_sCode = 400;
+				// DEBUG_MSG("code 8 = " << _sCode);
+				it = _reqParam.find("content-length");
+				if (it != _reqParam.end())
+				{
+					_contentLength = getNbMax(it->second);
+        			if (dir.getSizeMax() < _contentLength)
+            			_sCode = 413; // pas 400
+				}
+				// DEBUG_MSG(" dir.getSizeMax() = " << dir.getSizeMax());
+				// _contentLength = getNbMax(_reqParam["content-length"]);
+				// DEBUG_MSG(" _contentLength = " << _contentLength);
+				// if (dir.getSizeMax() < _contentLength)
+				// 	_sCode = 400;
+				// DEBUG_MSG("code 9 = " << _sCode);
 			}
 		}
 	}

@@ -61,6 +61,7 @@
 #define ERROR_404 "/errors/404.html"
 #define ERROR_405 "/errors/405.html"
 #define ERROR_411 "/errors/411.html"
+#define ERROR_413 "/errors/413.html"
 #define ERROR_500 "/errors/500.html"
 #define ERROR_501 "/errors/501.html"
 

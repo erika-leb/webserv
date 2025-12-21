@@ -96,8 +96,8 @@ int Server::timeOut()
 
 void Server::clearRequest(Client *cli, Request *req)
 {
-  	delete req;
-	cli->clearRequestBuff();
+	delete req;
+	// cli->clearRequestBuff(1); // ici changer pour s'arreter a la fin de la requete au cas ou on a deux requetes a la suite ???
 	cli->setRequest(NULL);
 }
 
@@ -130,6 +130,115 @@ void Server::receiveCgi( int i, std::string tmp ) {
 	return ;
 }
 
+
+bool Server::is_chunk_complete( Client *cli )
+{
+	std::string::size_type end, pos;
+	std::string size_str;
+	std::stringstream ss;
+	size_t size = 0;
+
+	pos = 0;
+	while (1)
+	{
+		// if (cli->getRequest()->getChunked() < 10)
+		// 	std::cout << cli->getBuff() << std::endl;
+		// cli->getRequest()->setChunked(cli->getRequest()->getChunked() + 1);
+		end = cli->getBuff().find("\r\n", pos);
+		if (end == std::string::npos)
+		{
+			DEBUG_MSG("ERROR3 = ");				
+			return (false);
+		}
+
+		// DEBUG_MSG("debu20 = " << cli->getBuff().substr(0, 20));				
+			// return (false);
+		size_str = cli->getBuff().substr(pos, end - pos);
+		// DEBUG_MSG("HEX = [" << size_str << "]");
+		// DEBUG_MSG("HEX len = " << size_str.size());
+
+		ss << std::hex << size_str;
+		ss >> size;
+		if (ss.fail())
+		{
+			cli->getRequest()->setCode(400);
+			return (true); // ici on fait quoi ?
+		}
+		ss.clear();
+		ss.str("");
+		pos = end + 2;
+		// DEBUG_MSG("size" << size);
+		if (size == 0)
+		{
+			if (pos + 2 > cli->getBuff().size() || cli->getBuff().substr(pos, 2) != "\r\n")
+			{
+				DEBUG_MSG("ERROR2 = ");
+				return (false);
+			}
+			break;
+		}
+		if (pos + size + 2 > cli->getBuff().size())
+		{
+			// DEBUG_MSG("ERROR1 = " << pos + size + 2 << " size =" << cli->getBuff().size());
+			return (false);
+		}
+		// unsigned char c1 = cli->getBuff()[pos + size];
+		// unsigned char c2 = cli->getBuff()[pos + size + 1];
+
+		// DEBUG_MSG("EXPECT CRLF AFTER DATA");
+		// DEBUG_MSG("pos=" << pos);
+		// DEBUG_MSG("size=" << size);
+		// DEBUG_MSG("byte1=" << (int)c1);
+		// DEBUG_MSG("byte2=" << (int)c2);
+
+		// _body << cli.getBuff().substr(pos, size);
+		if (cli->getBuff().substr(pos + size, 2) != "\r\n") // changer ici pour 400 et true
+		{
+			DEBUG_MSG("ERROR = " << cli->getBuff().substr(pos + size, 2));
+			DEBUG_MSG("ERROR = " << cli->getBuff().substr(pos + size - 10, 20));
+			return (true);
+		}
+		pos += size + 2;
+		// DEBUG_MSG("NEXT POS=" << pos);
+		// DEBUG_MSG("NEXT 10 BYTES=[" << cli->getBuff().substr(pos, 10) << "]");
+	}
+	cli->getRequest()->checkLenght(pos + 2);
+	return (true);
+}
+
+bool Server::is_body_complete( Client *cli )
+{
+	Request *req;
+	std::string::size_type pos;
+
+	// std::cout << "flag =" << cli->getRequest()->getExpect() << std::endl;
+	if (cli->getRequest() == NULL)
+		return (false);
+	if (cli->getRequest()->getExpect() == 1) // si on a eu expect, il faut enter dans la boucle
+		return (true);
+
+	req = (cli->getRequest());
+	if (req->getChunked() != 1  && req->getLenght() <= cli->getBodyRead()) // content-lenght body
+		return (true);
+	// if (req->getChunked() == 1) // chunked body
+	// {
+	// 	perror("rompiste");
+	// 	return (is_chunk_complete(cli));
+	// }
+	if (req->getChunked() == 1)
+	{
+	    bool complete = is_chunk_complete(cli);
+	    std::cout << "Chunked check: " << cli->getBuff().size() << " bytes in buffer, Complete: " << complete << std::endl;
+		pos = cli->getBuff().find("0\r\n\r\n");
+		if  (pos != std::string::npos )
+		{
+	    	std::cout << "oui, pos =" << cli->getBuff().find("0\r\n\r\n") <<  std::endl;
+			std::cout << "extrait =" << cli->getBuff().substr(pos - 2, pos + 6);
+		}
+		return complete;
+	}
+	return (false);
+}
 
 void Server::handleSigint(int sig)
 {

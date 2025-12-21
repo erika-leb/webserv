@@ -8,7 +8,7 @@ std::string Request::toLower(std::string &str)
 	return (str);
 }
 
-Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _contentLength(0), _locationIndex(-1)
+Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _expect(0), _contentLength(0), _locationIndex(-1)
 {
 	std::stringstream ss(""), rawParam;
 	// std::stringstream ss(cli.getBuff()), rawParam;
@@ -36,22 +36,12 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 		// _reqParam[key] = value;
 		_reqParam[toLower(key)] = value;
 	}
-	// for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); it++)
-	// {
-	// 	std::cout << "cle = " << it->first << " | valeur = " << it->second << std::endl;
-	// 	// DEBUG_MSG("cle = " << it->first << " | valeur = " << it->second);
-	// }
-	// if (pos + 4 < cli.getBuff().size())
-	// 	_body << cli.getBuff().substr(pos + 4);
-	// else
-	// 	_body << "";  // body vide
-	// _body << cli.getBuff().substr(pos + 4);
 	setErrorPath();
 	DEBUG_MSG("	code fin init = " << _sCode);
 }
 
 Request::Request(const Request &cpy) : _cli(cpy._cli), _serv(cpy._serv),
-	 _chunked(cpy._chunked), _contentLength(cpy._contentLength), _locationIndex(cpy._locationIndex)
+	 _chunked(cpy._chunked), _expect(cpy._expect), _contentLength(cpy._contentLength), _locationIndex(cpy._locationIndex)
 {
 	_reqParam = cpy._reqParam;
 	_errorPath = cpy._errorPath;
@@ -68,6 +58,7 @@ Request &Request::operator=(const Request &other)
 		_locs = other._locs;
 		_chunked = other._chunked;
 		_contentLength = other._contentLength;
+		_expect = other._expect;
 		// _bodyRead = other._bodyRead;
 	}
 	return (*this);
@@ -133,4 +124,26 @@ std::string Request::getCgiHandler( std::string extension) {
 		}
 	}
 	return "";
+}
+
+size_t Request::getChunked() const
+{
+	return (_chunked);
+}
+
+size_t Request::getExpect() const
+{
+	return (_expect);
+}
+
+
+void Request::setCode(int n)
+{
+	_sCode = n;
+}
+
+
+void Request::setChunked(size_t n)
+{
+	_chunked = n;
 }
