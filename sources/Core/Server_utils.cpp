@@ -96,56 +96,6 @@ int Server::timeOut()
 
 void Server::clearRequest(Client *cli, Request *req)
 {
-	// std::string::size_type end, pos = 0;
-	// std::string size_str;
-	// std::stringstream ss;
-	// size_t size = 0;
-
-  	// if (req->getChunked() != 1) //content-lenght
-	// {
-	// 	if (req->getLenght() <= cli->getBuff().size())
-	// 		cli->clearRequestBuff(1, req->getLenght());
-	// 	else
-	// 		DEBUG_MSG("PROBLEM");
-	// }
-	// else // chunked
-	// {
-	// 	// while (1)
-	// 	// {
-	// 	// 	end = cli->getBuff().find("\r\n", pos);
-	// 	// 	if (end == std::string::npos)
-	// 	// 		DEBUG_MSG("PROBLEM");
-	// 	// 	size_str = cli.getBuff().substr(pos, end - pos);
-	// 	// 	ss << std::hex << size_str;
-	// 	// 	ss >> size;
-	// 	// 	if (ss.fail())
-	// 	// 	{
-	// 	// 		return ;
-	// 	// 	}
-	// 	// 	ss.clear();
-	// 	// 	ss.str("");
-	// 	// 	pos = end + 2;
-	// 	// 	if (size == 0)
-	// 	// 	{
-	// 	// 		if (cli.getBuff().substr(pos, 2) != "\r\n")
-	// 	// 		{
-	// 	// 			return;
-	// 	// 		}
-	// 	// 		break;
-	// 	// 	}
-	// 	// 	if (pos + size + 2 > cli.getBuff().size())
-	// 	// 	{
-	// 	// 		return;
-	// 	// 	}
-	// 	// 	_body << cli.getBuff().substr(pos, size);
-	// 	// 	if (cli.getBuff().substr(pos + size, 2) != "\r\n")
-	// 	// 	{
-	// 	// 		return ;
-	// 	// 	}
-	// 	// 	pos += size + 2;
-	// 	// }
-	// }
-	
 	delete req;
 	// cli->clearRequestBuff(1); // ici changer pour s'arreter a la fin de la requete au cas ou on a deux requetes a la suite ???
 	cli->setRequest(NULL);
@@ -246,7 +196,7 @@ bool Server::is_chunk_complete( Client *cli )
 		{
 			DEBUG_MSG("ERROR = " << cli->getBuff().substr(pos + size, 2));
 			DEBUG_MSG("ERROR = " << cli->getBuff().substr(pos + size - 10, 20));
-			return (false);
+			return (true);
 		}
 		pos += size + 2;
 		// DEBUG_MSG("NEXT POS=" << pos);

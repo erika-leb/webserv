@@ -81,8 +81,8 @@ public:
 
 	void parseParam(void);
 	void parseHttp();
-	size_t parseChunkedBody(size_t pos, Client& cli);
-	void parseBody();
+	bool parseChunkedBody(size_t pos, Client& cli);
+	bool parseBody();
 
 
 	// actions functions (request_action.cpp)

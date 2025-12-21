@@ -59,7 +59,8 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
 	
 	req = (cli->getRequest());
-	if (is_body_complete(cli) == true)
+	if (req->parseBody() == true)
+	// if (is_body_complete(cli) == true)
 	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
 	{
 		perror("angel");
@@ -80,7 +81,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		else // POST with no error case
 		{
 			perror("contigo");
-			req->parseBody(); 
+			// req->parseBody(); 
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);

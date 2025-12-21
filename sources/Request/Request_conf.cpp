@@ -22,6 +22,7 @@ void Request::checkLenght(std::string::size_type pos)
 	Directive			dir;
 	// std::map<std::string, std::string>::iterator it;
 
+	(void) pos;
 	std::vector<std::string> arg;
 	if (_locationIndex != -1)
 	{
@@ -30,7 +31,7 @@ void Request::checkLenght(std::string::size_type pos)
 			dir = _locs[_locationIndex].getDir()[i];
 			if (dir.getName() == "client_max_body_size")
 			{
-        		if (dir.getSizeMax() < pos)
+        		if (dir.getSizeMax() < _body.str().size())
 				{
             		_sCode = 413;
 					return ;
