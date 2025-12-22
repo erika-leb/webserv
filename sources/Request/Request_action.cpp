@@ -5,8 +5,11 @@
 
 void Request::fGet(void) {
 	DEBUG_MSG("GET request");
+	DEBUG_MSG("path avant iferror : " << _pathfile);
 	ifError(_pathfile, _connection, _sCode);
+	DEBUG_MSG("path apres iferror : " << _pathfile);
 	_file = getFile(_pathfile, &_fileLength);
+	DEBUG_MSG("path apres getfile : " << _pathfile);
 	if (_file.empty())
 	{
 		_sCode = 403;
@@ -125,6 +128,7 @@ void Request::handleAction(std::string action)
 {
 	int	i;
 
+	DEBUG_MSG("path debut action =" << _pathfile);
 	std::string check[3] = {"GET", "POST", "DELETE"};
 	void (Request::*f[3])(void) = {&Request::fGet, &Request::fPost,
 		&Request::fDelete};

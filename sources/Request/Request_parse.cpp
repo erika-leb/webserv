@@ -182,94 +182,12 @@ bool Request::parseChunkedBody(size_t pos, Client& cli)
 	}
 }
 
-// bool Request::parseChunkedBody(size_t pos, Client& cli)
-// {
-//     std::string::size_type end;
-//     std::string size_str;
-//     size_t size = 0;
-
-//     std::cerr << "[CHUNK] buff.size=" << cli.getBuff().size()
-//               << " pos=" << pos << std::endl;
-
-//     while (1)
-//     {
-//         // garde-fou : si plus rien dans le buffer, il faut attendre plus de données
-//         if (pos >= cli.getBuff().size())
-//             return false;
-
-//         end = cli.getBuff().find("\r\n", pos);
-//         if (end == std::string::npos)
-//             return false;
-
-//         // extrait la taille hex du chunk
-//         size_str = cli.getBuff().substr(pos, end - pos);
-
-//         // parser la taille en hex avec un stringstream LOCAL
-//         {
-//             std::stringstream ss(size_str);
-//             ss >> std::hex >> size;
-//             if (ss.fail())
-//             {
-//                 _sCode = 400;
-//                 // erreur de format : consommer le buffer et signaler la fin pour réponse
-//                 cli.clearRequestBuff(1, cli.getBuff().size());
-//                 return true;
-//             }
-//         }
-
-//         pos = end + 2; // position du début des données du chunk
-
-//         // chunk terminal
-//         if (size == 0)
-//         {
-//             // on attend les 2 octets terminaux "\r\n"
-//             if (pos + 2 > cli.getBuff().size())
-//                 return false;
-
-//             // **vérifier AVANT de vider le buffer**
-//             if (cli.getBuff().substr(pos, 2) != "\r\n")
-//             {
-//                 _sCode = 400;
-//                 cli.clearRequestBuff(1, cli.getBuff().size());
-//                 return true;
-//             }
-
-//             // consommer "0\r\n\r\n"
-//             cli.clearRequestBuff(1, pos + 2);
-//             cli.getRequest()->checkLenght(pos + 2);
-//             return true;
-//         }
-
-//         // vérifier qu'on a reçu tout le chunk + CRLF final
-//         if (pos + size + 2 > cli.getBuff().size())
-//             return false;
-
-//         // vérifier CRLF après le chunk
-//         if (cli.getBuff().substr(pos + size, 2) != "\r\n")
-//         {
-//             _sCode = 400;
-//             cli.clearRequestBuff(1, cli.getBuff().size());
-//             return true;
-//         }
-
-//         // consommer les données du chunk
-//         _body << cli.getBuff().substr(pos, size);
-//         std::cerr << "[CHUNK] consumed " << size << " bytes" << std::endl;
-
-//         // effacer du buffer tout ce qu'on a consommé (taille + CRLF)
-//         cli.clearRequestBuff(1, pos + size + 2);
-
-//         // repartir du début du buffer restant
-//         pos = 0;
-//     }
-// }
-
-
-
 bool Request::parseBody()
 {
 	// std::string::size_type pos;
 	// std::string::size_type end;
+
+	DEBUG_MSG("pru ");
 	Client& cli = _cli;
 	// size_t consumed;
 

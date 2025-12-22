@@ -23,17 +23,16 @@ a faire pour requete:
 				<< "text/html" << ENDLINE; // Modify according to file
 
 RESTE A FAIRE == - faire parsing post
-- faire chunked
+- gere les types de fichiers differents
 - lire le code cgi de thibault (erika)
 - gerer la directive cgi (Thibault)
-- ajouter le cas POST CGI
+- ameliorer le parsing de thibault
 
 
 
 
 
 
-- si deeux serveurs avec memes adresse que fait-on ? ie comment gerer le virtual hosting ?
 - si le fichier de conf ne termine pas par .conf c'est grave ?
 
 regles
@@ -184,3 +183,29 @@ créer plusieurs serveurs (listen 8080, listen 8081, etc.) ;
 gérer les “locations” (location /upload, location /images...).
 
 Mais cette étape vient après que ton serveur minimal fonctionne.
+
+
+
+
+
+
+
+
+
+
+
+
+
+requete google http://localhost:8081/kiki/AMfrvfr
+GET /kiki/AMfrvfr HTTP/1.1  
+Host: localhost:8081 
+
+resultat = gerhain 404
+
+
+requte echo -ne "GET /kiki/AMfrvfr HTP/1.1\r\nHost: 127.0.0.1:8081\r\n\r\n" | nc 127.0.0.1 8081 
+(curl)
+GET /kiki/AMfrvfr HTP/1.1   
+Host: 127.0.0.1:8081
+
+resultat = so funny 400

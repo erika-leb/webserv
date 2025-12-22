@@ -42,7 +42,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
 	// cli->addBuff(buff);
 	cli->addBuff(buff, n);
-	// DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
+	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
 
 	if (cli->getRequest() == NULL && (cli->getBuff()).find("\r\n\r\n") != std::string::npos) // header complete so we create a new request
 	{
@@ -59,7 +59,8 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
 	
 	req = (cli->getRequest());
-	if (req->parseBody() == true)
+
+	if (cli->getRequest() != NULL && req->parseBody() == true)
 	// if (is_body_complete(cli) == true)
 	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
 	{

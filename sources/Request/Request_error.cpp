@@ -90,14 +90,15 @@ void Request::setErrorPath()
 		setStatusInfo(i, tmp);
 		_errorPath.insert(std::pair<int, StatusInfo>(i, tmp));
 	}
-
 	if (_locationIndex == -1)
 	{
+		DEBUG_MSG("piper");
 		dirs = _serv.getDir();
 		root = getDirective("root", dirs);
 	}
 	else
 	{
+		DEBUG_MSG("phoebe");
 		dirs = _locs[_locationIndex].getDir();
 		root = getDirective("root", dirs);
 	}
@@ -111,15 +112,23 @@ void Request::setErrorPath()
 		int code;
 		iss >> code;
 
+		DEBUG_MSG("charmed");
+		DEBUG_MSG("name = " << name << " value = " << arg[0]);
 		if (name == "error_page" && (code >= 400 && code <= 500)) {
+			DEBUG_MSG("dog");
 			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
 			{
 				if (_locationIndex == -1)
 					tmp.path = root.getArg()[0] + arg[1];
 				else
-					tmp.path = root.getArg()[0]
-						+ _locs[_locationIndex].getUri() + arg[1];
+				{
+					if (_locs[_locationIndex].getUri() == "/")
+						tmp.path = root.getArg()[0] + arg[1];
+					else
+						tmp.path = root.getArg()[0] + _locs[_locationIndex].getUri() + arg[1];
+				}
 				_errorPath[code].path = tmp.path;
+				DEBUG_MSG("path " << code << " = " << tmp.path);
 			}
 		}
 	}
@@ -133,7 +142,10 @@ std::string Request::ifError(std::string &path, std::string &con, int sCode)
 	con = tmp.conn;
 
 	if (!tmp.path.empty())
+	{
 		path = tmp.path;
+		DEBUG_MSG("changement dans iferror =" << tmp.path);
+	}
 
 	return (tmp.message);
 }

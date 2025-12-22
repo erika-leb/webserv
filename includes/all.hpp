@@ -72,7 +72,8 @@
 
 #define ROOT "html"
 
-const std::string ROOT_STR = "html";
+// const std::string ROOT_STR = "html";
+const std::string ROOT_STR = "error_default";
 
 enum dcode {
 	HTTP,

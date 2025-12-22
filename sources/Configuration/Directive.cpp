@@ -71,7 +71,7 @@ void Directive::checkError()
 	if (arg[1][0] != '/')
 		arg[1] = '/' + arg[1];
 	if (arg[1][arg[1].size() - 1] == '/')
-		arg[1] = arg[1].substr(0, arg[1].size() - 2);
+		arg[1] = arg[1].substr(0, arg[1].size() - 1);
 }
 
 void Directive::checkRedir()

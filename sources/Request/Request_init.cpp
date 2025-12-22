@@ -11,7 +11,6 @@ std::string Request::toLower(std::string &str)
 Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _expect(0), _contentLength(0), _locationIndex(-1)
 {
 	std::stringstream ss(""), rawParam;
-	// std::stringstream ss(cli.getBuff()), rawParam;
 	std::string key, value, tmp, rawHeader;
 	std::string::size_type pos;
 
@@ -32,10 +31,9 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	{
 		trim_line(key);
 		trim_line(value);
-		// remove_blank(value);
-		// _reqParam[key] = value;
 		_reqParam[toLower(key)] = value;
 	}
+	getWriteLocation(_pathfile);
 	setErrorPath();
 	DEBUG_MSG("	code fin init = " << _sCode);
 }
