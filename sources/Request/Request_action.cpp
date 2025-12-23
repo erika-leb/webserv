@@ -5,10 +5,13 @@
 
 void Request::fGet(void) {
 	DEBUG_MSG("GET request");
-	DEBUG_MSG("path avant iferror : " << _pathfile);
+	// DEBUG_MSG("conn 2= " << _connection );
+	// DEBUG_MSG("path avant iferror : " << _pathfile);
 	ifError(_pathfile, _connection, _sCode);
-	DEBUG_MSG("path apres iferror : " << _pathfile);
+	// DEBUG_MSG("conn 1 = " << _connection );
+	// DEBUG_MSG("path apres iferror : " << _pathfile);
 	_file = getFile(_pathfile, &_fileLength);
+	// DEBUG_MSG("conn 5 = " << _connection );
 	DEBUG_MSG("path apres getfile : " << _pathfile);
 	if (_file.empty())
 	{
@@ -100,13 +103,13 @@ void Request::fPost(void)
 	else
 		directive = getDirective("root", _serv.getDir());
 
-	DEBUG_MSG("path avant check = " << _pathfile );
+	// DEBUG_MSG("path avant check = " << _pathfile );
 
 	if (checkPostPath(directive) == 1)
 		return ;
 
 	// _pathfile.insert(0, directive.getArg()[0]);
-	DEBUG_MSG("path avantcreation fichier post = " << _pathfile );
+	// DEBUG_MSG("path avantcreation fichier post = " << _pathfile );
 	upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
 	// upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
 	if (!upload.is_open())
@@ -128,7 +131,8 @@ void Request::handleAction(std::string action)
 {
 	int	i;
 
-	DEBUG_MSG("path debut action =" << _pathfile);
+	// DEBUG_MSG("conn = " << _connection );
+	// DEBUG_MSG("path debut action =" << _pathfile);
 	std::string check[3] = {"GET", "POST", "DELETE"};
 	void (Request::*f[3])(void) = {&Request::fGet, &Request::fPost,
 		&Request::fDelete};
@@ -159,6 +163,7 @@ void Request::handleAction(std::string action)
 std::string Request::makeResponse(void)
 {
 	DEBUG_MSG("code final =" << _sCode);
+	DEBUG_MSG("path = " << _pathfile );
 	std::ostringstream mess;
 	// ServerConfig conf = _cli.getServ();
 	mess << "HTTP/1.1"
@@ -172,7 +177,9 @@ std::string Request::makeResponse(void)
 	mess << "Connection: " << _connection << ENDLINE;
 		// Modify either the connection need to be maintained or not
 	if (_sCode > 300 && _sCode < 400)
+	{
 		mess << "Location: " << _location << ENDLINE;
+	}
 	if (_sCode != 204 && _sCode != 201)
 	{
 		mess << "Content-Type: "

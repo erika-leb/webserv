@@ -2,44 +2,30 @@
 valgrind --trace-children=yes --track-fds=yes --leak-check=full --show-leak-kinds=all ./webserv
 
 a faire encore pour config :
-- voir quelles directives on accepte (accepte-on les meme a chaque niveau ?) voir sujet
-- decider quelles ou si des directives peuvent se trouver en doubon
-- implementer les elements de la config dans le serveur
-- mettre des securites par rapport a l'endroit un client peut recuperer/modif/suppr des fichiers   OK
-- root/location : mettre un root de base; verifier que dans root, location on a pas .., ni ~,  OK
-- root/location = prendre le + long location OK
-- proteger les fichiers d'erreur additionnel comme Thib a fait ou pas ?
-- reflechir a des protection si les fichiers d'erreur de base sont bouges, est-ce qu'on a le droit de faire ca en correction ? Dans tous les cas il faut proteger, pareil pour les 300 IMPORTANT
 - directive retrun -> renvoyer le fichier (http://localhost:8081/Makefile doit renvoyer le Makefile de kiki)
 
-a faire pour serveur:
 
 
-a faire pour requete:
-- post
-- protection si chemin avec .. ou ~
 - verifier si il y a des parametres non supportes -> erreur 501
-- voir si cette ligne est a modifier		mess << "Content-Type: "
-				<< "text/html" << ENDLINE; // Modify according to file
 
-RESTE A FAIRE == - faire parsing post
+
+RESTE A FAIRE ==
 - gere les types de fichiers differents
 - lire le code cgi de thibault (erika)
 - gerer la directive cgi (Thibault)
 - ameliorer le parsing de thibault
+- content-type
+- multipart ?
 
 
+TEST =
+- refaire ifError
+- refaire test ip different  et port identique
 
 
 
 
 - si le fichier de conf ne termine pas par .conf c'est grave ?
-
-regles
-location /images {
-}
-c'est ok
-
 
 La logique standard est :
 -match le plus long préfixe (ex : /images/hd/ avant /images/)
@@ -54,6 +40,7 @@ logique de request = - on verifie que le _pathfile (le fichier) existe (checkFil
 - location = / a la fin oui mais apres normalement meme si on dirait que non   ex : /test
 - fichier = slash au debut mais pas a la fin OK ex : /04.html
 - cgi = slash avant mais pas apres
+
 
 
 

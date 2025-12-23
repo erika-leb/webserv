@@ -78,8 +78,10 @@ void Request::parseHttp(void)
 	{
 		checkRedirAndMethod();
 		DEBUG_MSG("code 3 = " << _sCode);
+		DEBUG_MSG("path la = " << _pathfile);
 		checkPath(pathWithoutQuery, _sCode);
 		// checkPath(_pathfile, _sCode);
+		DEBUG_MSG("path cii = " << _pathfile);
 		getPath(_pathfile);
 		DEBUG_MSG("getPath(): " << _pathfile);
 	}

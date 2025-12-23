@@ -52,6 +52,7 @@ void Request::checkRedirAndMethod()
 	std::vector<std::string> arg;
 	flag = 0;
 	getWriteLocation(_pathfile);
+	DEBUG_MSG("location = " << _locationIndex);
 	if (_locationIndex != -1)
 	{
 		for (std::vector<Directive>::size_type i = 0; i < _locs[_locationIndex].getDir().size(); i++)
@@ -73,11 +74,13 @@ void Request::checkRedirAndMethod()
 			}
 			if (dir.getName() == "return")
 			{
-				// DEBUG_MSG("code 6 = " << _sCode);
+				DEBUG_MSG("code 6 IT's THE FINAL COUNTDOWN = " << _sCode);
+				DEBUG_MSG("path = " << _pathfile);
 				arg = dir.getArg();
+				DEBUG_MSG("location = " << arg[1]);
 				code = std::atoi(arg[0].c_str());
 				_sCode = code;
-				_location = arg[1];
+				_location = arg[1] + _pathfile;
 				// DEBUG_MSG("code 7 = " << _sCode);
 			}
 			if (dir.getName() == "client_max_body_size")
@@ -181,7 +184,11 @@ void Request::checkIndex()
 		indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
 		if (stat(indexPath .c_str(), &fileStat) >= 0 && (S_ISREG(fileStat.st_mode))) // le fichier html est ok donc on sort
 		{
-			_pathfile = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
+			perror("lum");
+			if (_locs[_locationIndex].getUri() != "/")
+				_pathfile = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
+			else
+				_pathfile = dir.getArg()[0]; // PATHFILE FINAL
 			return;
 		}
 		// indexPath = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL

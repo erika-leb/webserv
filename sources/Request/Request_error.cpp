@@ -14,26 +14,32 @@ static void setStatusInfo( int code, StatusInfo& tmp) {
 	case 201:
 		// path = newly created ressource
 		str = " Created";
+		con = "keep-alive";
 		break ;
 	case 204:
 		// no path
 		str = " No content";
+		con = "keep-alive";
 		break ;
 	case 301:
 		defaultPath += REDIR_301;
 		str = " Moved Permanently";
+		con = "keep-alive";
 		break ;
 	case 302:
 		defaultPath += REDIR_302;
 		str = " Found";
+		con = "keep-alive";
 		break ;
 	case 307:
 		defaultPath += REDIR_307;
 		str = " Temporary Redirect";
+		con = "keep-alive";
 		break ;
 	case 308:
 		defaultPath += REDIR_308;
 		str = " Permanent Redirect";
+		con = "keep-alive";
 		break ;
 	case 400:
 		defaultPath += ERROR_400;
@@ -43,22 +49,27 @@ static void setStatusInfo( int code, StatusInfo& tmp) {
 	case 403:
 		defaultPath += ERROR_403;
 		str = " Forbidden";
+		con = "keep-alive";
 		break ;
 	case 404:
 		defaultPath += ERROR_404;
 		str = " Not found";
+		con = "keep-alive";
 		break ;
 	case 405:
 		defaultPath += ERROR_405;
 		str = " Method not allowed";
+		con = "keep-alive";
 		break ; // Connection normally keep-alive
 	case 411:
 		defaultPath += ERROR_411;
 		str = " Length required";
+		con = "close";
 		break ; // Connection normally keep-alive
 	case 413:
 		defaultPath += ERROR_413;
 		str = " Request entity too large";
+		con = "close";
 		break ; // Connection normally keep-alive
 	case 500:
 		defaultPath += ERROR_500;
@@ -92,13 +103,13 @@ void Request::setErrorPath()
 	}
 	if (_locationIndex == -1)
 	{
-		DEBUG_MSG("piper");
+		// DEBUG_MSG("piper");
 		dirs = _serv.getDir();
 		root = getDirective("root", dirs);
 	}
 	else
 	{
-		DEBUG_MSG("phoebe");
+		// DEBUG_MSG("phoebe");
 		dirs = _locs[_locationIndex].getDir();
 		root = getDirective("root", dirs);
 	}
@@ -112,10 +123,10 @@ void Request::setErrorPath()
 		int code;
 		iss >> code;
 
-		DEBUG_MSG("charmed");
-		DEBUG_MSG("name = " << name << " value = " << arg[0]);
+		// DEBUG_MSG("charmed");
+		// DEBUG_MSG("name = " << name << " value = " << arg[0]);
 		if (name == "error_page" && (code >= 400 && code <= 500)) {
-			DEBUG_MSG("dog");
+			// DEBUG_MSG("dog");
 			if (access(arg[1].c_str(), F_OK | R_OK) < 0)
 			{
 				if (_locationIndex == -1)
@@ -128,7 +139,7 @@ void Request::setErrorPath()
 						tmp.path = root.getArg()[0] + _locs[_locationIndex].getUri() + arg[1];
 				}
 				_errorPath[code].path = tmp.path;
-				DEBUG_MSG("path " << code << " = " << tmp.path);
+				// DEBUG_MSG("path " << code << " = " << tmp.path);
 			}
 		}
 	}

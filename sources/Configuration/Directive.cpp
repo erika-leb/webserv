@@ -42,11 +42,17 @@ void Directive::checkRoot()
 	if (arg[0].find("~") != std::string::npos)
 		throw std::runtime_error("error configuration file's root directive");
 	if (arg[0][arg[0].size() - 1] == '/')
-	{
 		arg[0] = arg[0].substr(0, arg[0].size() - 1);
-	}
-	if (arg[0][0] == '/')
-		arg[0] = arg[0].substr(1, arg[0].size());
+	// if (arg[0][0] == '/')
+	// 	arg[0] = arg[0].substr(1, arg[0].size());
+	if (arg[0] == "sources")
+		throw std::runtime_error("error configuration file's root directive : sources files cannot be modified");
+	if (arg[0] == "default_documents")
+		throw std::runtime_error("error configuration file's root directive : default_documents files cannot be modified");
+	if (arg[0] == "includes")
+		throw std::runtime_error("error configuration file's root directive : includes files cannot be modified");
+	if (arg[0] == "")
+		throw std::runtime_error("error configuration file's root directive : root should not be empty");
 }
 
 void Directive::checkError()
