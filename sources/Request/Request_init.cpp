@@ -35,7 +35,6 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	}
 	getWriteLocation(_pathfile);
 	setErrorPath();
-	DEBUG_MSG("	code fin init = " << _sCode);
 }
 
 Request::Request(const Request &cpy) : _cli(cpy._cli), _serv(cpy._serv),
