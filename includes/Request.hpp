@@ -54,6 +54,7 @@ public:
 	void								setChunked(size_t n);
 	size_t								getExpect() const;
 	void								setCode(int n);
+	std::string							getBody() const;
 	// unsigned long long	getBodyRead();
 
 	bool is_cgi( std::string );

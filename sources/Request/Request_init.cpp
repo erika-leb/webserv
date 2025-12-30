@@ -109,6 +109,7 @@ bool Request::is_cgi(std::string cgiFolder)
 
 std::string Request::getCgiHandler( std::string extension) {
 	std::vector<Directive> dirs;
+
 	if (_locationIndex != -1)
 		dirs = _locs[_locationIndex].getDir();
 	else
@@ -121,6 +122,10 @@ std::string Request::getCgiHandler( std::string extension) {
 		}
 	}
 	return "";
+}
+
+std::string Request::getBody() const {
+	return _body.str();
 }
 
 size_t Request::getChunked() const

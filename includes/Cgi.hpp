@@ -21,6 +21,8 @@ private:
 	int			_port;
 	std::string _cgiHandler;
 	int 		_pipeDes[2];
+	std::string _reqBody;
+	bool		_isBody;
 
 public:
 	Cgi( Request&, Client& );

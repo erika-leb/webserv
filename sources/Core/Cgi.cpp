@@ -56,7 +56,7 @@ Cgi::Cgi( Request& req, Client& cli ): _cli(cli) {
 		this->_queryString = "";
 
 	this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
-	DEBUG_MSG("cgiHandler: " << _cgiHandler);
+	this->_reqBody = req.getBody();
 }
 
 Cgi::Cgi( Cgi& cpy ):
@@ -125,27 +125,55 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
     envp.push_back(NULL);
 }
 
-void Cgi::handleCGI_fork( int pollfd) {
+void Cgi::handleCGI_fork( int pollfd ) {
 	char * const args[] = {(char *)_cgiHandler.c_str(), (char *)_path.c_str(), NULL};
 
 	std::vector<std::string> tmp;
 	std::vector<char *> env;
 	makeEnv(tmp, env);
-
-	if ( (pipe(_pipeDes)) == -1)
+	
+	int stdinPipe[2];
+	if ( (pipe(_pipeDes) == -1) || (pipe(stdinPipe) == -1))
 		DEBUG_MSG("PIPE ERROR"); // throw error
 	
-	if (fork() == 0) {
+	pid_t pid = fork();
+	if (pid == -1)
+		DEBUG_MSG("FORK ERROR"); // throw error
+	
+	if (pid == 0) {
 		// CHILD
-		/* If POST request  or query dup2(STDIN, ?)*/
+		/* If POST request dup2(STDIN, ?)*/
+		close(stdinPipe[WRITE]);
+		dup2(stdinPipe[READ], STDIN_FILENO);
+		close(stdinPipe[READ]);
+
 		close(_pipeDes[READ]);
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
+		close(_pipeDes[WRITE]);
+
 		if ( (execve(_cgiHandler.c_str(), args, &env[0])) == -1)
 			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
 		exit(1); // leak
 	}
 	else {
 		// PARENT
+
+		close(stdinPipe[READ]);
+        if (!_reqBody.empty()) {
+            size_t total = _reqBody.size();
+            size_t written = 0;
+            const char *data = _reqBody.c_str();
+
+            while (written < total)
+            {
+                ssize_t n = write(stdinPipe[WRITE], data + written, total - written);
+                if (n <= 0)
+                    break;
+                written += n;
+            }
+        }
+        close(stdinPipe[WRITE]); // EOF for CGI stdin
+
 		close(_pipeDes[WRITE]);
 		if (make_non_blocking(_pipeDes[READ]) == -1) {
 			std::cerr << "Non blocking error" << std::endl;
@@ -191,7 +219,7 @@ std::string Cgi::parseHeader( std::string& rawHeader, size_t cLen ) {
 	else if ( checkCode(tmp) == 0)
 		ss << tmp << ENDLINE;
 	ss << "Date: " << date(HTTP) << ENDLINE;
-	ss << "Server: " << _serverName + ":" << _port << ENDLINE; // bruh we gonna struggle to get the server name there
+	ss << "Server: " << _serverName + ":" << _port << ENDLINE;
 	ss << "Content-Type: " << extractValue(rawHeader, "Content-Type: ") << ENDLINE;
 	ss << "Content-Length: " << cLen << ENDLINE;
 	ss << ENDLINE;

@@ -9,7 +9,6 @@ void Request::getWriteLocation(std::string &pathfile)
 	size_t size = 0;
 	std::string pathBis;
 
-	DEBUG_MSG("path = " << _pathfile);
 	if (pathfile[pathfile.size() - 1] != '/')
 		pathBis = pathfile + '/';
 	else
@@ -36,7 +35,6 @@ void Request::getWriteLocation(std::string &pathfile)
 			}
 		}
 	}
-	DEBUG_MSG("index = " << _locationIndex);
 }
 
 void Request::getPath(std::string &pathfile)

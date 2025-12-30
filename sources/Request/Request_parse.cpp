@@ -53,16 +53,13 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 void Request::parseHttp(void)
 {
 	std::string tmp;
-	DEBUG_MSG("rawhttp = " << _rawHttp.str());
 	std::getline(_rawHttp, _action, ' ');
 	remove_blank(_action);
 	if (_action != "GET" && _action != "POST" && _action != "DELETE")
 	{
-		DEBUG_MSG("action not allowed = " << _action);
 		_sCode = 405;
 	}
 	std::getline(_rawHttp, _pathfile, ' ');
-	DEBUG_MSG("pathfile brut = " << _pathfile);
 	remove_blank(_pathfile);
 
 		// Only for test purpose
@@ -71,21 +68,15 @@ void Request::parseHttp(void)
 	if ( (end = _pathfile.find('?')) != std::string::npos )
 		pathWithoutQuery = _pathfile.substr(0, end);
 
-	DEBUG_MSG("code 1 = " << _sCode);
 	if (_pathfile.empty())
 		_sCode = 400;
 	else
 	{
 		checkRedirAndMethod();
-		DEBUG_MSG("code 3 = " << _sCode);
-		DEBUG_MSG("path la = " << _pathfile);
 		checkPath(pathWithoutQuery, _sCode);
 		// checkPath(_pathfile, _sCode);
-		DEBUG_MSG("path cii = " << _pathfile);
 		getPath(_pathfile);
-		DEBUG_MSG("getPath(): " << _pathfile);
 	}
-	DEBUG_MSG("code 2 = " << _sCode);
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);
 	if (!tmp.empty())
@@ -97,8 +88,6 @@ void Request::parseHttp(void)
 	}
 	else
 		_sCode = 400;
-	DEBUG_MSG("path at end of parse = " + _pathfile);
-	DEBUG_MSG("code fin de parse https = " << _sCode);
 	// std::cout << "ode =" << _sCode << std::endl;
 	if (_sCode == 200)
 		parseParam();
@@ -189,16 +178,14 @@ bool Request::parseBody()
 	// std::string::size_type pos;
 	// std::string::size_type end;
 
-	DEBUG_MSG("pru ");
+	// DEBUG_MSG("pru ");
 	Client& cli = _cli;
 	// size_t consumed;
 
-	DEBUG_MSG("chunk = " << _chunked);
 	if (_chunked != 1) // content-lenght body
 	{
 		// if (pos + 4 < cli.getBuff().size())
 		// 	_body << cli.getBuff().substr(pos + 4);
-		DEBUG_MSG("you");
 		if (_contentLength <= cli.getBuff().size())
 		{
 			_body << cli.getBuff().substr(0, _contentLength);
@@ -212,7 +199,7 @@ bool Request::parseBody()
 	else //chunked body
 	{
 		// parseChunkedBody(pos + 4, cli);
-		DEBUG_MSG("do");
+		// DEBUG_MSG("do");
 		bool complete;
 		complete = parseChunkedBody(0, cli);
 	    std::cout << "Chunked check: " << cli.getBuff().size() << " bytes in buffer, Complete: " << complete << std::endl;
