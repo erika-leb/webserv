@@ -9,6 +9,7 @@ void Request::getWriteLocation(std::string &pathfile)
 	size_t size = 0;
 	std::string pathBis;
 
+	DEBUG_MSG("path = " << _pathfile);
 	if (pathfile[pathfile.size() - 1] != '/')
 		pathBis = pathfile + '/';
 	else
@@ -18,16 +19,24 @@ void Request::getWriteLocation(std::string &pathfile)
 		directive = getDirective("root", _locs[i].getDir());
 		arg = directive.getArg();
 		uri = _locs[i].getUri();
+		// DEBUG_MSG("uri = " << uri);
+		// DEBUG_MSG("pathbis = " << pathBis);
 		if (pathBis.rfind(uri, 0) == 0)
 		{
+			// DEBUG_MSG("pathbis2 = " << pathBis);
+			// DEBUG_MSG("uri size = " << uri.size() << " ; size = " << size);
 			if (uri.size() > size)
 			// if (arg[0].size() > size)
 			{
-				size = arg[0].size();
+				// DEBUG_MSG("uri2 = " << uri);
+				size = uri.size();
+				// size = arg[0].size();
+				// DEBUG_MSG("arg0 = " << arg[0]);
 				_locationIndex = i;
 			}
 		}
 	}
+	DEBUG_MSG("index = " << _locationIndex);
 }
 
 void Request::getPath(std::string &pathfile)

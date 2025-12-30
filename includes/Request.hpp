@@ -25,7 +25,7 @@ private:
 	// std::map<int, std::string>			_errorPath;
 	std::map<int, StatusInfo> _errorPath;
 	std::string							_action, _pathfile, _file, _fileType, _connection, _statusMess, _location;
-	size_t								_sCode, _fileLength, _chunked; //3 derniers = 1 si chunked, uplaod renseigne et contentleingt active
+	size_t								_sCode, _fileLength, _chunked, _expect; //3 derniers = 1 si chunked, uplaod renseigne et contentleingt active
 	unsigned long long					_contentLength;
 	int 								_locationIndex;
 	std::vector<LocationConfig>			_locs;
@@ -50,12 +50,17 @@ public:
 	std::string 						getServIp() const;
 	int									getServPort() const;
 	unsigned long long					getLenght() const;
+	size_t								getChunked() const;
+	void								setChunked(size_t n);
+	size_t								getExpect() const;
+	void								setCode(int n);
 	// unsigned long long	getBodyRead();
 
 	bool is_cgi( std::string );
 
 	// configuration implementation (Request_conf.cpp)
 
+	void checkLenght(std::string::size_type pos);
 	void checkRedirAndMethod();
 	void generateHtml(std::string uri, std::string path);
 	void checkIndex();
@@ -76,7 +81,8 @@ public:
 
 	void parseParam(void);
 	void parseHttp();
-	void parseBody();
+	bool parseChunkedBody(size_t pos, Client& cli);
+	bool parseBody();
 
 
 	// actions functions (request_action.cpp)

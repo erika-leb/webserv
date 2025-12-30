@@ -40,23 +40,31 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	Request *req;
 
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
-	cli->addBuff(buff);
+	// cli->addBuff(buff);
+	cli->addBuff(buff, n);
 	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
 
 	if (cli->getRequest() == NULL && (cli->getBuff()).find("\r\n\r\n") != std::string::npos) // header complete so we create a new request
 	{
+		perror("angelito");
 		req = new Request(*cli); // new request
 		cli->setRequest(req); // we save the request in client
 		req->parseHttp();
 		endPos = cli->getBuff().find("\r\n\r\n") + 4; // we save the number of octet read after the header
 		cli->setBodyRead(cli->getBuff().size() - endPos);
+		cli->clearRequestBuff(0, 0);
+		// cli->clearHeader(endPos);
 	}
 	else if (cli->getRequest() != NULL)
 		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
-
+	
 	req = (cli->getRequest());
-	if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
+
+	if (cli->getRequest() != NULL && req->parseBody() == true)
+	// if (is_body_complete(cli) == true)
+	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
 	{
+		perror("angel");
 		std::string cgiFolder(".php");
 		if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // CGI cases
 			cli->setCgi(new Cgi(*req, *cli));
@@ -65,6 +73,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		}
 		else if (req->getAction() != "POST" || req->getsCode() != 200) //GET, DELETE, ERROR cases
 		{
+			perror("sonar");
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
@@ -72,7 +81,8 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		}
 		else // POST with no error case
 		{
-			req->parseBody();
+			perror("contigo");
+			// req->parseBody(); 
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
@@ -168,7 +178,9 @@ void Server::launch()
 	while(flag == 0)
 	{
 		d = epoll_wait(_poll, _events, SOMAXCONN, timeOut());
-		// d = epoll_wait(_poll, _events, SOMAXCONN, -1);
+		// std::cout << "DEBUG: Waiting for events..." << std::endl;
+		// d = epoll_wait(_poll, _events, SOMAXCONN, 1000); // 1 seconde fixe pour tester
+		// std::cout << "DEBUG: Events received: " << d << std::endl;
 		for (int i = 0; i < d; i++)
 		{
 			if (_events[i].events & EPOLLIN)

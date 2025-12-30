@@ -21,12 +21,12 @@ class Client {
 
 		int getFd() const;
 
-		void addBuff(char *str);
+		void addBuff(char *str, size_t len);
 		std::string getBuff(void) const;
 		const char *getSendBuffer();
 		void sendBuffErase(int n);
 		void setSendBuff(std::string str);
-		void clearRequestBuff(void);
+		void clearRequestBuff(int f, unsigned long long nb);
 
 		std::string getToSend();
 		size_t setSendSize();

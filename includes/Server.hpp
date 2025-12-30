@@ -40,6 +40,8 @@ class Server {
 		void modifyEvent(int fd, uint32_t events);
 		void deleteSocket(int client_fd);
 		bool is_listen_fd(int fd);
+		bool is_chunk_complete( Client *cli );
+		bool is_body_complete( Client *cli );
 
 		void checkTimeOut();
 		int timeOut();
