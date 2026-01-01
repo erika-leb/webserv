@@ -160,41 +160,44 @@ void Request::handleAction(std::string action)
 	}
 }
 
+
 std::string Request::makeResponse(void)
 {
 	DEBUG_MSG("code final =" << _sCode);
 	DEBUG_MSG("path = " << _pathfile );
 	std::ostringstream mess;
-	// ServerConfig conf = _cli.getServ();
+	const char *type;
+
 	mess << "HTTP/1.1"
 			<< " " << _sCode << ifError(_pathfile, _connection,
 				_sCode) << ENDLINE;
 	mess << "Date: " << date(HTTP) << ENDLINE;
 	mess << "Server: " << _serv.getIp() << ":" << _serv.getPort() << ENDLINE;
-		// Modify according configuration file / fetch the host of the request
-	// mess << "Server: " << "localhost" << ENDLINE;
-		// Modify according configuration file / fetch the host of the request
 	mess << "Connection: " << _connection << ENDLINE;
-		// Modify either the connection need to be maintained or not
+
 	if (_sCode > 300 && _sCode < 400)
 	{
 		mess << "Location: " << _location << ENDLINE;
 	}
+
+	type = getFileType();
+	mess << "Content-Type: "
+				// << "text/html" << ENDLINE; // Modify according to file
+				<< type << ENDLINE; // Modify according to file
+
 	if (_sCode != 204 && _sCode != 201)
 	{
-		mess << "Content-Type: "
-				<< "text/html" << ENDLINE; // Modify according to file
+
 		mess << "Content-Length: " << _fileLength << ENDLINE;
 		mess << ENDLINE;
 		mess << _file;
 	}
 	else
 	{
-		mess << "Content-Type: "
-				<< "text/html" << ENDLINE; // Modify according to file
 		mess << "Content-Length: " << 0 << ENDLINE;
 		mess << ENDLINE;
 	}
+
 	if (_htmlList.str() == "")
 	{
 		std::cerr << "message envoye = " << mess.str() << std::endl;

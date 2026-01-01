@@ -75,6 +75,24 @@
 // const std::string ROOT_STR = "html";
 const std::string ROOT_STR = "default_documents";
 
+struct docType {
+	const char *ext;
+	const char *type;
+};
+
+static docType gType[] = {
+	{".html", "text/html"},
+	{".css",  "text/css"},
+	{".js",   "application/javascript"},
+	{".png",  "image/png"},
+	{".jpg",  "image/jpeg"},
+	{".jpeg", "image/jpeg"},
+	{".gif",  "image/gif"},
+	{".ico",  "image/x-icon"},
+	{".txt",  "text/plain"},
+	{".json", "application/json"},
+};
+
 enum dcode {
 	HTTP,
 	LOG

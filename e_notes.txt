@@ -10,11 +10,9 @@ a faire encore pour config :
 
 
 RESTE A FAIRE ==
-- gere les types de fichiers differents
 - lire le code cgi de thibault (erika)
 - gerer la directive cgi (Thibault)
 - ameliorer le parsing de thibault
-- content-type
 - multipart ?
 
 
@@ -184,15 +182,15 @@ Mais cette étape vient après que ton serveur minimal fonctionne.
 
 
 requete google http://localhost:8081/kiki/AMfrvfr
-GET /kiki/AMfrvfr HTTP/1.1  
-Host: localhost:8081 
+GET /kiki/AMfrvfr HTTP/1.1
+Host: localhost:8081
 
 resultat = gerhain 404
 
 
-requte echo -ne "GET /kiki/AMfrvfr HTP/1.1\r\nHost: 127.0.0.1:8081\r\n\r\n" | nc 127.0.0.1 8081 
+requte echo -ne "GET /kiki/AMfrvfr HTP/1.1\r\nHost: 127.0.0.1:8081\r\n\r\n" | nc 127.0.0.1 8081
 (curl)
-GET /kiki/AMfrvfr HTP/1.1   
+GET /kiki/AMfrvfr HTP/1.1
 Host: 127.0.0.1:8081
 
 resultat = so funny 400

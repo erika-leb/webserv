@@ -1,6 +1,32 @@
 #include "Request.hpp"
 #include "all.hpp"
 
+std::string Request::getExtention()
+{
+	size_t pos;
+
+	pos = _pathfile.rfind(".");
+	if (pos == std::string::npos)
+		return ("");
+	return (_pathfile.substr(pos));
+}
+
+const char *Request::getFileType()
+{
+	std::string ext;
+
+	ext = getExtention();
+	if (ext == "")
+		return ("application/octet-stream");
+	for (int i = 0; gType[i].ext != NULL; i++)
+	{
+		if (ext ==  gType[i].ext)
+			return (gType[i].type);
+	}
+	return ("application/octet-stream");
+}
+
+
 void Request::getWriteLocation(std::string &pathfile)
 {
 	Directive	directive;
