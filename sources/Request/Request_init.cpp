@@ -22,9 +22,11 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	rawHeader = cli.getBuff().substr(0, pos);
 	ss << rawHeader;
 	std::getline(ss, tmp);
+	trim_line(tmp);
 	_rawHttp << tmp;
 	while (std::getline(ss, tmp))
 	{
+		trim_line(tmp);
 		rawParam << tmp;
 	}
 	while (std::getline(rawParam, key, ':') && rawParam >> value)
@@ -113,7 +115,7 @@ std::string Request::getCgiHandler( std::string extension) {
 		dirs = _locs[_locationIndex].getDir();
 	else
 		dirs = _serv.getDir();
-	
+
 	for (std::vector<Directive>::size_type i = 0; i < dirs.size(); i++) {
 		if (dirs[i].getName() == "cgi_handler") {
 			if (dirs[i].getArg()[0] == extension)
