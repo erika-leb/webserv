@@ -112,8 +112,8 @@ bool Server::is_pipe_fd( int fd ) {
 	return false;
 }
 
-void Server::receiveCgi( int i, std::string tmp ) {
-	int pipe_fd;
+int Server::receiveCgi( int i, std::string tmp ) {
+	int pipe_fd, retval;
 
 	(void)tmp;
 	pipe_fd = _events[i].data.fd;
@@ -121,13 +121,13 @@ void Server::receiveCgi( int i, std::string tmp ) {
 		if ((*it)->getCgi() == NULL)
 			continue;
 		if (pipe_fd == (*it)->getCgi()->getFd(READ)) {
-			(*it)->getCgi()->handleCGI_pipe(pipe_fd);
+			retval = (*it)->getCgi()->handleCGI_pipe(pipe_fd);
 			epoll_ctl(_poll, EPOLL_CTL_DEL, pipe_fd, NULL);
 			// (*it)->deleteCgi(); // is this function really needed ?
 			modifyEvent((*it)->getFd(), EPOLLIN | EPOLLOUT);
 		}
 	}
-	return ;
+	return retval;
 }
 
 

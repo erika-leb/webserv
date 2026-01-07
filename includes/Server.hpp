@@ -50,7 +50,7 @@ class Server {
 
 		// CGI functions
 		bool is_pipe_fd( int );
-		void receiveCgi( int , std::string );
+		int receiveCgi( int , std::string );
 
 		static void handleSigint(int sig);
 

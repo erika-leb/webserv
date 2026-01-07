@@ -134,11 +134,11 @@ void Cgi::handleCGI_fork( int pollfd ) {
 	
 	int stdinPipe[2];
 	if ( (pipe(_pipeDes) == -1) || (pipe(stdinPipe) == -1))
-		DEBUG_MSG("PIPE ERROR"); // throw error
+		throw std::runtime_error("pipe "+ static_cast<std::string>(std::strerror(errno)));
 	
 	pid_t pid = fork();
 	if (pid == -1)
-		DEBUG_MSG("FORK ERROR"); // throw error
+		throw std::runtime_error("fork "+ static_cast<std::string>(std::strerror(errno)));
 	
 	if (pid == 0) {
 		// CHILD
@@ -151,8 +151,10 @@ void Cgi::handleCGI_fork( int pollfd ) {
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
 		close(_pipeDes[WRITE]);
 
-		if ( (execve(_cgiHandler.c_str(), args, &env[0])) == -1)
-			DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
+		if ( (execve(_cgiHandler.c_str(), args, &env[0])) == -1) {
+			// DEBUG_MSG("EXECVE ERROR: " << errno << " (" << std::strerror(errno) << ")"); // throw error
+			throw std::runtime_error("execve "+ static_cast<std::string>(std::strerror(errno)));
+		}
 		exit(1); // leak
 	}
 	else {
@@ -185,6 +187,34 @@ void Cgi::handleCGI_fork( int pollfd ) {
 		epoll_ctl(pollfd, EPOLL_CTL_ADD, _pipeDes[READ], &event);
 	}
 }
+/*
+int Cgi::handleCGI_pipe(int pipefd)
+{
+    std::string output;
+    char buff[MAXLINE];
+    ssize_t n;
+
+    while ((n = read(pipefd, buff, sizeof(buff))) > 0)
+    {
+        output.append(buff, n);
+    }
+
+    if (n < 0)
+    {
+        std::cerr << "read() failed: " << strerror(errno) << std::endl;
+        close(pipefd);
+        return 1;
+    }
+
+    close(pipefd);
+
+    output = parseCgiOutput(output);
+    DEBUG_MSG("Send:\n" << output);
+    _cli.setSendBuff(output);
+
+    return 0;
+}
+*/
 
 int Cgi::handleCGI_pipe( int pipefd ) {
 		std::stringstream	ss;
@@ -192,7 +222,7 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 
 		int n = read(pipefd, buff, MAXLINE);
 		if (n < 0) {
-			std::cerr << "read() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
+			std::cerr << "read() failed " + static_cast<std::string>(std::strerror(errno)) << std::endl;
 			return 1;
 		}
 		else if (n == 0) {

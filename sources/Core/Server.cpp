@@ -191,8 +191,8 @@ void Server::launch()
 				{
 					// get the valid cgi and store it in a variable to reuse in ne next statement
 					if (is_pipe_fd(_events[i].data.fd) == true) {
-						receiveCgi(i, tmp);
-						break;
+						if (receiveCgi(i, tmp) == 1);
+							break;
 					}
 					else {
 						if (receiveRequest(i, tmp) == 1)
