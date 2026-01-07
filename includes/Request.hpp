@@ -68,6 +68,8 @@ public:
 
 	// function to get path (Request_path.cpp)
 
+	std::string getExtention();
+	const char *getFileType();
 	void getWriteLocation(std::string &pathfile);
 	void getPath(std::string &pathfile);
 	std::string getFile( std::string &pathfile, size_t* fileLength );
