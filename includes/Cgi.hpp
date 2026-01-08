@@ -23,6 +23,7 @@ private:
 	int 		_pipeDes[2];
 	std::string _reqBody;
 	bool		_isBody;
+	std::stringstream	_buff;
 
 public:
 	Cgi( Request&, Client& );

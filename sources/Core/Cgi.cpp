@@ -187,35 +187,33 @@ void Cgi::handleCGI_fork( int pollfd ) {
 		epoll_ctl(pollfd, EPOLL_CTL_ADD, _pipeDes[READ], &event);
 	}
 }
-/*
-int Cgi::handleCGI_pipe(int pipefd)
-{
-    std::string output;
-    char buff[MAXLINE];
-    ssize_t n;
 
-    while ((n = read(pipefd, buff, sizeof(buff))) > 0)
-    {
-        output.append(buff, n);
-    }
+int Cgi::handleCGI_pipe(int pipefd) {
+	char buff[MAXLINE];
+	ssize_t n;
 
-    if (n < 0)
-    {
-        std::cerr << "read() failed: " << strerror(errno) << std::endl;
-        close(pipefd);
-        return 1;
-    }
+	if ((n = read(pipefd, buff, sizeof(buff))) > 0) {
+		_buff << buff;
+	}
+	else if (n < 0)
+	{
+		std::cerr << "read() failed: " << strerror(errno) << std::endl;
+		close(pipefd);
+		return 1;
+	}
+	else {
+		close(pipefd);
 
-    close(pipefd);
+		std::string output(parseCgiOutput(_buff));
+		DEBUG_MSG("Send:\n"
+				  << output);
+		_cli.setSendBuff(output);
+	}
 
-    output = parseCgiOutput(output);
-    DEBUG_MSG("Send:\n" << output);
-    _cli.setSendBuff(output);
-
-    return 0;
+	return 0;
 }
-*/
 
+/*
 int Cgi::handleCGI_pipe( int pipefd ) {
 		std::stringstream	ss;
 		char 				buff[MAXLINE];
@@ -238,6 +236,7 @@ int Cgi::handleCGI_pipe( int pipefd ) {
 		close(pipefd);
 		return 0;
 }
+*/
 
 std::string Cgi::parseHeader( std::string& rawHeader, size_t cLen ) {
 	std::stringstream ss;
