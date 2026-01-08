@@ -63,10 +63,10 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	if (cli->getRequest() != NULL && req->parseBody() == true)
 	// if (is_body_complete(cli) == true)
 	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
+	// this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
 	{
 		perror("angel");
-		std::string cgiFolder(".php");
-		if (req->is_cgi(cgiFolder) && (req->getsCode() == 200)) { // CGI cases
+		if (req->is_cgi(req->getPathFile()) && (req->getsCode() == 200)) { // CGI cases
 			cli->setCgi(new Cgi(*req, *cli));
 			cli->getCgi()->handleCGI_fork(_poll);
 			clearRequest(cli, req);

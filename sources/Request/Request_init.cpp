@@ -101,15 +101,22 @@ int	Request::getServPort( void ) const {
 	return (_serv.getPort());
 }
 
-bool Request::is_cgi(std::string cgiFolder)
+bool Request::is_cgi( std::string file )
 {
-	if (_pathfile.find(cgiFolder) != std::string::npos)
+	std::string extension(file.substr(file.find_last_of(".")));
+	ssize_t pos;
+	if ( (pos = extension.find('?')) != std::string::npos)
+		extension = extension.substr(0, pos);
+
+	if ( !(getCgiHandler(extension).empty()))
 		return (true);
-	else
+	else {
+		this->_sCode = 400;
 		return (false);
+	}
 }
 
-std::string Request::getCgiHandler( std::string extension) {
+std::string Request::getCgiHandler( std::string extension ) {
 	std::vector<Directive> dirs;
 
 	if (_locationIndex != -1)
