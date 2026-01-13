@@ -91,6 +91,7 @@ static docType gType[] = {
 	{".ico",  "image/x-icon"},
 	{".txt",  "text/plain"},
 	{".json", "application/json"},
+	NULL,
 };
 
 enum dcode {

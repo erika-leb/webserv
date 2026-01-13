@@ -108,11 +108,17 @@ bool Request::is_cgi( std::string file )
 	if ( (pos = extension.find('?')) != std::string::npos)
 		extension = extension.substr(0, pos);
 
+	for (size_t i=0; gType[i].ext != NULL; i++) {
+		std::string tmp(gType[i].ext);
+		if (tmp == extension)
+			return false;
+	}
+
 	if ( !(getCgiHandler(extension).empty()))
-		return (true);
+		return true;
 	else {
 		this->_sCode = 400;
-		return (false);
+		return false;
 	}
 }
 
