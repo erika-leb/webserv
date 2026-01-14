@@ -3,6 +3,8 @@
 
 void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas content-encoding
 {
+
+
 	std::string value;
 	// perror("KATY");
 	if (_reqParam.find("transfer-encoding") != _reqParam.end())
@@ -17,8 +19,10 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 		}
 	}
 
+	DEBUG_MSG("non TROUE");
 	if (_reqParam.find("content-length") != _reqParam.end())
 	{
+		DEBUG_MSG("TROUE");
 		value = _reqParam["content-length"];
 		for (std::string::size_type i = 0; i < value.size(); i++)
 		{
@@ -138,7 +142,7 @@ bool Request::parseChunkedBody(size_t pos, Client& cli)
 			{
 				_sCode = 400;
 				cli.clearRequestBuff(1, cli.getBuff().size());
-				
+
 
 				// return (-1);
 				// return (std::string::npos);

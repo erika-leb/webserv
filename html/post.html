@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Graou - POST</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <h1>Webserv</h1>
+
+    <section class="features">
+        <div class="block">
+            <h2>POST</h2>
+            <p>Test POST method to upload file on the server.</p>
+
+            <form id="post-form" class="post-form" onsubmit="return false;">
+                <label for="file">File name:</label><br>
+                <input type="text" id="file" name="file" /><br><br>
+
+                <label for="content">File content:</label><br>
+                <textarea id="content" name="content"></textarea><br><br>
+
+                <input type="submit" value="Send POST" class="button" id="post-btn" />
+            </form>
+            <br>
+            <div id="result" class="result"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>Made by pbailly and phautena</p>
+    </footer>
+
+    <script>
+        document.getElementById("post-btn").onclick = async function () {
+            const filePath = document.getElementById("file").value.trim();
+            const content = document.getElementById("content").value;
+            const resultDiv = document.getElementById("result");
+
+            if (!filePath) {
+                resultDiv.textContent = "Please enter a file name.";
+                return;
+            }
+
+            try {
+                const res = await fetch(filePath, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: content
+                });
+
+                const text = await res.text();
+                if (res.ok) {
+                    resultDiv.textContent = "Success: " + res.status + " " + res.statusText;
+                } else {
+                    resultDiv.textContent = "Failed: " + res.status + " " + res.statusText;
+                }
+            } catch (err) {
+                resultDiv.textContent = "Error: " + err.message;
+            }
+        };
+    </script>
+</body>
+
+</html>

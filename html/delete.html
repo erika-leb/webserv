@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Graou</title>
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+	<h1>Webserv</h1>
+
+	<section class="features">
+		<div class="block">
+			<h2>DELETE</h2>
+			<p>Test DELETE method to remove a file from the server.</p>
+			<form id="delete-form" class="delete-form" onsubmit="return false;">
+				<label for="file">File to delete:</label>
+				<input type="text" id="file" name="file" />
+				<input type="submit" value="Delete" class="button" id="delete-btn" />
+			</form>
+			<br>
+			<div id="result" class="result"></div>
+		</div>
+	</section>
+
+	<footer class="footer">
+		<p>Made by pbailly and phautena</p>
+	</footer>
+
+	<script>
+		document.getElementById("delete-btn").onclick = async function () {
+			var filePath = document.getElementById("file").value.trim();
+			var resultDiv = document.getElementById("result");
+
+			if (!filePath) {
+				resultDiv.textContent = "Please enter a file to delete.";
+				return;
+			}
+
+			try {
+				const res = await fetch(filePath, { method: "DELETE" });
+				const text = await res.text();
+
+				if (res.ok) {
+					resultDiv.textContent = "Success: " + res.status + " " + res.statusText;
+				} else {
+					resultDiv.textContent = "Failed: " + res.status + " " + res.statusText;
+				}
+			} catch (err) {
+				resultDiv.textContent = "Error: " + err.message;
+			}
+		};
+	</script>
+</body>
+
+</html>

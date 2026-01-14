@@ -13,6 +13,7 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	std::stringstream ss(""), rawParam;
 	std::string key, value, tmp, rawHeader;
 	std::string::size_type pos;
+	std::string line;
 
 	_locs = _serv.getLocation();
 	_sCode = 200;
@@ -27,7 +28,8 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	while (std::getline(ss, tmp))
 	{
 		trim_line(tmp);
-		rawParam << tmp;
+		rawParam << tmp << "\n";
+		// rawParam << tmp;
 	}
 	while (std::getline(rawParam, key, ':') && rawParam >> value)
 	{
@@ -35,6 +37,32 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 		trim_line(value);
 		_reqParam[toLower(key)] = value;
 	}
+	// while (std::getline(rawParam, line))
+	// {
+	//     trim_line(line);
+	//     if (line.empty())
+	//         continue; // Ligne vide -> on ignore
+
+	//     std::string::size_type pos = line.find(':');
+	//     if (pos == std::string::npos)
+	//         continue; // Ligne sans ':' -> on ignore ou on log
+
+	//     std::string key   = line.substr(0, pos);
+	//     std::string value = line.substr(pos + 1); // tout ce qu’il y a après ':'
+
+	//     trim_line(key);
+	//     trim_line(value);
+
+	//     if (!key.empty())
+	//         _reqParam[toLower(key)] = value;
+	// }
+
+	std::cout << "--- Contenu de _reqParam ---" << std::endl;
+	for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); ++it)
+	{
+	    std::cout << it->first << ": PPP " << it->second << std::endl;
+	}
+	std::cout << "----------------------------" << std::endl;
 	getWriteLocation(_pathfile);
 	setErrorPath();
 }
