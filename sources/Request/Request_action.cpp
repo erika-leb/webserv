@@ -216,3 +216,29 @@ std::string Request::makeResponse(void)
 	DEBUG_MSG("path a fin de message = " << _pathfile);
 	return (_pathfile);
 }
+
+// std::string Request::makeResponse(void)
+// {
+//     std::ostringstream mess;
+
+//     // 1. Statut avec espaces clairs et \r\n
+//     mess << "HTTP/1.1 200 OK\r\n";
+
+//     // 2. Headers essentiels
+//     mess << "Date: " << date(HTTP) << "\r\n";
+//     mess << "Server: webserv\r\n";
+//     mess << "Content-Type: text/plain\r\n"; // Test avec text/plain pour le Makefile
+//     mess << "Content-Length: " << _fileLength << "\r\n";
+//     mess << "Connection: close\r\n"; // On force la fermeture pour le test
+
+//     // 3. Double retour à la ligne CR LF
+//     mess << "\r\n";
+
+//     // 4. Le corps
+//     mess << _file;
+
+//     _cli.setSendBuff(mess.str());
+//     _cli.setCon(false); // On ferme après l'envoi
+
+//     return (_pathfile);
+// }

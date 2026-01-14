@@ -22,7 +22,7 @@ private:
 	std::string _cgiHandler;
 	int 		_pipeDes[2];
 	std::string _reqBody;
-	bool		_isBody;
+	// bool		_isBody;
 	std::stringstream	_buff;
 
 public:

@@ -103,11 +103,21 @@ int	Request::getServPort( void ) const {
 
 bool Request::is_cgi( std::string file )
 {
-	std::string extension(file.substr(file.find_last_of(".")));
-	ssize_t pos;
+	perror("sube");
+	DEBUG_MSG("file " << file);
+	std::string extension;
+	std::string::size_type p = file.find_last_of('.');
+	if (p == std::string::npos)
+		return (false);
+	else
+		extension = file.substr(p);
+	// (file.substr(file.find_last_of(".")));
+	// ssize_t pos;
+	DEBUG_MSG("JE");
+	std::string::size_type pos;
 	if ( (pos = extension.find('?')) != std::string::npos)
 		extension = extension.substr(0, pos);
-
+	DEBUG_MSG("NAI");
 	for (size_t i=0; gType[i].ext != NULL; i++) {
 		std::string tmp(gType[i].ext);
 		if (tmp == extension)

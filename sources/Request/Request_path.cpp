@@ -82,7 +82,6 @@ void Request::getPath(std::string &pathfile)
 		pathfile.insert(0, arg[0]);
 }
 
-// static std::string getFile( std::string &pathfile, size_t* fileLength ) {
 std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 {
 	std::ifstream fs(pathfile.c_str());
@@ -91,7 +90,10 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 	// getPath(pathfile);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp))
+		{
 			res += tmp;
+			res += '\n';
+		}
 		fs.close();
 		*fileLength = res.size();
 	}
@@ -103,6 +105,24 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 	return (res);
 }
 
+// std::string Request::getFile(std::string &pathfile, size_t *fileLength)
+// {
+//     std::ifstream fs(pathfile.c_str(), std::ios::binary); // Ouverture en binaire
+
+//     if (fs.is_open()) {
+//         std::stringstream buffer;
+//         buffer << fs.rdbuf(); // Copie directe du flux interne
+//         fs.close();
+
+//         std::string res = buffer.str();
+//         *fileLength = res.size(); // Taille exacte en octets
+//         return res;
+//     }
+
+//     DEBUG_MSG("ERROR: Couldn't open file [" << pathfile << "]");
+//     *fileLength = 0;
+//     return "";
+// }
 
 void Request::checkPath(std::string pathfile, size_t &eCode)
 {

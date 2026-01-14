@@ -57,7 +57,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	}
 	else if (cli->getRequest() != NULL)
 		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
-	
+
 	req = (cli->getRequest());
 
 	if (cli->getRequest() != NULL && req->parseBody() == true)
@@ -67,6 +67,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	{
 		perror("angel");
 		if (req->is_cgi(req->getPathFile()) && (req->getsCode() == 200)) { // CGI cases
+			perror("bailarin");
 			cli->setCgi(new Cgi(*req, *cli));
 			cli->getCgi()->handleCGI_fork(_poll);
 			clearRequest(cli, req);
@@ -82,12 +83,13 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		else // POST with no error case
 		{
 			perror("contigo");
-			// req->parseBody(); 
+			// req->parseBody();
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 			clearRequest(cli, req);
 		}
+		perror("despacito");
 	}
 }
 
@@ -191,7 +193,7 @@ void Server::launch()
 				{
 					// get the valid cgi and store it in a variable to reuse in ne next statement
 					if (is_pipe_fd(_events[i].data.fd) == true) {
-						if (receiveCgi(i, tmp) == 1);
+						if (receiveCgi(i, tmp) == 1)
 							break;
 					}
 					else {
