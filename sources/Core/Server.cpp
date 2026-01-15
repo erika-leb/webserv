@@ -68,7 +68,6 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
 	// this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
 	{
-		perror("angel");
 		DEBUG_MSG("scode deb = " << req->getsCode());
 		if ((req->getsCode() == 200) && req->is_cgi(req->getPathFile())) { // CGI cases
 			cli->setCgi(new Cgi(*req, *cli));
@@ -78,7 +77,6 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		else if (req->getAction() != "POST" || req->getsCode() != 200) //GET, DELETE, ERROR cases
 		{
 			DEBUG_MSG("scode  sonar = " << req->getsCode());
-			perror("sonar");
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
@@ -86,14 +84,12 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		}
 		else // POST with no error case
 		{
-			perror("contigo");
 			// req->parseBody();
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
 			clearRequest(cli, req);
 		}
-		perror("despacito");
 	}
 }
 
@@ -145,7 +141,7 @@ int Server::sendRequest(int i, std::string tmp)
 		if (client_fd == (*it)->getFd())
 		{
 			n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0);
-			std::cout << date(LOG) << ": Send " << n << " B to client(" << client_fd << ") [" << tmp << "]" << std::endl;
+			// std::cout << date(LOG) << ": Send " << n << " B to client(" << client_fd << ") [" << tmp << "]" << std::endl;
 			if (n > 0)
 			{
 				(*it)->sendBuffErase(n);

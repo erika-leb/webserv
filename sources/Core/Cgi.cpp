@@ -8,7 +8,7 @@ static int checkCode( std::string& str ) {
 
 	for (int i=0; i < 3; i++) {
 		if (std::isdigit(code[i]) == 1) {
-			str = "500 Internal server error";
+			str = "502 Bad gateway";
 			return 0;
 		}
 	}
@@ -16,7 +16,7 @@ static int checkCode( std::string& str ) {
 	int icode;
 	ss >> icode;
 	if (icode < 100 || icode > 599) {
-		str = "500 Internal server error";
+		str = "502 Bad gateway";
 		return 0;
 	}
 	return 0;
@@ -201,31 +201,31 @@ int Cgi::handleCGI_pipe(int pipefd) {
 	char buff[MAXLINE];
 	ssize_t n;
 
-	for(;;) {
-		if ((n = read(pipefd, buff, sizeof(buff))) > 0)
-		{
-			buff[n] = '\0';
-			_buff << buff;
-		}
-		else if (n < 0)
-		{
-			std::cerr << "read() failed: " << strerror(errno) << std::endl;
-			close(pipefd);
-			return 1;
-		}
-		else
-		{
-			close(pipefd);
+	if ((n = read(pipefd, buff, sizeof(buff))) > 0)
+	{
+		buff[n] = '\0';
+		_buff << buff;
+	}
+	else if (n < 0)
+	{
+		std::cerr << "read() failed: " << strerror(errno) << std::endl;
+		close(pipefd);
+		return 1;
+	}
+	else
+	{
+		close(pipefd);
 
-			DEBUG_MSG("pipe finished [" << n << "]");
-			std::string output(parseCgiOutput(_buff));
-			_cli.setSendBuff(output);
-			break;
-		}
+		DEBUG_MSG("pipe finished [" << n << "]");
+		std::string output(parseCgiOutput(_buff));
+		_cli.setSendBuff(output);
 
+		return 0;
 	}
 
-	return 0;
+	DEBUG_MSG("_buff: " << _buff.str());
+
+	return 2;
 }
 
 // int Cgi::handleCGI_pipe( int pipefd ) {

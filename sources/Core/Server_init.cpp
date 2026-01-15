@@ -12,6 +12,9 @@ Server::Server(GlobalConfig *config) : config(config)
 	_poll = epoll_create(1);
 	if (_poll == -1)
 		throw std::runtime_error("epoll_create failed"+ static_cast<std::string>(strerror(errno)));
+	if ( fcntl(_poll, F_SETFD, FD_CLOEXEC) < 0) {
+		std::cerr << "fcntl() failed" + static_cast<std::string>(strerror(errno)) << std::endl;
+	}
 	for (std::vector<ServerConfig>::size_type i = 0; i < servs.size(); i++)
 	{
 		fd = socket(AF_INET, SOCK_STREAM, 0);

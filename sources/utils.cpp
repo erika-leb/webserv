@@ -47,6 +47,10 @@ int make_non_blocking(int sockfd) //rendre une socket non bloquante
 		std::cerr << "bind() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
 		return (-1); //verifier ce qu'on fait dans ce cas la
 	}
+	if ( fcntl(sockfd, F_SETFD, FD_CLOEXEC) < 0) {
+		std::cerr << "fcntl() failed" + static_cast<std::string>(strerror(errno)) << std::endl;
+	}
+
 	return (fcntl(sockfd, F_SETFL, flag | O_NONBLOCK));
 }
 
