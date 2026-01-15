@@ -147,11 +147,11 @@ bool Server::is_chunk_complete( Client *cli )
 		end = cli->getBuff().find("\r\n", pos);
 		if (end == std::string::npos)
 		{
-			DEBUG_MSG("ERROR3 = ");				
+			DEBUG_MSG("ERROR3 = ");
 			return (false);
 		}
 
-		// DEBUG_MSG("debu20 = " << cli->getBuff().substr(0, 20));				
+		// DEBUG_MSG("debu20 = " << cli->getBuff().substr(0, 20));
 			// return (false);
 		size_str = cli->getBuff().substr(pos, end - pos);
 		// DEBUG_MSG("HEX = [" << size_str << "]");
@@ -228,7 +228,7 @@ bool Server::is_body_complete( Client *cli )
 	if (req->getChunked() == 1)
 	{
 	    bool complete = is_chunk_complete(cli);
-	    std::cout << "Chunked check: " << cli->getBuff().size() << " bytes in buffer, Complete: " << complete << std::endl;
+	    // std::cout << "Chunked check: " << cli->getBuff().size() << " bytes in buffer, Complete: " << complete << std::endl;
 		pos = cli->getBuff().find("0\r\n\r\n");
 		if  (pos != std::string::npos )
 		{

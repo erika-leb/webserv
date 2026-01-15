@@ -76,6 +76,11 @@ static void setStatusInfo( int code, StatusInfo& tmp) {
 		str = " Internal server error";
 		con = "close";
 		break ;
+	case 501:
+		defaultPath += ERROR_501;
+		str = " Not implemented";
+		con = "close";
+		break ;
 	default:
 		str = "";
 		con = "";
@@ -97,7 +102,7 @@ void Request::setErrorPath()
 	Directive root;
 	StatusInfo tmp;
 
-	for (size_t i=200; i <= 500; i++) {
+	for (size_t i=200; i <= 599; i++) {
 		setStatusInfo(i, tmp);
 		_errorPath.insert(std::pair<int, StatusInfo>(i, tmp));
 	}
@@ -152,6 +157,7 @@ std::string Request::ifError(std::string &path, std::string &con, int sCode)
 	StatusInfo tmp = _errorPath[sCode];
 	con = tmp.conn;
 
+	DEBUG_MSG("passage ici");
 	if (!tmp.path.empty())
 	{
 		path = tmp.path;

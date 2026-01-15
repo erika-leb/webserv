@@ -8,8 +8,7 @@ SRCS = ./sources/main.cpp \
 	./sources/GlobalConfig.cpp \
 	./sources/Directive.cpp \
 	./sources/ServerConfig.cpp \
-	./sources/LocationConfig.cpp \
-	./sources/Cgi.cpp
+	./sources/LocationConfig.cpp
 
 INC_DIR = includes
 OBJS = $(SRCS:./sources/%.cpp=./objects/%.o)

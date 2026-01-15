@@ -16,6 +16,7 @@ const char *Request::getFileType()
 	std::string ext;
 
 	ext = getExtention();
+	DEBUG_MSG("ext = " << ext);
 	if (ext == "")
 		return ("application/octet-stream");
 	for (int i = 0; gType[i].ext != NULL; i++)

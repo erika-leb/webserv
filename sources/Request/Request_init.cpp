@@ -56,7 +56,7 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	//     if (!key.empty())
 	//         _reqParam[toLower(key)] = value;
 	// }
-
+	DEBUG_MSG("scode = " << _sCode);
 	std::cout << "--- Contenu de _reqParam ---" << std::endl;
 	for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); ++it)
 	{
@@ -155,7 +155,8 @@ bool Request::is_cgi( std::string file )
 	if ( !(getCgiHandler(extension).empty()))
 		return true;
 	else {
-		this->_sCode = 400;
+		// this->_sCode = 400;
+		DEBUG_MSG("scode iqib = " << _sCode);
 		return false;
 	}
 }

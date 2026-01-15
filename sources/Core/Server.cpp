@@ -49,10 +49,12 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		perror("angelito");
 		req = new Request(*cli); // new request
 		cli->setRequest(req); // we save the request in client
+		DEBUG_MSG("scode mil parse = " << req->getsCode());
 		req->parseHttp();
 		endPos = cli->getBuff().find("\r\n\r\n") + 4; // we save the number of octet read after the header
 		cli->setBodyRead(cli->getBuff().size() - endPos);
 		cli->clearRequestBuff(0, 0);
+		DEBUG_MSG("scodefin parse = " << req->getsCode());
 		// cli->clearHeader(endPos);
 	}
 	else if (cli->getRequest() != NULL)
@@ -60,12 +62,14 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 
 	req = (cli->getRequest());
 
+	// DEBUG_MSG("scode = " << req->getsCode());
 	if (cli->getRequest() != NULL && req->parseBody() == true)
 	// if (is_body_complete(cli) == true)
 	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
 	// this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
 	{
 		perror("angel");
+		DEBUG_MSG("scode deb = " << req->getsCode());
 		if (req->is_cgi(req->getPathFile()) && (req->getsCode() == 200)) { // CGI cases
 			perror("bailarin");
 			cli->setCgi(new Cgi(*req, *cli));
@@ -74,6 +78,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		}
 		else if (req->getAction() != "POST" || req->getsCode() != 200) //GET, DELETE, ERROR cases
 		{
+			DEBUG_MSG("scode  sonar = " << req->getsCode());
 			perror("sonar");
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
@@ -134,6 +139,7 @@ int Server::sendRequest(int i, std::string tmp)
 	int client_fd;
 	int n;
 
+	(void) tmp;
 	client_fd = _events[i].data.fd;
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{

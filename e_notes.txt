@@ -45,12 +45,15 @@ logique de request = - on verifie que le _pathfile (le fichier) existe (checkFil
 
 
 
+GASTON
+
+ curl -X POST -H "Content-Type: plain/text" --data "BODY" localhost:8080/test/../salut   -> attention
+
+./webserv conf2.conf -> ne marche pas
 
 
 
-
-
-
+curl -v -H "Transfer-Encoding: chunked" -H "Expect:" --data-binary "@test_50mo.txt" http://localhost:8080/test/testyyyyy
 
 🧩 ÉTAPE 1 — Vérifie que ton serveur “écoute” correctement
 

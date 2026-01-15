@@ -38,7 +38,7 @@ void Request::checkLenght(std::string::size_type pos)
 				}
 			}
 		}
-	}	
+	}
 }
 
 void Request::checkRedirAndMethod()
