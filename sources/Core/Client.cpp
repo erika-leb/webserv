@@ -13,6 +13,8 @@ Client::~Client()
 	close(_fd);
 	if (_cgi)
 		delete _cgi;
+	if (_req)
+		delete _req;
 }
 
 Client &Client::operator=(const Client &src)

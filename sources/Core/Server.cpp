@@ -70,8 +70,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	{
 		perror("angel");
 		DEBUG_MSG("scode deb = " << req->getsCode());
-		if (req->is_cgi(req->getPathFile()) && (req->getsCode() == 200)) { // CGI cases
-			perror("bailarin");
+		if ((req->getsCode() == 200) && req->is_cgi(req->getPathFile())) { // CGI cases
 			cli->setCgi(new Cgi(*req, *cli));
 			cli->getCgi()->handleCGI_fork(_poll);
 			clearRequest(cli, req);

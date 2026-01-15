@@ -122,8 +122,8 @@ int Server::receiveCgi( int i, std::string tmp ) {
 			continue;
 		if (pipe_fd == (*it)->getCgi()->getFd(READ)) {
 			retval = (*it)->getCgi()->handleCGI_pipe(pipe_fd);
+			DEBUG_MSG("retval: " << retval);
 			epoll_ctl(_poll, EPOLL_CTL_DEL, pipe_fd, NULL);
-			// (*it)->deleteCgi(); // is this function really needed ?
 			modifyEvent((*it)->getFd(), EPOLLIN | EPOLLOUT);
 		}
 	}
