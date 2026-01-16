@@ -71,7 +71,7 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		// DEBUG_MSG("scode deb = " << req->getsCode());
 		if ((req->getsCode() == 200) && req->is_cgi(req->getPathFile())) { // CGI cases
 			cli->setCgi(new Cgi(*req, *cli));
-			cli->getCgi()->handleCGI_fork(_poll, _cgiPid);
+			cli->getCgi()->handleCGI_fork(_poll, *this);
 			clearRequest(cli, req);
 		}
 		else if (req->getAction() != "POST" || req->getsCode() != 200) //GET, DELETE, ERROR cases
