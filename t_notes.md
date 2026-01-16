@@ -166,3 +166,4 @@ HTTP_ACCEPT=*/*
 - Bad gateway and other error gestion
 - pid storage and kill on ctl-c
 - status ack child
+- timeout pipe

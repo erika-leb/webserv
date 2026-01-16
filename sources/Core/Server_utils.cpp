@@ -112,20 +112,20 @@ bool Server::is_pipe_fd( int fd ) {
 	return false;
 }
 
-int Server::receiveCgi( int i, std::string tmp ) {
+int Server::receiveCgi( int i, int event ) {
 	int pipe_fd, retval;
 
-	(void)tmp;
 	pipe_fd = _events[i].data.fd;
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if ((*it)->getCgi() == NULL)
 			continue;
 		if (pipe_fd == (*it)->getCgi()->getFd(READ)) {
-			retval = (*it)->getCgi()->handleCGI_pipe(pipe_fd);
+			retval = (*it)->getCgi()->handleCGI_pipe(pipe_fd, event);
 			if (retval == 0) {
-				DEBUG_MSG("retval: " << retval);
 				epoll_ctl(_poll, EPOLL_CTL_DEL, pipe_fd, NULL);
 				modifyEvent((*it)->getFd(), EPOLLIN | EPOLLOUT);
+				(*it)->deleteCgi();
+				DEBUG_MSG("CGI DELETED");
 			}
 		}
 	}

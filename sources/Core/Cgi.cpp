@@ -125,7 +125,7 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
     envp.push_back(NULL);
 }
 
-void Cgi::handleCGI_fork( int pollfd ) {
+void Cgi::handleCGI_fork( int pollfd, std::set<pid_t> setPid ) {
 	char * const args[] = {(char *)_cgiHandler.c_str(), (char *)_path.c_str(), NULL};
 
 	std::vector<std::string> tmp;
@@ -161,13 +161,14 @@ void Cgi::handleCGI_fork( int pollfd ) {
 
 		if ( (execve(_cgiHandler.c_str(), args, &env[0])) == -1) {
 		// if ( (execve("bliblouy", args, &env[0])) == -1) {
-			// std::string buff = "Status: 500 Internal server error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>";
-			// std::cout << buff;
+			std::string buff = "Status: 500 Internal server error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>";
+			std::cout << buff;
 			throw std::runtime_error("execve "+ static_cast<std::string>(std::strerror(errno)));
 		}
 	}
 	else {
 		// PARENT
+		setPid.insert(pid);
 
 		close(stdinPipe[READ]);
         if (!_reqBody.empty()) {
@@ -197,59 +198,39 @@ void Cgi::handleCGI_fork( int pollfd ) {
 	}
 }
 
-int Cgi::handleCGI_pipe(int pipefd) {
+int Cgi::handleCGI_pipe( int pipefd, int event ) {
 	char buff[MAXLINE];
 	ssize_t n;
 
-	if ((n = read(pipefd, buff, sizeof(buff))) > 0)
-	{
-		buff[n] = '\0';
-		_buff << buff;
-	}
-	else if (n < 0)
-	{
-		std::cerr << "read() failed: " << strerror(errno) << std::endl;
-		close(pipefd);
-		return 1;
-	}
-	else
-	{
+	if (event & (EPOLLHUP | EPOLLERR) && !(event & EPOLLIN)) {
 		close(pipefd);
 
-		DEBUG_MSG("pipe finished [" << n << "]");
 		std::string output(parseCgiOutput(_buff));
 		_cli.setSendBuff(output);
-
-		return 0;
 	}
 
-	DEBUG_MSG("_buff: " << _buff.str());
+	if (event & EPOLLIN) {
+		if ((n = read(pipefd, buff, sizeof(buff))) > 0) {
+			buff[n] = '\0';
+			_buff << buff;
+			return 2;
+		}
+		else if (n < 0) {
+			std::cerr << "read() failed: " << strerror(errno) << std::endl;
+			close(pipefd);
 
-	return 2;
+			return 1;
+		}
+		else {
+			close(pipefd);
+
+			std::string output(parseCgiOutput(_buff));
+			_cli.setSendBuff(output);
+		}
+	}
+
+	return 0;
 }
-
-// int Cgi::handleCGI_pipe( int pipefd ) {
-// 		std::stringstream	ss;
-// 		char 				buff[MAXLINE];
-
-// 		int n = read(pipefd, buff, MAXLINE);
-// 		if (n < 0) {
-// 			std::cerr << "read() failed " + static_cast<std::string>(std::strerror(errno)) << std::endl;
-// 			return 1;
-// 		}
-// 		else if (n == 0) {
-// 			return 1;
-// 		}
-// 		buff[n] = '\0';
-// 		std::string	strbuff(buff); // necessary ?
-// 		ss << strbuff;
-		
-// 		strbuff = parseCgiOutput(ss);
-// 		DEBUG_MSG("Send: \n" << strbuff);
-// 		_cli.setSendBuff(strbuff);
-// 		close(pipefd);
-// 		return 0;
-// }
 
 std::string Cgi::parseHeader( std::string& rawHeader, size_t cLen ) {
 	std::stringstream ss;
@@ -274,9 +255,11 @@ std::string Cgi::parseCgiOutput( std::stringstream& ss ) {
 	std::string tmp, content;
 
 	std::getline(ss, tmp);
-	while ( (tmp != "\n" || tmp != "\r\n") && (tmp.size() != 0)) {
-		header.append(tmp + "\n");
+	tmp += '\n';
+	while ( (tmp != "\n" && tmp != "\r\n") && (tmp.size() != 0)) {
+		header.append(tmp);
 		std::getline(ss, tmp);
+		tmp += '\n';
 	}
 
 	while (std::getline(ss, tmp)) {
@@ -300,7 +283,6 @@ std::string Cgi::parseCgiOutput( std::stringstream& ss ) {
 
 	header = parseHeader(header, content.size());
 	return header + content;
-
 }
 
 void Cgi::sigchld_handler( int sig ) {

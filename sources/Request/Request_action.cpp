@@ -12,7 +12,7 @@ void Request::fGet(void) {
 	// DEBUG_MSG("path apres iferror : " << _pathfile);
 	_file = getFile(_pathfile, &_fileLength);
 	// DEBUG_MSG("conn 5 = " << _connection );
-	DEBUG_MSG("path apres getfile : " << _pathfile);
+	// DEBUG_MSG("path apres getfile : " << _pathfile);
 	if (_file.empty())
 	{
 		_sCode = 403;
@@ -40,10 +40,10 @@ int Request::checkPostPath(Directive &directive)
 	(void) directive;
 	if (stat(_pathfile.c_str(), &st) == -1) // the file does not exist
 	{
-		perror("sdanse");
+		// perror("sdanse");
 		if (errno != ENOENT) // file not found
 		{
-			perror("cors");
+			// perror("cors");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -51,17 +51,17 @@ int Request::checkPostPath(Directive &directive)
 		std::string::size_type pos = _pathfile.find_last_of('/'); // check if the parent exist
 		if (pos == std::string::npos)
 		{
-			perror("brule");
+			// perror("brule");
 			_sCode = 403;
 			return (1);
 		}
 
 		std::string parent = _pathfile.substr(0, pos);
 		// parent.insert(0, directive.getArg()[0]);
-		DEBUG_MSG("parent = " << parent);
+		// DEBUG_MSG("parent = " << parent);
 		if (access(parent.c_str(), W_OK) != 0) // check the right of writing in the parent
 		{
-			perror("au");
+			// perror("au");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -69,17 +69,17 @@ int Request::checkPostPath(Directive &directive)
 	}
 	else // file does exist
 	{
-		perror("singe");
+		// perror("singe");
 		if (S_ISDIR(st.st_mode)) // the file is a directory
 		{
-			DEBUG_MSG("Path is a directory, cannot POST");
+			// DEBUG_MSG("Path is a directory, cannot POST");
             _sCode = 403; // Ou 409 Conflict, mais 403 est standard ici
             fGet();
             return (1);
 		}
 		if (access(_pathfile.c_str(), W_OK) != 0) // we cannot write in the file
 		{
-			perror("sang");
+			// perror("sang");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -114,7 +114,7 @@ void Request::fPost(void)
 	// upload.open(_pathfile.c_str(), std::ios::out | std::ios::trunc);
 	if (!upload.is_open())
 	{
-		perror("conemara");
+		// perror("conemara");
 		_sCode = 500;
 		fGet();
 		return;
@@ -123,7 +123,7 @@ void Request::fPost(void)
 	upload << _body.str();
 	_sCode = 201;
 	upload.close();
-	DEBUG_MSG("code sans return fin post = " << _sCode);
+	// DEBUG_MSG("code sans return fin post = " << _sCode);
 	// fGet(); // pourquoi il y a un fGet ? il faut l'enlever je crois
 }
 
@@ -132,9 +132,9 @@ void Request::handleAction(std::string action)
 	int	i;
 
 	// DEBUG_MSG("conn = " << _connection );
-	DEBUG_MSG("path debut action =" << _pathfile);
-	DEBUG_MSG("action =" << action);
-	DEBUG_MSG("code =" << _sCode);
+	// DEBUG_MSG("path debut action =" << _pathfile);
+	// DEBUG_MSG("action =" << action);
+	// DEBUG_MSG("code =" << _sCode);
 	std::string check[3] = {"GET", "POST", "DELETE"};
 	void (Request::*f[3])(void) = {&Request::fGet, &Request::fPost,
 		&Request::fDelete};
@@ -165,8 +165,8 @@ void Request::handleAction(std::string action)
 
 std::string Request::makeResponse(void)
 {
-	DEBUG_MSG("code final =" << _sCode);
-	DEBUG_MSG("path = " << _pathfile );
+	// DEBUG_MSG("code final =" << _sCode);
+	// DEBUG_MSG("path = " << _pathfile );
 	std::ostringstream mess;
 	const char *type;
 
@@ -215,6 +215,6 @@ std::string Request::makeResponse(void)
 		_cli.setCon(true);
 	else
 		_cli.setCon(false);
-	DEBUG_MSG("path a fin de message = " << _pathfile);
+	// DEBUG_MSG("path a fin de message = " << _pathfile);
 	return (_pathfile);
 }

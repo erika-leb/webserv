@@ -35,9 +35,9 @@ public:
 
 	void makeEnv( std::vector<std::string>, std::vector<char *> );
 
-	void	handleCGI_fork( int );
+	void	handleCGI_fork( int, std::set<pid_t> );
 	// int		handleCGI_pipe( int, int );
-	int		handleCGI_pipe( int );
+	int		handleCGI_pipe( int, int );
 
 	std::string parseHeader( std::string&, size_t );
 	std::string parseCgiOutput( std::stringstream& ss );

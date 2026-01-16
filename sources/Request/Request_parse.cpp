@@ -9,9 +9,9 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 	// perror("KATY");
 	if (_reqParam.find("transfer-encoding") != _reqParam.end())
 	{
-		DEBUG_MSG("ici code 6= " << _sCode);
+		// DEBUG_MSG("ici code 6= " << _sCode);
 		value = toLower(_reqParam["transfer-encoding"]);
-	DEBUG_MSG("value= " << value);
+	// DEBUG_MSG("value= " << value);
 		if (value ==  "chunked")
 			_chunked = 1;
 		else
@@ -22,10 +22,10 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 		}
 	}
 
-	DEBUG_MSG("non TROUE");
+	// DEBUG_MSG("non TROUE");
 	if (_reqParam.find("content-length") != _reqParam.end())
 	{
-		DEBUG_MSG("TROUE");
+		// DEBUG_MSG("TROUE");
 		value = _reqParam["content-length"];
 		for (std::string::size_type i = 0; i < value.size(); i++)
 		{
@@ -39,15 +39,15 @@ void Request::parseParam(void) //voir avec thibualt si besoin de faire le cas co
 	}
 	else
 	{
-		DEBUG_MSG("_chunked = " << _chunked);
+		// DEBUG_MSG("_chunked = " << _chunked);
 		if (_action == "POST" && _chunked == 0)
 			_sCode = 411;
 	}
 
-	perror("ici");
+	// perror("ici");
 	if (_reqParam.find("expect") != _reqParam.end())
 	{
-		perror("la");
+		// perror("la");
 		_expect = 1;
 		value = toLower(_reqParam["expect"]);
 		if (value == "100-continue")
@@ -69,13 +69,13 @@ void Request::parseHttp(void)
 	std::getline(_rawHttp, _pathfile, ' ');
 	remove_blank(_pathfile);
 
-	DEBUG_MSG("ici code = " << _sCode);
+	// DEBUG_MSG("ici code = " << _sCode);
 		// Only for test purpose
 	std::string pathWithoutQuery(_pathfile);
 	size_t end;
 	if ( (end = _pathfile.find('?')) != std::string::npos )
 		pathWithoutQuery = _pathfile.substr(0, end);
-	DEBUG_MSG("ici code 2= " << _sCode);
+	// DEBUG_MSG("ici code 2= " << _sCode);
 	if (_pathfile.empty())
 		_sCode = 400;
 	else
@@ -85,7 +85,7 @@ void Request::parseHttp(void)
 		// checkPath(_pathfile, _sCode);
 		getPath(_pathfile);
 	}
-	DEBUG_MSG("ici code 3= " << _sCode);
+	// DEBUG_MSG("ici code 3= " << _sCode);
 
 	std::getline(_rawHttp, tmp);
 	remove_blank(tmp);
@@ -99,13 +99,13 @@ void Request::parseHttp(void)
 	else
 		_sCode = 400;
 	// std::cout << "ode =" << _sCode << std::endl;
-	DEBUG_MSG("ici code 4= " << _sCode);
+	// DEBUG_MSG("ici code 4= " << _sCode);
 	if (_sCode == 200)
 		parseParam();
-	DEBUG_MSG("_pathfile = " << _pathfile);
+	// DEBUG_MSG("_pathfile = " << _pathfile);
 	if (_sCode == 200 && _pathfile.find("..") != std::string::npos)
 		_sCode = 403;
-	DEBUG_MSG("ici code fin *9= " << _sCode);
+	// DEBUG_MSG("ici code fin *9= " << _sCode);
 }
 
 bool Request::parseChunkedBody(size_t pos, Client& cli)

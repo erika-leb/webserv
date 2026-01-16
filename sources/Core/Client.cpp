@@ -119,8 +119,10 @@ void Client::setCgi( Cgi* newCgi ) {
 }
 
 void Client::deleteCgi() {
-	if (_cgi)
+	if (_cgi) {
 		delete _cgi;
+		_cgi = NULL;
+	}
 }
 
 Cgi* Client::getCgi() {

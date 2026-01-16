@@ -46,15 +46,15 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 
 	if (cli->getRequest() == NULL && (cli->getBuff()).find("\r\n\r\n") != std::string::npos) // header complete so we create a new request
 	{
-		perror("angelito");
+		// perror("angelito");
 		req = new Request(*cli); // new request
 		cli->setRequest(req); // we save the request in client
-		DEBUG_MSG("scode mil parse = " << req->getsCode());
+		// DEBUG_MSG("scode mil parse = " << req->getsCode());
 		req->parseHttp();
 		endPos = cli->getBuff().find("\r\n\r\n") + 4; // we save the number of octet read after the header
 		cli->setBodyRead(cli->getBuff().size() - endPos);
 		cli->clearRequestBuff(0, 0);
-		DEBUG_MSG("scodefin parse = " << req->getsCode());
+		// DEBUG_MSG("scodefin parse = " << req->getsCode());
 		// cli->clearHeader(endPos);
 	}
 	else if (cli->getRequest() != NULL)
@@ -68,15 +68,15 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
 	// this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
 	{
-		DEBUG_MSG("scode deb = " << req->getsCode());
+		// DEBUG_MSG("scode deb = " << req->getsCode());
 		if ((req->getsCode() == 200) && req->is_cgi(req->getPathFile())) { // CGI cases
 			cli->setCgi(new Cgi(*req, *cli));
-			cli->getCgi()->handleCGI_fork(_poll);
+			cli->getCgi()->handleCGI_fork(_poll, _cgiPid);
 			clearRequest(cli, req);
 		}
 		else if (req->getAction() != "POST" || req->getsCode() != 200) //GET, DELETE, ERROR cases
 		{
-			DEBUG_MSG("scode  sonar = " << req->getsCode());
+			// DEBUG_MSG("scode  sonar = " << req->getsCode());
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
@@ -141,7 +141,7 @@ int Server::sendRequest(int i, std::string tmp)
 		if (client_fd == (*it)->getFd())
 		{
 			n = send(client_fd, (*it)->getSendBuffer(), (*it)->setSendSize(), 0);
-			// std::cout << date(LOG) << ": Send " << n << " B to client(" << client_fd << ") [" << tmp << "]" << std::endl;
+			std::cout << date(LOG) << ": Send " << n << " B to client(" << client_fd << ") []" << std::endl;
 			if (n > 0)
 			{
 				(*it)->sendBuffErase(n);
@@ -192,9 +192,8 @@ void Server::launch()
 					NewIncomingConnection(_events[i].data.fd, cli, event);
 				else
 				{
-					// get the valid cgi and store it in a variable to reuse in ne next statement
 					if (is_pipe_fd(_events[i].data.fd) == true) {
-						if (receiveCgi(i, tmp) == 1)
+						if (receiveCgi(i, _events[i].events) == 1)
 							break;
 					}
 					else {
@@ -209,6 +208,12 @@ void Server::launch()
 				if (sendRequest(i, tmp) == 1)
 				{
 					break;
+				}
+			}
+			if (_events[i].events & (EPOLLHUP | EPOLLERR)) {
+				if (is_pipe_fd(_events[i].data.fd) == true) {
+					if (receiveCgi(i, _events[i].events) == 1)
+						break;
 				}
 			}
 		}

@@ -56,7 +56,7 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	//     if (!key.empty())
 	//         _reqParam[toLower(key)] = value;
 	// }
-	DEBUG_MSG("scode = " << _sCode);
+	// DEBUG_MSG("scode = " << _sCode);
 	std::cout << "--- Contenu de _reqParam ---" << std::endl;
 	for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); ++it)
 	{

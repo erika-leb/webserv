@@ -31,6 +31,7 @@
 #include <limits>
 #include <cctype>
 #include <iterator>
+#include <set>
 
 /* C headers */
 #include <sys/socket.h>

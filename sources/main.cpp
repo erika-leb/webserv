@@ -110,7 +110,7 @@ GlobalConfig parseConfig(std::string config_path)
 	temp.close();
     temp.open("temp.txt", std::ios::in);
 	GlobalConfig config(temp);
-	config.print_config();
+	// config.print_config();
 	temp.close();
 	return (config);
 }
@@ -134,5 +134,5 @@ int main(int ac, char **av)
 	{
 		std::cerr << e.what() << '\n';
 	}
-
+	return 0;
 }

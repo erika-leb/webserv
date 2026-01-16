@@ -50,7 +50,7 @@ class Server {
 
 		// CGI functions
 		bool is_pipe_fd( int );
-		int receiveCgi( int , std::string );
+		int receiveCgi( int, int );
 
 		static void handleSigint(int sig);
 
@@ -64,6 +64,7 @@ class Server {
 		std::map<int, ServerConfig>	_fdListen;
 		struct epoll_event			_events[SOMAXCONN];
 		std::vector< Client *>		_clients;
+		std::set<pid_t>				_cgiPid;
 
 		Server(const Server &src);
 		Server &operator=(const Server &rhs);
