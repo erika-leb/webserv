@@ -118,6 +118,10 @@ void Client::setCgi( Cgi* newCgi ) {
 	_cgi = newCgi;
 }
 
+void Client::setCgiPid( pid_t pid ) {
+	_cgiPid = pid;
+}
+
 void Client::deleteCgi() {
 	if (_cgi) {
 		delete _cgi;

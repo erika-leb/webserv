@@ -132,6 +132,14 @@ int Server::receiveCgi( int i, int event ) {
 	return retval;
 }
 
+void Server::insertPid( pid_t pid ) {
+	_cgiPids.insert(pid);
+}
+
+void Server::removePid( pid_t pid ) {
+	_cgiPids.erase(pid);
+}
+
 
 bool Server::is_chunk_complete( Client *cli )
 {

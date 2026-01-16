@@ -37,6 +37,7 @@ class Client {
 		bool isCon();
 
 		void setCgi( Cgi* newCgi );
+		void setCgiPid( pid_t );
 		void deleteCgi(); // is this function really needed ?
 		Cgi* getCgi();
 
@@ -64,6 +65,7 @@ class Client {
 		ServerConfig &_conf;
 		unsigned long long _bodyRead;
 
+		pid_t _cgiPid;
 } ;
 
 #endif

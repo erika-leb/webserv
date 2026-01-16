@@ -5,10 +5,12 @@
 #include "Request.hpp"
 #include "Client.hpp"
 #include "Directive.hpp"
+#include "Server.hpp"
 
 class Client;
 class Request;
 class Directive;
+class Server;
 
 class Cgi
 {
@@ -35,7 +37,7 @@ public:
 
 	void makeEnv( std::vector<std::string>, std::vector<char *> );
 
-	void	handleCGI_fork( int, std::set<pid_t> );
+	void	handleCGI_fork( int, Server& );
 	// int		handleCGI_pipe( int, int );
 	int		handleCGI_pipe( int, int );
 

@@ -125,7 +125,7 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
     envp.push_back(NULL);
 }
 
-void Cgi::handleCGI_fork( int pollfd, std::set<pid_t> setPid ) {
+void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	char * const args[] = {(char *)_cgiHandler.c_str(), (char *)_path.c_str(), NULL};
 
 	std::vector<std::string> tmp;
@@ -168,7 +168,8 @@ void Cgi::handleCGI_fork( int pollfd, std::set<pid_t> setPid ) {
 	}
 	else {
 		// PARENT
-		setPid.insert(pid);
+		serv.insertPid(pid);
+		_cli.setCgiPid(pid);
 
 		close(stdinPipe[READ]);
         if (!_reqBody.empty()) {
