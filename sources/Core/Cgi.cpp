@@ -31,8 +31,8 @@ static std::string extractValue( std::string& line, std::string key ) {
 	size_t size = 0;
 	for (size_t i=pos; line[i] != '\n' && line[i]; i++)
 		size++;
-
-	if (line[size - 1] == '\r')
+	
+	if (line[(pos + size) - 1] == '\r')
 		size--;
 
 	return line.substr(pos, size);
@@ -96,21 +96,7 @@ int Cgi::getFd( int fd ) {
 	return -1;
 }
 
-time_t	Cgi::getCgiTime()
-{
-	return (_startTime);
-}
-
-bool Cgi::getKilled()
-{
-	return (_killed);
-}
-void Cgi::setKilled(bool b)
-{
-	_killed = b;
-}
-
-void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> envp) {
+void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *>& envp) {
 	std::map<std::string, std::string> cgi;
 
 	cgi["REQUEST_METHOD"]  = _method;
@@ -122,7 +108,8 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 
     cgi["SCRIPT_FILENAME"] = _path;
 
-    cgi["CONTENT_LENGTH"]  = "0";
+	if (!_reqBody.empty())
+		cgi["CONTENT_LENGTH"]	= _reqBody.size();
     cgi["SERVER_PROTOCOL"] = "HTTP/1.1";
     cgi["GATEWAY_INTERFACE"] = "CGI/1.1";
     cgi["SERVER_SOFTWARE"] = "Webserv/1.0";
@@ -131,11 +118,14 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 
     env_storage.reserve(cgi.size());
 
-
+    
+	char *tmp;
     envp.reserve(cgi.size() + 1);
     for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
         env_storage.push_back(it->first + "=" + it->second);
-        envp.push_back(const_cast<char*>(env_storage.back().c_str()));
+		tmp = new char[env_storage.back().size() + 1];
+		std::strcpy(tmp, env_storage.back().c_str());
+        envp.push_back(tmp);
     }
 
     envp.push_back(NULL);
@@ -144,10 +134,10 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	char * const args[] = {(char *)_cgiHandler.c_str(), (char *)_path.c_str(), NULL};
 
-	std::vector<std::string> tmp;
-	std::vector<char *> env;
-	makeEnv(tmp, env);
-
+	// for(std::vector<char *>::const_iterator it=env.begin(); it != env.end(); ++it) {
+	// 	DEBUG_MSG("env: " << (*it));
+	// }
+	
 	if ( (pipe(_pipeDes) == -1))
 		throw std::runtime_error("pipe "+ static_cast<std::string>(std::strerror(errno)));
 
@@ -168,6 +158,10 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	if (pid == 0) {
 		// CHILD
 		/* If POST request dup2(STDIN, ?)*/
+		std::vector<std::string> tmp;
+		std::vector<char *> env;
+		makeEnv(tmp, env);
+
 		close(stdinPipe[WRITE]);
 		dup2(stdinPipe[READ], STDIN_FILENO);
 		close(stdinPipe[READ]);
@@ -176,12 +170,18 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 		dup2(_pipeDes[WRITE], STDOUT_FILENO);
 		close(_pipeDes[WRITE]);
 
-		if ( (execve(_cgiHandler.c_str(), args, &env[0])) == -1) {
-		// if ( (execve("bliblouy", args, &env[0])) == -1) {
-			std::string buff = "Status: 500 Internal server error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>";
-			std::cout << buff;
-			throw std::runtime_error("execve "+ static_cast<std::string>(std::strerror(errno)));
+		execve(_cgiHandler.c_str(), args, &env[0]);
+		// execve("bliblouy", args, &env[0]);
+		std::string buff = "Status: 500 Internal server error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>";
+		std::cout << buff;
+
+		for (std::vector<char *>::iterator it = env.begin(); it != env.end(); ++it) {
+			if (*it)
+				delete []*it;
 		}
+		
+
+		throw std::runtime_error("execve " + static_cast<std::string>(std::strerror(errno)));
 	}
 	else {
 		// PARENT
@@ -273,7 +273,10 @@ std::string Cgi::parseHeader( std::string& rawHeader, size_t cLen ) {
 		ss << tmp << ENDLINE;
 	ss << "Date: " << date(HTTP) << ENDLINE;
 	ss << "Server: " << _serverName + ":" << _port << ENDLINE;
-	ss << "Content-Type: " << extractValue(rawHeader, "Content-Type: ") << ENDLINE;
+	std::string ct(extractValue(rawHeader, "Content-Type: "));
+	if (ct.empty())
+		ct = "text/html";
+	ss << "Content-Type: " << ct << ENDLINE;
 	ss << "Content-Length: " << cLen << ENDLINE;
 	ss << ENDLINE;
 
