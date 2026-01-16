@@ -31,7 +31,7 @@ static std::string extractValue( std::string& line, std::string key ) {
 	size_t size = 0;
 	for (size_t i=pos; line[i] != '\n' && line[i]; i++)
 		size++;
-	
+
 	if (line[(pos + size) - 1] == '\r')
 		size--;
 
@@ -96,6 +96,20 @@ int Cgi::getFd( int fd ) {
 	return -1;
 }
 
+time_t	Cgi::getCgiTime()
+{
+	return (_startTime);
+}
+
+bool Cgi::getKilled()
+{
+	return (_killed);
+}
+void Cgi::setKilled(bool b)
+{
+	_killed = b;
+}
+
 void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *>& envp) {
 	std::map<std::string, std::string> cgi;
 
@@ -118,7 +132,7 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *>& en
 
     env_storage.reserve(cgi.size());
 
-    
+
 	char *tmp;
     envp.reserve(cgi.size() + 1);
     for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
@@ -137,7 +151,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	// for(std::vector<char *>::const_iterator it=env.begin(); it != env.end(); ++it) {
 	// 	DEBUG_MSG("env: " << (*it));
 	// }
-	
+
 	if ( (pipe(_pipeDes) == -1))
 		throw std::runtime_error("pipe "+ static_cast<std::string>(std::strerror(errno)));
 
@@ -179,7 +193,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 			if (*it)
 				delete []*it;
 		}
-		
+
 
 		throw std::runtime_error("execve " + static_cast<std::string>(std::strerror(errno)));
 	}
