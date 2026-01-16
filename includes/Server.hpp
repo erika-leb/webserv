@@ -9,7 +9,8 @@
 #include "ServerConfig.hpp"
 
 class GlobalConfig;
-
+class Client;
+class Request;
 class ServerConfig;
 
 class Server {

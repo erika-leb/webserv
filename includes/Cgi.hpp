@@ -35,7 +35,7 @@ public:
 
 	int		getFd( int );
 
-	void makeEnv( std::vector<std::string>, std::vector<char *> );
+	void makeEnv( std::vector<std::string>, std::vector<char *>& );
 
 	void	handleCGI_fork( int, Server& );
 	// int		handleCGI_pipe( int, int );

@@ -1,7 +1,7 @@
 #!/usr/bin/php-cgi
 <?php
 // Print required HTTP header FIRST
-echo "Content-type: text/html\r\n";
+echo "Content-Type: text/html\r\n";
 echo "\r\n";
 
 ?>
@@ -26,7 +26,8 @@ else {
 // Handle POST data  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "<p>POST data received:</p>";
-    echo "<pre>" . htmlspecialchars(print_r($_POST, true)) . "</pre>";
+	$input = file_get_contents('php://stdin');  // POST body here!
+	echo "POST body length: " . strlen($input);
 }
 else {
 	echo "blaaaaaaaa";
