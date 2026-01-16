@@ -65,6 +65,7 @@ void Server::deleteSocket(int client_fd)
 void Server::checkTimeOut()
 {
 	time_t now = std::time(NULL);
+	int fd;
 
 	// perror("ici");
 	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
@@ -74,6 +75,17 @@ void Server::checkTimeOut()
 		{
 			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (TIMEOUT)" << std::endl;
 			deleteSocket(_clients[i]->getFd());
+		}
+		if (_clients[i]->getCgi() != NULL && now - _clients[i]->getCgi()->getCgiTime() > CGI_TIMEOUT_SECONDS)
+		{
+			fd = _clients[i]->getCgi()->getFd(READ);
+			std::cout << date(LOG) << ": Client(" << fd << ") disconnected (CGI TIMEOUT)" << std::endl;
+			kill(_clients[i]->getCgiPid(), SIGINT);
+			// epoll_ctl(_poll, EPOLL_CTL_DEL, fd, NULL);
+			// close (fd);
+			_clients[i]->getCgi()->setKilled(true);
+			// delete (*(_clients[i]->getCgi()->getFd(READ))); // pointer freed
+			// deleteSocket(_clients[i]->getCgi()->getFd(READ));
 		}
 	}
 }

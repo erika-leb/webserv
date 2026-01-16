@@ -26,12 +26,12 @@ static std::string extractValue( std::string& line, std::string key ) {
 	size_t pos = line.find(key);
 
 	if (pos == std::string::npos) return "";
-	
+
 	pos += key.length();
 	size_t size = 0;
 	for (size_t i=pos; line[i] != '\n' && line[i]; i++)
 		size++;
-	
+
 	if (line[size - 1] == '\r')
 		size--;
 
@@ -57,6 +57,8 @@ Cgi::Cgi( Request& req, Client& cli ): _cli(cli) {
 
 	this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
 	this->_reqBody = req.getBody();
+	this->_startTime = std::time(NULL);
+	this->_killed = false;
 }
 
 Cgi::Cgi( Cgi& cpy ):
@@ -94,6 +96,20 @@ int Cgi::getFd( int fd ) {
 	return -1;
 }
 
+time_t	Cgi::getCgiTime()
+{
+	return (_startTime);
+}
+
+bool Cgi::getKilled()
+{
+	return (_killed);
+}
+void Cgi::setKilled(bool b)
+{
+	_killed = b;
+}
+
 void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> envp) {
 	std::map<std::string, std::string> cgi;
 
@@ -115,7 +131,7 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *> env
 
     env_storage.reserve(cgi.size());
 
-    
+
     envp.reserve(cgi.size() + 1);
     for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
         env_storage.push_back(it->first + "=" + it->second);
@@ -131,7 +147,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	std::vector<std::string> tmp;
 	std::vector<char *> env;
 	makeEnv(tmp, env);
-	
+
 	if ( (pipe(_pipeDes) == -1))
 		throw std::runtime_error("pipe "+ static_cast<std::string>(std::strerror(errno)));
 
@@ -140,14 +156,15 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 		close(_pipeDes[WRITE]); close(_pipeDes[READ]);
 		throw std::runtime_error("pipe "+ static_cast<std::string>(std::strerror(errno)));
 	}
-	
+
+	_startTime = std::time(NULL);
 	pid_t pid = fork();
 	if (pid == -1) {
 		close(stdinPipe[WRITE]); close(stdinPipe[READ]);
 		close(_pipeDes[WRITE]); close(_pipeDes[READ]);
 		throw std::runtime_error("fork "+ static_cast<std::string>(std::strerror(errno)));
 	}
-	
+
 	if (pid == 0) {
 		// CHILD
 		/* If POST request dup2(STDIN, ?)*/
@@ -203,14 +220,26 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 	char buff[MAXLINE];
 	ssize_t n;
 
+	// DEBUG_MSG("fac");
+	if (_killed == true)
+	{
+		DEBUG_MSG("satis");
+		close(pipefd);
+		std::string output = "HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/html\r\nContent-Length: 154\r\nConnection: close\r\n\r\n<html><head><title>504 Gateway Timeout</title></head><body><center><h1>504 Gateway Timeout</h1><p>The CGI script took too long to respond.</p></center></body></html>";
+		// std::string output("Status: 504 Gateway Timeout error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>");
+		_cli.setSendBuff(output);
+		return (0);
+	}
+
 	if (event & (EPOLLHUP | EPOLLERR) && !(event & EPOLLIN)) {
 		close(pipefd);
-
+		// DEBUG_MSG("tion");
 		std::string output(parseCgiOutput(_buff));
 		_cli.setSendBuff(output);
 	}
 
 	if (event & EPOLLIN) {
+		// DEBUG_MSG("dont");
 		if ((n = read(pipefd, buff, sizeof(buff))) > 0) {
 			buff[n] = '\0';
 			_buff << buff;
@@ -264,7 +293,7 @@ std::string Cgi::parseCgiOutput( std::stringstream& ss ) {
 	}
 
 	while (std::getline(ss, tmp)) {
-		content.append(tmp);	
+		content.append(tmp);
 	}
 
 	/*

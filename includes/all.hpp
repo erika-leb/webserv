@@ -56,6 +56,7 @@
 #define READ	0
 #define WRITE	1
 #define TIMEOUT_SECONDS 60
+#define CGI_TIMEOUT_SECONDS 10
 
 #define ERROR_400 "/errors/400.html" //potentiel soucis si on est pas dans htlm ?? PROTECTION SI FICHIERS CHANGES DE PLACE ???
 #define ERROR_403 "/errors/403.html"

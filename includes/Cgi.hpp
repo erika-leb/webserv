@@ -26,6 +26,8 @@ private:
 	std::string _reqBody;
 	// bool		_isBody;
 	std::stringstream	_buff;
+	time_t		_startTime;
+	bool		_killed;
 
 public:
 	Cgi( Request&, Client& );
@@ -34,6 +36,10 @@ public:
 	~Cgi();
 
 	int		getFd( int );
+	time_t	getCgiTime();
+
+	bool getKilled();
+	void setKilled(bool b);
 
 	void makeEnv( std::vector<std::string>, std::vector<char *> );
 

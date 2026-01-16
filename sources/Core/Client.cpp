@@ -122,6 +122,11 @@ void Client::setCgiPid( pid_t pid ) {
 	_cgiPid = pid;
 }
 
+pid_t Client::getCgiPid()
+{
+	return (_cgiPid);
+}
+
 void Client::deleteCgi() {
 	if (_cgi) {
 		delete _cgi;

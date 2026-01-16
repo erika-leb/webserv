@@ -38,6 +38,7 @@ class Client {
 
 		void setCgi( Cgi* newCgi );
 		void setCgiPid( pid_t );
+		pid_t getCgiPid();
 		void deleteCgi(); // is this function really needed ?
 		Cgi* getCgi();
 

@@ -18,5 +18,5 @@ print("""
 </html>
 """)
 
-# while True:
-# 	print("n;importe quoi")
+while True:
+	print("n;importe quoi")

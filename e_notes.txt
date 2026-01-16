@@ -51,6 +51,8 @@ GASTON
 
 ./webserv conf2.conf -> ne marche pas
 
+siege -b -t 30s http://localhost:8080
+
 
 
 curl -v -H "Transfer-Encoding: chunked" -H "Expect:" --data-binary "@test_50mo.txt" http://localhost:8080/test/testyyyyy

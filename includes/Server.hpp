@@ -12,6 +12,10 @@ class GlobalConfig;
 
 class ServerConfig;
 
+class Client;
+
+class Request;
+
 class Server {
 
 	public:
