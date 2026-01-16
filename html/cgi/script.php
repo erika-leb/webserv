@@ -17,6 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         echo htmlspecialchars($key) . " = " . htmlspecialchars($value) . "<br>";
     }
 }
+else {
+	echo "blooooo";
+}
 ?>
 
 <?php
@@ -24,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "<p>POST data received:</p>";
     echo "<pre>" . htmlspecialchars(print_r($_POST, true)) . "</pre>";
+}
+else {
+	echo "blaaaaaaaa";
 }
 ?>
 

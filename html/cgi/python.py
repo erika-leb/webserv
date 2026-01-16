@@ -17,3 +17,6 @@ print("""
 </body>
 </html>
 """)
+
+# while True:
+# 	print("n;importe quoi")
