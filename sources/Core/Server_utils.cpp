@@ -71,6 +71,7 @@ void Server::checkTimeOut()
 		{
 			fd = _clients[i]->getCgi()->getFd(READ);
 			std::cout << date(LOG) << ": Client(" << fd << ") disconnected (CGI TIMEOUT)" << std::endl;
+			DEBUG_MSG("pid to kill = " << _clients[i]->getCgiPid());
 			kill(_clients[i]->getCgiPid(), SIGINT);
 			_clients[i]->getCgi()->setKilled(true);
 		}
@@ -78,6 +79,7 @@ void Server::checkTimeOut()
 		{
 			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (TIMEOUT)" << std::endl;
 			deleteSocket(_clients[i]->getFd());
+			// i--;
 		}
 
 	}
@@ -94,7 +96,16 @@ int Server::timeOut()
 		elapsed = now - _clients[i]->getlastConn();
 		if (TIMEOUT_SECONDS - elapsed > 0 && TIMEOUT_SECONDS - elapsed < res)
 			res = TIMEOUT_SECONDS - elapsed;
+		if (_clients[i]->getCgi() != NULL)
+        {
+            int cgi_elapsed = now - _clients[i]->getCgi()->getCgiTime();
+            int cgi_remaining = CGI_TIMEOUT_SECONDS - cgi_elapsed;
+            if (cgi_remaining < res)
+                res = (cgi_remaining > 0) ? cgi_remaining : 0;
+        }
 	}
+	if (res < 0)
+		res = 0;
 	return ((res + 2) * 1000);
 }
 

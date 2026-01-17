@@ -27,6 +27,7 @@ private:
 	std::stringstream	_buff;
 	time_t		_startTime;
 	bool		_killed;
+	pid_t _pid;
 
 public:
 	Cgi( Request&, Client& );

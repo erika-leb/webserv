@@ -59,6 +59,7 @@ Cgi::Cgi( Request& req, Client& cli ): _cli(cli) {
 	this->_reqBody = req.getBody();
 	this->_startTime = std::time(NULL);
 	this->_killed = false;
+	this->_pid = -1;
 }
 
 Cgi::Cgi( Cgi& cpy ):
@@ -169,6 +170,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	}
 
 	_startTime = std::time(NULL);
+	
 	pid_t pid = fork();
 	if (pid == -1) {
 		close(stdinPipe[WRITE]); close(stdinPipe[READ]);
@@ -192,6 +194,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 		close(_pipeDes[WRITE]);
 
 		execve(_cgiHandler.c_str(), args, &env[0]);
+		// execve("bliblouy", args, &env[0]);
 		std::string buff = "Status: 500 Internal server error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>";
 		std::cout << buff;
 
@@ -207,6 +210,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 		// PARENT
 		serv.insertPid(pid);
 		_cli.setCgiPid(pid);
+		_pid = pid;
 
 		close(stdinPipe[READ]);
         if (!_reqBody.empty()) {
@@ -247,12 +251,42 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 		close(pipefd);
 		std::string output = "HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/html\r\nContent-Length: 154\r\nConnection: close\r\n\r\n<html><head><title>504 Gateway Timeout</title></head><body><center><h1>504 Gateway Timeout</h1><p>The CGI script took too long to respond.</p></center></body></html>";
 		_cli.setSendBuff(output);
+		kill(_pid, SIGKILL);
+		waitpid(_pid, NULL, 0); // Nettoie le zombie après le kill
 		return (0);
 	}
 
-	if (event & (EPOLLHUP | EPOLLERR) && !(event & EPOLLIN)) {
+	// if (event & (EPOLLHUP | EPOLLERR) && !(event & EPOLLIN)) {
+	// 	close(pipefd);
+	// 	std::string output(parseCgiOutput(_buff));
+	// 	_cli.setSendBuff(output);
+	// }
+
+		if (event & (EPOLLHUP | EPOLLERR) && !(event & EPOLLIN)) {
+		DEBUG_MSG("case");
 		close(pipefd);
+		int status;
+    	// On vérifie si le fils a crashé
+    	if (waitpid(_pid, &status, 0) != -1) {
+    	    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+    	        DEBUG_MSG("CGI crashed with status " << WEXITSTATUS(status));
+
+				std::string body = "<html><body><h1>500 Internal Server Error</h1><p>CGI script failed.</p></body></html>";
+				std::ostringstream resp;
+				resp << "HTTP/1.1 500 Internal Server Error\r\n"
+				     << "Content-Type: text/html\r\n"
+				     << "Content-Length: " << body.size() << "\r\n"
+				     << "Connection: close\r\n"
+				     << "\r\n"
+				     << body;
+
+				_cli.setSendBuff(resp.str());
+
+				return (0); // On sort, pas de parsing
+    	    }
+    	}
 		std::string output(parseCgiOutput(_buff));
+		DEBUG_MSG("output"<< output);
 		_cli.setSendBuff(output);
 	}
 
@@ -270,6 +304,34 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 		}
 		else {
 			close(pipefd);
+
+						int status;
+    		// On récupère le statut du processus associé à ce CGI
+    		if (waitpid(_pid, &status, 0) != -1) {
+    		    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+    		        // LE SCRIPT A CRASHÉ (ex: ton erreur Python while T)
+    		        std::cerr << "CGI Error: script exited with status " << WEXITSTATUS(status) << std::endl;
+
+					// std::string err = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 100\r\nConnection: close\r\n\r\n<html><body><h1>500 Internal Server Error</h1><p>CGI script failed.</p></body></html>";
+    		        // std::string err = "HTTP/1.1 500 Internal Server Error\r\n"
+    		        //                           "Content-Type: text/html\r\n"
+    		        //                           "Content-Length: 100\r\n\r\n"
+    		        //                           "<html><body><h1>500 Internal Server Error</h1>"
+    		        //                           "<p>CGI script failed.</p></body></html>";
+					std::string body = "<html><body><h1>500 Internal Server Error</h1><p>CGI script failed.</p></body></html>";
+					std::ostringstream resp;
+					resp << "HTTP/1.1 500 Internal Server Error\r\n"
+					     << "Content-Type: text/html\r\n"
+					     << "Content-Length: " << body.size() << "\r\n"
+					     << "Connection: close\r\n"
+					     << "\r\n"
+					     << body;
+
+					_cli.setSendBuff(resp.str());
+    		        // _cli.setSendBuff(err);
+    		        return 0; // On s'arrête ici
+    		    }
+    		}
 
 			std::string output(parseCgiOutput(_buff));
 			_cli.setSendBuff(output);
@@ -337,6 +399,6 @@ std::string Cgi::parseCgiOutput( std::stringstream& ss ) {
 
 void Cgi::sigchld_handler( int sig ) {
 	if (sig == SIGCHLD) {
-		while (waitpid(-1, NULL, WNOHANG) > 0);
+		// while (waitpid(-1, NULL, WNOHANG) > 0);
 	}
 }
