@@ -25,7 +25,6 @@ class Directive {
 			void checkIndex();
 			void checkMaxBody();
 			void checkCgi();
-			// void checkUpload();
 
             void print_directive();
 
@@ -34,8 +33,6 @@ class Directive {
             int nbArg;
             std::vector<std::string> arg;
 			unsigned long long sizeMax;
-
-            // Directive();
 
 } ;
 

@@ -1,48 +1,15 @@
 
 valgrind --trace-children=yes --track-fds=yes --leak-check=full --show-leak-kinds=all ./webserv
 
-a faire encore pour config :
-- directive retrun -> renvoyer le fichier (http://localhost:8081/Makefile doit renvoyer le Makefile de kiki)
-
-
-
-- verifier si il y a des parametres non supportes -> erreur 501
-
-
-RESTE A FAIRE ==
-- lire le code cgi de thibault (erika)
-- gerer la directive cgi (Thibault)
-- ameliorer le parsing de thibault
-- multipart ?
-
-
-TEST =
-- refaire ifError
-- refaire test ip different  et port identique
-
-
-
-
-- si le fichier de conf ne termine pas par .conf c'est grave ?
-
-La logique standard est :
--match le plus long préfixe (ex : /images/hd/ avant /images/)
--si aucun match : fallback au location /
-
-logique de request = - on verifie que le _pathfile (le fichier) existe (checkFile)
-- on met a jour le _pathfile si ce n'est pas le cas (ifError)
-- on reverifie que le pathfile existe (au cas ou le _pahtfile aurait ete change pour un chemin d'erreur) (checkFile encore)
-- on remet
-
-- root = pas de / ni avant ni apres OK   ex : html
-- location = / a la fin oui mais apres normalement meme si on dirait que non   ex : /test
-- fichier = slash au debut mais pas a la fin OK ex : /04.html
-- cgi = slash avant mais pas apres
 
 
 -test feuille
 -test ecole
 -rendre tout propre
+
+derniere mise au propre:
+- int optval = 1; // a enlever apres
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)); //a enlever apres enlever 
 
 
 
@@ -159,18 +126,6 @@ suppression des sockets mortes (n == 0 ou POLLERR),
 libération de la mémoire,
 
 et éventuellement un timeout (si un client reste ouvert sans rien envoyer).
-
-🚀 ÉTAPE 8 — Lire le fichier de configuration (comme nginx.conf)
-
-Tu dois maintenant commencer à :
-
-parser un fichier config.conf que ton exécutable prend en paramètre ;
-
-créer plusieurs serveurs (listen 8080, listen 8081, etc.) ;
-
-gérer les “locations” (location /upload, location /images...).
-
-Mais cette étape vient après que ton serveur minimal fonctionne.
 
 
 

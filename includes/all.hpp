@@ -46,11 +46,7 @@
 #include <sys/stat.h>
 #include <string>
 #include <dirent.h>
-// #include <stdio.h>
 
-// #include <errno
-
-// #define MAXLINE 10
 #define MAXLINE 4096
 #define ENDLINE "\r\n"
 #define READ	0
@@ -58,7 +54,7 @@
 #define TIMEOUT_SECONDS 60
 #define CGI_TIMEOUT_SECONDS 10
 
-#define ERROR_400 "/errors/400.html" //potentiel soucis si on est pas dans htlm ?? PROTECTION SI FICHIERS CHANGES DE PLACE ???
+#define ERROR_400 "/errors/400.html"
 #define ERROR_403 "/errors/403.html"
 #define ERROR_404 "/errors/404.html"
 #define ERROR_405 "/errors/405.html"
@@ -74,7 +70,6 @@
 
 #define ROOT "html"
 
-// const std::string ROOT_STR = "html";
 const std::string ROOT_STR = "default_documents";
 
 struct docType {
@@ -115,6 +110,6 @@ void		remove_blank( std::string& str );
 bool		isDirectivePresent(std::string name, std::vector<Directive> dir);
 Directive 	getDirective(std::string name, std::vector<Directive> dir);
 
-int			is_fd_open(int fd); // a supprimer plus tard
+int			is_fd_open(int fd);
 
 #endif

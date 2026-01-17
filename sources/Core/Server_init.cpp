@@ -7,7 +7,6 @@ Server::Server(GlobalConfig *config) : config(config)
 {
 	std::vector<ServerConfig> servs = this->config->getServ();
 	int fd;
-	// ListenInfo info;
 
 	_poll = epoll_create(1);
 	if (_poll == -1)
@@ -20,24 +19,14 @@ Server::Server(GlobalConfig *config) : config(config)
 		fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (fd < 0)
 			throw std::runtime_error("socket failed"+ static_cast<std::string>(strerror(errno)));
-		// info.fd = fd;
-		// info.ip = servs[i].getIp();
-		// info.port = servs[i].getPort();
-		// _fdListen[fd] = servs[i];
 		_fdListen.insert(std::make_pair(fd, servs[i]));
-
-		// _fdListen[fd] = info;
-		// _fdListen.push_back(socket(AF_INET, SOCK_STREAM, 0));
 		initFdListen(fd, servs[i].getPort(), servs[i].getIp());
-		// std::cout << "fd d'ecoute = " << fd << std::endl;
-		// initFdListen(_fdListen[i], servs[i].getPort(), servs[i].getIp());
 	}
 }
 
 Server::~Server()
 {
 	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
-	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 		close(it->first);
 	for (std::vector< Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
@@ -79,7 +68,7 @@ void Server::initFdListen(int fd, int port, std::string &ip)
 
 	freeaddrinfo(res);
 
-	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr))) // = to write servor's number down in the phonebook, connect a port to a fd
+	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)))
 	{
 		cleanClose();
 		throw std::runtime_error("bind() failed " + static_cast<std::string>(strerror(errno)));

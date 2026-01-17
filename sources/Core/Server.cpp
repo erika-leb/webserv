@@ -20,16 +20,12 @@ void Server::NewIncomingConnection(int fd, struct sockaddr_in cli, struct epoll_
 	}
 	event.data.fd = client_fd;
 	event.events = EPOLLIN;
-	// event.events = EPOLLIN | EPOLLET;
 	epoll_ctl(_poll, EPOLL_CTL_ADD, client_fd, &event);
 	for (std::map<int, ServerConfig>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
-	// for (std::map<int, ListenInfo>::iterator it = _fdListen.begin(); it != _fdListen.end(); it++)
 	{
-		// std::cout << "it->first = " << it->first << "; client fd = " << client_fd << std::endl;
 		if (it->first == fd)
 			_clients.push_back(new Client(client_fd, it->second));
 	}
-	// _clients.push_back(new Client(client_fd));
 	std::cout << date(LOG) << ": Client(" << client_fd << ") connected" << std::endl;
 }
 
@@ -40,33 +36,25 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 	Request *req;
 
 	std::cout << date(LOG) << ": Request from client(" << client_fd << ")" << std::endl;
-	// cli->addBuff(buff);
 	cli->addBuff(buff, n);
-	// DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
+	DEBUG_MSG("\nReceived: {\n" << cli->getBuff() << "}");
 
 	if (cli->getRequest() == NULL && (cli->getBuff()).find("\r\n\r\n") != std::string::npos) // header complete so we create a new request
 	{
-		// perror("angelito");
-		req = new Request(*cli); // new request
-		cli->setRequest(req); // we save the request in client
-		// DEBUG_MSG("scode mil parse = " << req->getsCode());
+		req = new Request(*cli);
+		cli->setRequest(req);
 		req->parseHttp();
-		endPos = cli->getBuff().find("\r\n\r\n") + 4; // we save the number of octet read after the header
+		endPos = cli->getBuff().find("\r\n\r\n") + 4;
 		cli->setBodyRead(cli->getBuff().size() - endPos);
 		cli->clearRequestBuff(0, 0);
 		// DEBUG_MSG("scodefin parse = " << req->getsCode());
-		// cli->clearHeader(endPos);
 	}
 	else if (cli->getRequest() != NULL)
 		cli->setBodyRead(cli->getBodyRead() + n); // if request was already created (= if there war already a header), we need to record the numeber of octet read (for the body)
 
 	req = (cli->getRequest());
 
-	// DEBUG_MSG("scode = " << req->getsCode());
 	if (cli->getRequest() != NULL && req->parseBody() == true)
-	// if (is_body_complete(cli) == true)
-	// if (cli->getRequest() != NULL && req->getLenght() == cli->getBodyRead()) // the body is complete and can be procesed
-	// this->_cgiHandler = req.getCgiHandler(_path.substr(_path.find_last_of(".")));
 	{
 		// DEBUG_MSG("scode deb = " << req->getsCode());
 		if ((req->getsCode() == 200) && req->is_cgi(req->getPathFile())) { // CGI cases
@@ -84,7 +72,6 @@ void Server::prepareResponse(char buff[MAXLINE], std::string& tmp, int client_fd
 		}
 		else // POST with no error case
 		{
-			// req->parseBody();
 			req->handleAction(req->getAction());
 			tmp = req->makeResponse();
 			modifyEvent(client_fd, EPOLLIN | EPOLLOUT);
@@ -169,21 +156,16 @@ int Server::sendRequest(int i, std::string tmp)
 	return (0);
 }
 
-
-
 void Server::launch()
 {
 	struct epoll_event event;
 	struct sockaddr_in cli;
 	int d;
-	std::string tmp; //revoir avec Thibault si a modifier
+	std::string tmp;
 
 	while(flag == 0)
 	{
 		d = epoll_wait(_poll, _events, SOMAXCONN, timeOut());
-		// std::cout << "DEBUG: Waiting for events..." << std::endl;
-		// d = epoll_wait(_poll, _events, SOMAXCONN, 1000); // 1 seconde fixe pour tester
-		// std::cout << "DEBUG: Events received: " << d << std::endl;
 		for (int i = 0; i < d; i++)
 		{
 			if (_events[i].events & EPOLLIN)

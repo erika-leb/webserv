@@ -93,12 +93,6 @@ void Request::checkRedirAndMethod()
         			if (dir.getSizeMax() < _contentLength)
             			_sCode = 413; // pas 400
 				}
-				// DEBUG_MSG(" dir.getSizeMax() = " << dir.getSizeMax());
-				// _contentLength = getNbMax(_reqParam["content-length"]);
-				// DEBUG_MSG(" _contentLength = " << _contentLength);
-				// if (dir.getSizeMax() < _contentLength)
-				// 	_sCode = 400;
-				// DEBUG_MSG("code 9 = " << _sCode);
 			}
 		}
 	}
@@ -111,7 +105,6 @@ void Request::generateHtml(std::string uri, std::string path)
 	std::stringstream body, response;
 	std::string name;
 	struct dirent *entry;
-	std::cout << "PATH HTML = " << path << std::endl;
 	DIR *dir = opendir(path.c_str());
 
 	if (!dir)

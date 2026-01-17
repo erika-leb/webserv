@@ -24,7 +24,6 @@ private:
 	std::string _cgiHandler;
 	int 		_pipeDes[2];
 	std::string _reqBody;
-	// bool		_isBody;
 	std::stringstream	_buff;
 	time_t		_startTime;
 	bool		_killed;
@@ -44,7 +43,6 @@ public:
 	void makeEnv( std::vector<std::string> &, std::vector<char *>& );
 
 	void	handleCGI_fork( int, Server& );
-	// int		handleCGI_pipe( int, int );
 	int		handleCGI_pipe( int, int );
 
 	std::string parseHeader( std::string&, size_t );

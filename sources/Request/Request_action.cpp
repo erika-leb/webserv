@@ -43,7 +43,6 @@ int Request::checkPostPath(Directive &directive)
 		// perror("sdanse");
 		if (errno != ENOENT) // file not found
 		{
-			// perror("cors");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -51,7 +50,6 @@ int Request::checkPostPath(Directive &directive)
 		std::string::size_type pos = _pathfile.find_last_of('/'); // check if the parent exist
 		if (pos == std::string::npos)
 		{
-			// perror("brule");
 			_sCode = 403;
 			return (1);
 		}
@@ -61,7 +59,6 @@ int Request::checkPostPath(Directive &directive)
 		// DEBUG_MSG("parent = " << parent);
 		if (access(parent.c_str(), W_OK) != 0) // check the right of writing in the parent
 		{
-			// perror("au");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -69,7 +66,6 @@ int Request::checkPostPath(Directive &directive)
 	}
 	else // file does exist
 	{
-		// perror("singe");
 		if (S_ISDIR(st.st_mode)) // the file is a directory
 		{
 			// DEBUG_MSG("Path is a directory, cannot POST");
@@ -79,7 +75,6 @@ int Request::checkPostPath(Directive &directive)
 		}
 		if (access(_pathfile.c_str(), W_OK) != 0) // we cannot write in the file
 		{
-			// perror("sang");
 			_sCode = 403;
 			fGet();
 			return (1);
@@ -148,7 +143,6 @@ void Request::handleAction(std::string action)
 				break ;
 			}
 		}
-		// Next statement useless ?
 		if (i == 3)
 		{
 			DEBUG_MSG("Not known method");
@@ -202,12 +196,14 @@ std::string Request::makeResponse(void)
 
 	if (_htmlList.str() == "")
 	{
-		std::cerr << "message envoye = " << mess.str() << std::endl;
+		// std::cerr << "message envoye = " << mess.str() << std::endl;
+		DEBUG_MSG("message envoye = " << mess.str() );
 		_cli.setSendBuff(mess.str());
 	}
 	else
 	{
-		std::cerr << "message envoye = " << _htmlList.str() << std::endl;
+		// std::cerr << "message envoye = " << _htmlList.str() << std::endl;
+		DEBUG_MSG("message envoye = " << mess.str() );
 		_cli.setSendBuff(_htmlList.str());
 	}
 

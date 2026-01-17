@@ -17,11 +17,11 @@ void process_loc(std::ifstream &file, std::fstream &temp, std::string &line)
 	trim_line(line);
 	if (line[line.size() - 1] != '{')
 		throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
-	temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+	temp << line.substr(0, line.size() - 1) << std::endl;
 	while (1)
 	{
 		get_line(file, line);
-		if (file.eof()) // attention ici
+		if (file.eof())
 			throw std::runtime_error("error in configuration file's syntax" + static_cast<std::string>(strerror(errno)));
 		if (line[0] == '#' || line == "")
 			continue;
@@ -29,7 +29,7 @@ void process_loc(std::ifstream &file, std::fstream &temp, std::string &line)
 			break;
 		if (line[line.size() - 1] != ';')
 			throw std::runtime_error("error in configuration file's syntaxe1");
-		temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+		temp << line.substr(0, line.size() - 1) << std::endl;
 	}
 }
 
@@ -51,20 +51,19 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string &line)
 			continue;
 		if (line == "}")
 			break;
-		if (loc == 0 && !(line.substr(0, 8) == "location")) // il s'agit d'une directive de serveur
+		if (loc == 0 && !(line.substr(0, 8) == "location"))
 		{
 			if (line[line.size() - 1] != ';')
 				throw std::runtime_error("error in configuration file's syntaxe2");
-			temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+			temp << line.substr(0, line.size() - 1) << std::endl;
 		}
-		else if (line.substr(0, 8) == "location") // il s'agit d'un serveur
+		else if (line.substr(0, 8) == "location")
 		{
 			loc++;
 			process_loc(file, temp, line);
 		}
-		else // directive apres le serveur
+		else
 			throw std::runtime_error("" + static_cast<std::string>(strerror(errno)));
-		// temp << "bem" << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
 	}
 }
 
@@ -79,23 +78,22 @@ void first_parse(std::ifstream &file, std::fstream &temp)
 	while (1)
 	{
 		get_line(file, line);
-		if (file.eof()) // attention ici
+		if (file.eof())
 			break;
-		// if (line[0] == '#' || line == "")
 		if (line[0] == '#' || line == "" || line == ";")
 			continue;
-		if (serv == 0 && !(line.substr(0, 6) == "server")) // il s'agit d'une directive globale
+		if (serv == 0 && !(line.substr(0, 6) == "server"))
 		{
 			if (line[line.size() - 1] != ';')
 				throw std::runtime_error("error in configuration file's syntaxe3");
-			temp << line.substr(0, line.size() - 1) << std::endl; // pour enlever le ; à la fin
+			temp << line.substr(0, line.size() - 1) << std::endl;
 		}
-		else if (line.substr(0, 6) == "server") // il s'agit d'un serveur
+		else if (line.substr(0, 6) == "server")
 		{
 			serv++;
 			process_serv(file, temp, line);
 		}
-		else // directive apres le serveur
+		else
 			throw std::runtime_error("error in configuration file's syntaxe4");
 	}
 }

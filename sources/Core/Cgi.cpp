@@ -154,7 +154,6 @@ void Cgi::makeEnv( std::vector<std::string>& env_storage, std::vector<char *>& e
 
 void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	char * const args[] = {(char *)_cgiHandler.c_str(), (char *)_path.c_str(), NULL};
-	// char * const args[] = {(char *)"./html/cgi/cgi_tester", (char *)_path.c_str(), NULL};
 
 	// for(std::vector<char *>::const_iterator it=env.begin(); it != env.end(); ++it) {
 	// 	DEBUG_MSG("env: " << (*it));
@@ -193,7 +192,6 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 		close(_pipeDes[WRITE]);
 
 		execve(_cgiHandler.c_str(), args, &env[0]);
-		// execve("./html/cgi/cgi_tester", args, &env[0]);
 		std::string buff = "Status: 500 Internal server error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>";
 		std::cout << buff;
 
@@ -248,20 +246,17 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 		DEBUG_MSG("satis");
 		close(pipefd);
 		std::string output = "HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/html\r\nContent-Length: 154\r\nConnection: close\r\n\r\n<html><head><title>504 Gateway Timeout</title></head><body><center><h1>504 Gateway Timeout</h1><p>The CGI script took too long to respond.</p></center></body></html>";
-		// std::string output("Status: 504 Gateway Timeout error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>");
 		_cli.setSendBuff(output);
 		return (0);
 	}
 
 	if (event & (EPOLLHUP | EPOLLERR) && !(event & EPOLLIN)) {
 		close(pipefd);
-		// DEBUG_MSG("tion");
 		std::string output(parseCgiOutput(_buff));
 		_cli.setSendBuff(output);
 	}
 
 	if (event & EPOLLIN) {
-		// DEBUG_MSG("dont");
 		if ((n = read(pipefd, buff, sizeof(buff))) > 0) {
 			buff[n] = '\0';
 			_buff << buff;

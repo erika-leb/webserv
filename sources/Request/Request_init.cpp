@@ -29,7 +29,6 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 	{
 		trim_line(tmp);
 		rawParam << tmp << "\n";
-		// rawParam << tmp;
 	}
 	while (std::getline(rawParam, key, ':') && rawParam >> value)
 	{
@@ -37,32 +36,12 @@ Request::Request(Client &cli) : _cli(cli), _serv(_cli.getServ()), _chunked(0), _
 		trim_line(value);
 		_reqParam[toLower(key)] = value;
 	}
-	// while (std::getline(rawParam, line))
+	// std::cout << "--- Contenu de _reqParam ---" << std::endl;
+	// for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); ++it)
 	// {
-	//     trim_line(line);
-	//     if (line.empty())
-	//         continue; // Ligne vide -> on ignore
-
-	//     std::string::size_type pos = line.find(':');
-	//     if (pos == std::string::npos)
-	//         continue; // Ligne sans ':' -> on ignore ou on log
-
-	//     std::string key   = line.substr(0, pos);
-	//     std::string value = line.substr(pos + 1); // tout ce qu’il y a après ':'
-
-	//     trim_line(key);
-	//     trim_line(value);
-
-	//     if (!key.empty())
-	//         _reqParam[toLower(key)] = value;
+	//     std::cout << it->first << ": PPP " << it->second << std::endl;
 	// }
-	// DEBUG_MSG("scode = " << _sCode);
-	std::cout << "--- Contenu de _reqParam ---" << std::endl;
-	for (std::map<std::string, std::string>::iterator it = _reqParam.begin(); it != _reqParam.end(); ++it)
-	{
-	    std::cout << it->first << ": PPP " << it->second << std::endl;
-	}
-	std::cout << "----------------------------" << std::endl;
+	// std::cout << "----------------------------" << std::endl;
 	getWriteLocation(_pathfile);
 	setErrorPath();
 }
@@ -86,7 +65,6 @@ Request &Request::operator=(const Request &other)
 		_chunked = other._chunked;
 		_contentLength = other._contentLength;
 		_expect = other._expect;
-		// _bodyRead = other._bodyRead;
 	}
 	return (*this);
 }
@@ -137,8 +115,6 @@ bool Request::is_cgi( std::string file )
 		return (false);
 	else
 		extension = file.substr(p);
-	// (file.substr(file.find_last_of(".")));
-	// ssize_t pos;
 
 	std::string::size_type pos;
 	if ( (pos = extension.find('?')) != std::string::npos)

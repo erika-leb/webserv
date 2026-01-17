@@ -22,10 +22,9 @@ private:
 
 	std::map<std::string, std::string>	_reqParam, _params;
 	std::stringstream					_rawHttp;
-	// std::map<int, std::string>			_errorPath;
 	std::map<int, StatusInfo> _errorPath;
 	std::string							_action, _pathfile, _file, _fileType, _connection, _statusMess, _location;
-	size_t								_sCode, _fileLength, _chunked, _expect; //3 derniers = 1 si chunked, uplaod renseigne et contentleingt active
+	size_t								_sCode, _fileLength, _chunked, _expect;
 	unsigned long long					_contentLength;
 	int 								_locationIndex;
 	std::vector<LocationConfig>			_locs;
@@ -33,8 +32,6 @@ private:
 	std::stringstream					_body;
 
 public:
-
-	// init functions (Request_init.cpp)
 
 	Request( Client& );
 	Request( const Request& );
@@ -55,7 +52,6 @@ public:
 	size_t								getExpect() const;
 	void								setCode(int n);
 	std::string							getBody() const;
-	// unsigned long long	getBodyRead();
 
 	bool is_cgi( std::string );
 
@@ -100,6 +96,7 @@ public:
 	std::string makeResponse();
 
 	// cgi helper function
+	
 	std::string	getCgiHandler( std::string );
 };
 

@@ -52,11 +52,9 @@ void Request::getWriteLocation(std::string &pathfile)
 			// DEBUG_MSG("pathbis2 = " << pathBis);
 			// DEBUG_MSG("uri size = " << uri.size() << " ; size = " << size);
 			if (uri.size() > size)
-			// if (arg[0].size() > size)
 			{
 				// DEBUG_MSG("uri2 = " << uri);
 				size = uri.size();
-				// size = arg[0].size();
 				// DEBUG_MSG("arg0 = " << arg[0]);
 				_locationIndex = i;
 			}
@@ -68,7 +66,6 @@ void Request::getPath(std::string &pathfile)
 {
 	Directive	directive;
 
-	// std::vector<LocationConfig> locs = _serv.getLocation();
 	std::vector<std::string> arg;
 	getWriteLocation(pathfile);
 	if (_locationIndex != -1)
@@ -76,8 +73,6 @@ void Request::getPath(std::string &pathfile)
 	else
 		directive = getDirective("root", _serv.getDir());
 	arg = directive.getArg();
-	// if (pathfile[0] != '/') //inutile ??
-	// 	pathfile.insert(0, "/"); // inutile ??
 
 	if (_sCode < 300)
 		pathfile.insert(0, arg[0]);
@@ -88,7 +83,6 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 	std::ifstream fs(pathfile.c_str());
 	std::string tmp, res;
 
-	// getPath(pathfile);
 	if (fs.is_open()) {
 		while (std::getline(fs, tmp))
 		{
@@ -106,25 +100,6 @@ std::string Request::getFile(std::string &pathfile, size_t *fileLength)
 	return (res);
 }
 
-// std::string Request::getFile(std::string &pathfile, size_t *fileLength)
-// {
-//     std::ifstream fs(pathfile.c_str(), std::ios::binary); // Ouverture en binaire
-
-//     if (fs.is_open()) {
-//         std::stringstream buffer;
-//         buffer << fs.rdbuf(); // Copie directe du flux interne
-//         fs.close();
-
-//         std::string res = buffer.str();
-//         *fileLength = res.size(); // Taille exacte en octets
-//         return res;
-//     }
-
-//     DEBUG_MSG("ERROR: Couldn't open file [" << pathfile << "]");
-//     *fileLength = 0;
-//     return "";
-// }
-
 void Request::checkPath(std::string pathfile, size_t &eCode)
 {
 	struct stat	fileStat;
@@ -140,21 +115,18 @@ void Request::checkPath(std::string pathfile, size_t &eCode)
 		DEBUG_MSG("Path does not exist: " << pathfile);
 		return ;
 	}
-	if (S_ISREG(fileStat.st_mode)) // c'est un fichier
+	if (S_ISREG(fileStat.st_mode)) // it is a file
 	{
 		DEBUG_MSG("il s'agit d'un fichier");
 	}
-	else if (S_ISDIR(fileStat.st_mode)) // c'est un dossier
+	else if (S_ISDIR(fileStat.st_mode)) // it is a folder
 	{
 		DEBUG_MSG("il s'agit d'un dossier");
-		// if ((pathfile.c_str(), F_OK) < 0) {
 		checkIndex();
-		// eCode = 404;
-		// }
 	}
-	else // c'est un autre type de fichier
+	else // it is not a file nor a folder
 	{
-		eCode = 403; // Accès non autorisé à ce type
+		eCode = 403;
 		DEBUG_MSG("Path is neither file nor directory: " << pathfile);
 	}
 	if ((pathfile.find("/errors/")) != std::string::npos)

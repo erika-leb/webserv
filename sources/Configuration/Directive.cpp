@@ -1,6 +1,6 @@
 #include "Directive.hpp"
 
-Directive::Directive(std::string line) : name(""), nbArg(0), arg(), sizeMax(-1) // verifier que la directive est correcte sinon trhow
+Directive::Directive(std::string line) : name(""), nbArg(0), arg(), sizeMax(-1)
 {
     size_t i = 0;
     std::string word;
@@ -43,8 +43,6 @@ void Directive::checkRoot()
 		throw std::runtime_error("error configuration file's root directive");
 	if (arg[0][arg[0].size() - 1] == '/')
 		arg[0] = arg[0].substr(0, arg[0].size() - 1);
-	// if (arg[0][0] == '/')
-	// 	arg[0] = arg[0].substr(1, arg[0].size());
 	if (arg[0] == "sources")
 		throw std::runtime_error("error configuration file's root directive : sources files cannot be modified");
 	if (arg[0] == "default_documents")
@@ -72,7 +70,7 @@ void Directive::checkError()
 	if ( code < 300 || code > 599)
 		throw std::runtime_error("error in configuration file : error_page directive");
 	if (arg[1].empty())
-		throw std::runtime_error("error in configuration file : error_page directive"); //usefull ?
+		throw std::runtime_error("error in configuration file : error_page directive");
 
 	if (arg[1][0] != '/')
 		arg[1] = '/' + arg[1];
@@ -97,7 +95,7 @@ void Directive::checkRedir()
 	if ( code != 301 && code != 302 && code != 307 && code != 308)
 		throw std::runtime_error("error in configuration file : redirection code should only be 301, 302, 307 or 308");
 	if (arg[1].empty())
-		throw std::runtime_error("error in configuration file : redirection directive"); //usefull ?
+		throw std::runtime_error("error in configuration file : redirection directive");
 }
 
 void Directive::checkAutoindex()
@@ -182,18 +180,10 @@ void Directive::checkCgi()
 	}
 }
 
-// void Directive::checkUpload()
-// {
-// 	if (nbArg != 1 || arg[0] == "")
-// 		throw std::runtime_error("error in configuration file : upload directive should have one attribute");
-// 	if (arg[0][0] != '/')
-// 		arg[0] = '/' + arg[0];
-// }
-
 void Directive::checkBasicDir()
 {
 	if (nbArg == 0)
-		throw std::runtime_error("error in configuration file : directive should have at least one attribute"); //usefull ?
+		throw std::runtime_error("error in configuration file : directive should have at least one attribute");
 	if (name == "root")
 		checkRoot();
 	else if (name == "error_page")
@@ -216,12 +206,8 @@ void Directive::checkBasicDir()
 		checkMaxBody();
 	else if (name == "cgi_handler")
 		checkCgi();
-	// else if (name == "upload_path")
-	// 	checkUpload();
-	// else if (name == "listen")
-	// {}
 	else if (name != "listen")
-		throw std::runtime_error("error in configuration file's directive : bad directive"); // a rajouter a la fin pour rendre plus contraignant le fichier de conf  ou pas ?
+		throw std::runtime_error("error in configuration file's directive : bad directive");
 }
 
 std::string &Directive::getName()
@@ -264,17 +250,6 @@ Directive &Directive::operator=(const Directive &src)
     }
     return (*this);
 }
-
-// void Directive::print_directive()
-// {
-//     std::cout << "Directive name: " << name << std::endl;
-//     std::cout << "Arguments:" << std::endl;
-//     for (size_t i = 0; i < arg.size(); ++i)
-//     {
-//         std::cout << "  [" << i << "] " << arg[i] << std::endl;
-//     }
-//     std::cout << "nb of argument" << nbArg << std::endl;
-// }
 
 void Directive::print_directive()
 {

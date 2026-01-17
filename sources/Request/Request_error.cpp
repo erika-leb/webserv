@@ -150,8 +150,6 @@ void Request::setErrorPath()
 	}
 }
 
-
-/* This function can be (has been) reduce with a hash table */
 std::string Request::ifError(std::string &path, std::string &con, int sCode)
 {
 	StatusInfo tmp = _errorPath[sCode];

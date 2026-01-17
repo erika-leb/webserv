@@ -39,7 +39,7 @@ class Client {
 		void setCgi( Cgi* newCgi );
 		void setCgiPid( pid_t );
 		pid_t getCgiPid();
-		void deleteCgi(); // is this function really needed ?
+		void deleteCgi();
 		Cgi* getCgi();
 
 		Request* getRequest() const;
@@ -60,7 +60,7 @@ class Client {
 
 		int _fd;
 		std::string _buff;
-		std::string _sendBuff; //response to send
+		std::string _sendBuff;
 		bool _con;
 		time_t _lastConn;
 		ServerConfig &_conf;

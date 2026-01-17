@@ -37,7 +37,7 @@ size_t	ft_strlen(const char *str)
 	return (i);
 }
 
-int make_non_blocking(int sockfd) //rendre une socket non bloquante
+int make_non_blocking(int sockfd)
 {
 	int flag;
 
@@ -45,7 +45,7 @@ int make_non_blocking(int sockfd) //rendre une socket non bloquante
 	if (flag < 0)
 	{
 		std::cerr << "bind() failed " + static_cast<std::string>(strerror(errno)) << std::endl;
-		return (-1); //verifier ce qu'on fait dans ce cas la
+		return (-1);
 	}
 	if ( fcntl(sockfd, F_SETFD, FD_CLOEXEC) < 0) {
 		std::cerr << "fcntl() failed" + static_cast<std::string>(strerror(errno)) << std::endl;
@@ -77,7 +77,6 @@ std::string date(int format) {
 		std::strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S GMT", timezone);
 		break;
 	case LOG:
-		// std::strftime(buff, sizeof(buff), "[%F][%H:%M:%S]", gmt);
 		std::strftime(buff, sizeof(buff), "[%H:%M:%S]", timezone);
 		break;
 
@@ -110,23 +109,12 @@ Directive getDirective(std::string name, std::vector<Directive> dir)
 }
 
 
-
-
-
-
-
-
-
-
-
 int is_fd_open(int fd) {
     int flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
         if (errno == EBADF) {
-            // fd n'est pas ouvert
             return 0;
         }
     }
-    // fd est ouvert
     return 1;
 }
