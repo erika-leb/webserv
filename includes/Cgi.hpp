@@ -41,7 +41,7 @@ public:
 	bool getKilled();
 	void setKilled(bool b);
 
-	void makeEnv( std::vector<std::string>, std::vector<char *>& );
+	void makeEnv( std::vector<std::string> &, std::vector<char *>& );
 
 	void	handleCGI_fork( int, Server& );
 	// int		handleCGI_pipe( int, int );

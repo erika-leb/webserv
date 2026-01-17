@@ -70,12 +70,6 @@ void Server::checkTimeOut()
 	// perror("ici");
 	for (std::vector<Client *>::size_type i = 0; i < _clients.size(); i++)
 	{
-		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
-		if (now - _clients[i]->getlastConn() > TIMEOUT_SECONDS)
-		{
-			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (TIMEOUT)" << std::endl;
-			deleteSocket(_clients[i]->getFd());
-		}
 		if (_clients[i]->getCgi() != NULL && now - _clients[i]->getCgi()->getCgiTime() > CGI_TIMEOUT_SECONDS)
 		{
 			fd = _clients[i]->getCgi()->getFd(READ);
@@ -87,6 +81,13 @@ void Server::checkTimeOut()
 			// delete (*(_clients[i]->getCgi()->getFd(READ))); // pointer freed
 			// deleteSocket(_clients[i]->getCgi()->getFd(READ));
 		}
+		// std::cout << "fd = " << _clients[i]->getFd() << std::endl;
+		if (now - _clients[i]->getlastConn() > TIMEOUT_SECONDS)
+		{
+			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (TIMEOUT)" << std::endl;
+			deleteSocket(_clients[i]->getFd());
+		}
+
 	}
 }
 

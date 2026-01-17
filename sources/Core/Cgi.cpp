@@ -110,7 +110,7 @@ void Cgi::setKilled(bool b)
 	_killed = b;
 }
 
-void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *>& envp) {
+void Cgi::makeEnv( std::vector<std::string>& env_storage, std::vector<char *>& envp) {
 	std::map<std::string, std::string> cgi;
 
 	cgi["REQUEST_METHOD"]  = _method;
@@ -122,31 +122,39 @@ void Cgi::makeEnv( std::vector<std::string> env_storage, std::vector<char *>& en
 
     cgi["SCRIPT_FILENAME"] = _path;
 
-	if (!_reqBody.empty())
-		cgi["CONTENT_LENGTH"]	= _reqBody.size();
-    cgi["SERVER_PROTOCOL"] = "HTTP/1.1";
-    cgi["GATEWAY_INTERFACE"] = "CGI/1.1";
-    cgi["SERVER_SOFTWARE"] = "Webserv/1.0";
-    cgi["SERVER_NAME"]     = _serverName;
-    cgi["SERVER_PORT"]     = _port;
+	// if (!_reqBody.empty())
+	// 	cgi["CONTENT_LENGTH"]	= _reqBody.size();
+	if (!_reqBody.empty()) {
+		std::stringstream ss;
+		ss << _reqBody.size();
+		cgi["CONTENT_LENGTH"] = ss.str();
+	} else {
+		cgi["CONTENT_LENGTH"] = "0";
+	}
+	cgi["SERVER_PROTOCOL"] = "HTTP/1.1";
+	cgi["GATEWAY_INTERFACE"] = "CGI/1.1";
+	cgi["SERVER_SOFTWARE"] = "Webserv/1.0";
+	cgi["SERVER_NAME"]	 = _serverName;
+	cgi["SERVER_PORT"]	 = _port;
 
-    env_storage.reserve(cgi.size());
+	env_storage.reserve(cgi.size());
 
 
 	char *tmp;
-    envp.reserve(cgi.size() + 1);
-    for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
-        env_storage.push_back(it->first + "=" + it->second);
+	envp.reserve(cgi.size() + 1);
+	for (std::map<std::string,std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
+		env_storage.push_back(it->first + "=" + it->second);
 		tmp = new char[env_storage.back().size() + 1];
 		std::strcpy(tmp, env_storage.back().c_str());
-        envp.push_back(tmp);
-    }
+		envp.push_back(tmp);
+	}
 
-    envp.push_back(NULL);
+	envp.push_back(NULL);
 }
 
 void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	char * const args[] = {(char *)_cgiHandler.c_str(), (char *)_path.c_str(), NULL};
+	// char * const args[] = {(char *)"./html/cgi/cgi_tester", (char *)_path.c_str(), NULL};
 
 	// for(std::vector<char *>::const_iterator it=env.begin(); it != env.end(); ++it) {
 	// 	DEBUG_MSG("env: " << (*it));
@@ -185,7 +193,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 		close(_pipeDes[WRITE]);
 
 		execve(_cgiHandler.c_str(), args, &env[0]);
-		// execve("bliblouy", args, &env[0]);
+		// execve("./html/cgi/cgi_tester", args, &env[0]);
 		std::string buff = "Status: 500 Internal server error\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><style>h1 {text-align: center;}p {text-align: center;}div {text-align: center;}</style></head><body><h1>500</h1><div>Internal server error.</div></body></html>";
 		std::cout << buff;
 
@@ -260,7 +268,7 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 			return 2;
 		}
 		else if (n < 0) {
-			std::cerr << "read() failed: " << strerror(errno) << std::endl;
+			std::cerr << "HHHHread() failed: " << strerror(errno) << std::endl;
 			close(pipefd);
 
 			return 1;
