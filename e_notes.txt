@@ -1,11 +1,9 @@
 
 valgrind --trace-children=yes --track-fds=yes --leak-check=full --show-leak-kinds=all ./webserv
 
+test POST CGI avec entree:
+curl -X POST http://localhost:8080/cgi/test_input.py -d "le serveur de l'intelligence artificielle fonctionne"
 
-
--test feuille
--test ecole
--rendre tout propre
 
 -rajouter 505 version not supported ? si HTTP 2.0
 - test envoi fichier 50Mo ne fonctionne pas

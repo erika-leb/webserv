@@ -62,6 +62,7 @@
 #define ERROR_413 "/errors/413.html"
 #define ERROR_500 "/errors/500.html"
 #define ERROR_501 "/errors/501.html"
+#define ERROR_505 "/errors/505.html"
 
 #define REDIR_301 "/redirections/301.html"
 #define REDIR_302 "/redirections/302.html"

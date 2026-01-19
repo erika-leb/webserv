@@ -81,6 +81,11 @@ static void setStatusInfo( int code, StatusInfo& tmp) {
 		str = " Not implemented";
 		con = "close";
 		break ;
+	case 505:
+		defaultPath += ERROR_505;
+		str = " Version Not Supported";
+		con = "close";
+		break ;
 	default:
 		str = "";
 		con = "";

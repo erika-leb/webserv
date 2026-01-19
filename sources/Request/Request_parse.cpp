@@ -85,7 +85,12 @@ void Request::parseHttp(void)
 	{
 		if (tmp != "HTTP/1.1")
 		{
-			_sCode = 400;
+			if (tmp == "HTTP/0.9" || tmp == "HTTP/2.0" || tmp == "HTTP/1.0")
+			{
+				_sCode = 505;
+			}
+			else
+				_sCode = 400;
 		}
 	}
 	else
