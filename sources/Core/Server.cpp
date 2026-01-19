@@ -165,6 +165,11 @@ void Server::launch()
 
 	while(flag == 0)
 	{
+		int status;
+		while (waitpid(-1, &status, WNOHANG) > 0) {
+			// On boucle jusqu'à ce qu'il n'y ait plus de zombies.
+			// On ne fait rien de spécial, waitpid s'occupe de libérer le PID.
+		}
 		d = epoll_wait(_poll, _events, SOMAXCONN, timeOut());
 		for (int i = 0; i < d; i++)
 		{

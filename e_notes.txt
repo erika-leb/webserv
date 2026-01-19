@@ -7,9 +7,14 @@ valgrind --trace-children=yes --track-fds=yes --leak-check=full --show-leak-kind
 -test ecole
 -rendre tout propre
 
+-rajouter 505 version not supported ? si HTTP 2.0
+- test envoi fichier 50Mo ne fonctionne pas
+- 127.0.0.1:8080/test/./Make.txt a l'air de fonctionner est-ce normal ? essyer d'acceder a l'exterieur
+- siege -f urls.txt -c 50 -t 10s -b    (5 erreurs, peut-etre du aux zombies)
+
 derniere mise au propre:
 - int optval = 1; // a enlever apres
-	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)); //a enlever apres enlever 
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)); //a enlever apres enlever
 
 
 

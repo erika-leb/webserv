@@ -73,13 +73,14 @@ void Server::checkTimeOut()
 			std::cout << date(LOG) << ": Client(" << fd << ") disconnected (CGI TIMEOUT)" << std::endl;
 			DEBUG_MSG("pid to kill = " << _clients[i]->getCgiPid());
 			kill(_clients[i]->getCgiPid(), SIGINT);
+			waitpid(_clients[i]->getCgiPid(), NULL, 0);
 			_clients[i]->getCgi()->setKilled(true);
 		}
 		if (now - _clients[i]->getlastConn() > TIMEOUT_SECONDS)
 		{
 			std::cout << date(LOG) << ": Client(" << _clients[i]->getFd() << ") disconnected (TIMEOUT)" << std::endl;
 			deleteSocket(_clients[i]->getFd());
-			// i--;
+			i--;
 		}
 
 	}

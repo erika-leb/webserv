@@ -1,0 +1,7 @@
+http://localhost:8080/index.html
+http://localhost:8080/css/style.css
+http://localhost:8080/cgi/post_test.py
+http://localhost:8080/cgi/script.php
+http://localhost:8080/test/chat.jpeg
+http://localhost:8080/cgi/error.py
+

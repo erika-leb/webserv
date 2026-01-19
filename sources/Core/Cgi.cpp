@@ -170,7 +170,7 @@ void Cgi::handleCGI_fork( int pollfd, Server& serv ) {
 	}
 
 	_startTime = std::time(NULL);
-	
+
 	pid_t pid = fork();
 	if (pid == -1) {
 		close(stdinPipe[WRITE]); close(stdinPipe[READ]);
@@ -252,7 +252,7 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 		std::string output = "HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/html\r\nContent-Length: 154\r\nConnection: close\r\n\r\n<html><head><title>504 Gateway Timeout</title></head><body><center><h1>504 Gateway Timeout</h1><p>The CGI script took too long to respond.</p></center></body></html>";
 		_cli.setSendBuff(output);
 		kill(_pid, SIGKILL);
-		waitpid(_pid, NULL, 0); // Nettoie le zombie après le kill
+		waitpid(_pid, NULL, WNOHANG); // Nettoie le zombie après le kill
 		return (0);
 	}
 
@@ -267,7 +267,7 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 		close(pipefd);
 		int status;
     	// On vérifie si le fils a crashé
-    	if (waitpid(_pid, &status, 0) != -1) {
+    	if (waitpid(_pid, &status, WNOHANG) != -1) {
     	    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
     	        DEBUG_MSG("CGI crashed with status " << WEXITSTATUS(status));
 
@@ -307,7 +307,7 @@ int Cgi::handleCGI_pipe( int pipefd, int event ) {
 
 						int status;
     		// On récupère le statut du processus associé à ce CGI
-    		if (waitpid(_pid, &status, 0) != -1) {
+    		if (waitpid(_pid, &status, WNOHANG) != -1) {
     		    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
     		        // LE SCRIPT A CRASHÉ (ex: ton erreur Python while T)
     		        std::cerr << "CGI Error: script exited with status " << WEXITSTATUS(status) << std::endl;

@@ -177,7 +177,7 @@ void Request::checkIndex()
 		indexPath = dir1.getArg()[0] + _locs[_locationIndex].getUri() + dir.getArg()[0];
 		if (stat(indexPath .c_str(), &fileStat) >= 0 && (S_ISREG(fileStat.st_mode))) // le fichier html est ok donc on sort
 		{
-			perror("lum");
+			// perror("lum");
 			if (_locs[_locationIndex].getUri() != "/")
 				_pathfile = _locs[_locationIndex].getUri() + dir.getArg()[0]; // PATHFILE FINAL
 			else
