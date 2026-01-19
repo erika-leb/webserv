@@ -214,7 +214,7 @@ bool Server::is_chunk_complete( Client *cli )
 bool Server::is_body_complete( Client *cli )
 {
 	Request *req;
-	std::string::size_type pos;
+	// std::string::size_type pos;
 
 	if (cli->getRequest() == NULL)
 		return (false);
@@ -227,7 +227,7 @@ bool Server::is_body_complete( Client *cli )
 	if (req->getChunked() == 1)
 	{
 	    bool complete = is_chunk_complete(cli);
-		pos = cli->getBuff().find("0\r\n\r\n");
+		// pos = cli->getBuff().find("0\r\n\r\n");
 		// if  (pos != std::string::npos )
 		// {
 	    // 	std::cout << "oui, pos =" << cli->getBuff().find("0\r\n\r\n") <<  std::endl;

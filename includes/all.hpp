@@ -77,7 +77,7 @@ struct docType {
 	const char *type;
 };
 
-static docType gType[] = {
+const struct docType gType[] = {
 	{".html", "text/html"},
 	{".css",  "text/css"},
 	{".js",   "application/javascript"},
