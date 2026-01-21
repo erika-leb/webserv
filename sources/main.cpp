@@ -28,7 +28,7 @@ void process_loc(std::ifstream &file, std::fstream &temp, std::string &line)
 		if (line == "}")
 			break;
 		if (line[line.size() - 1] != ';')
-			throw std::runtime_error("error in configuration file's syntaxe1");
+			throw std::runtime_error("error in configuration file's syntaxe");
 		temp << line.substr(0, line.size() - 1) << std::endl;
 	}
 }
@@ -54,7 +54,7 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string &line)
 		if (loc == 0 && !(line.substr(0, 8) == "location"))
 		{
 			if (line[line.size() - 1] != ';')
-				throw std::runtime_error("error in configuration file's syntaxe2");
+				throw std::runtime_error("error in configuration file's syntaxe");
 			temp << line.substr(0, line.size() - 1) << std::endl;
 		}
 		else if (line.substr(0, 8) == "location")
@@ -63,7 +63,7 @@ void process_serv(std::ifstream &file, std::fstream &temp, std::string &line)
 			process_loc(file, temp, line);
 		}
 		else
-			throw std::runtime_error("" + static_cast<std::string>(strerror(errno)));
+			throw std::runtime_error("error in configuration file's syntaxe");
 	}
 }
 
@@ -85,7 +85,7 @@ void first_parse(std::ifstream &file, std::fstream &temp)
 		if (serv == 0 && !(line.substr(0, 6) == "server"))
 		{
 			if (line[line.size() - 1] != ';')
-				throw std::runtime_error("error in configuration file's syntaxe3");
+				throw std::runtime_error("error in configuration file's syntaxe");
 			temp << line.substr(0, line.size() - 1) << std::endl;
 		}
 		else if (line.substr(0, 6) == "server")
@@ -94,7 +94,7 @@ void first_parse(std::ifstream &file, std::fstream &temp)
 			process_serv(file, temp, line);
 		}
 		else
-			throw std::runtime_error("error in configuration file's syntaxe4");
+			throw std::runtime_error("error in configuration file's syntaxe");
 	}
 }
 
